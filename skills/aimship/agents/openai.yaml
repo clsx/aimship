@@ -1,0 +1,6 @@
+interface:
+  display_name: "Aimship"
+  short_description: "Carry a software goal through a clear delivery"
+  default_prompt: "Use $aimship to start or resume my software delivery."
+policy:
+  allow_implicit_invocation: false
