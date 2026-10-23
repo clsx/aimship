@@ -17,3 +17,7 @@ The relevant interactions and states are clear and consistent with current requi
 Missing visual/browser tools require an explicit unverified scope. Resolve contradictory behavior through requirements/Scope; do not silently alter external prototypes.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use the registered prototype entry (new HTML: prototype/index.html). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.

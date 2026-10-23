@@ -42,9 +42,10 @@ async function completedDelivery(home) {
   await fs.writeFile(path.join(directory, 'results.md'), '# Synthetic recorded facts\n## Handoff\n## Acceptance\n');
   const runtime = { version: VERSION, activeVersion: VERSION };
   const run = { id: 'handoff-1', stage: 'handoff', scope: 'Confirmed design-only endpoint', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] };
-  await initState(directory, { goal: { summary: 'Synthetic design delivery', endpoint: 'Design handoff only' }, goalRef: 'requirements.md', stageRuns: [run], currentRun: 'handoff-1' }, VERSION, runtime);
+  await fs.mkdir(path.join(directory,'source')); await fs.writeFile(path.join(directory,'source/request.md'),'Synthetic design request');
+  await initState(directory, { documentPolicy:{authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'handoff',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Synthetic design delivery', endpoint: 'Design handoff only' }, goalRef: 'requirements.md', stageRuns: [run], currentRun: 'handoff-1' }, VERSION, runtime);
   await updateState(directory, { stageRuns: [{ ...run, progress: 'done', resultRef: 'results.md#handoff' }], outcome: { goal: 'met', goalConclusionRef: 'results.md#handoff', acceptance: 'accepted', acceptanceRef: 'results.md#acceptance' } }, 0, VERSION, runtime);
-  return { directory, stateBytes: await fs.readFile(path.join(directory, 'state.json'), 'utf8'), resultBytes: await fs.readFile(path.join(directory, 'results.md'), 'utf8') };
+  return { directory, stateBytes: await fs.readFile(path.join(directory, '.aimship/state.json'), 'utf8'), resultBytes: await fs.readFile(path.join(directory, 'results.md'), 'utf8') };
 }
 
 test('lifecycle status and version do not create an uninstalled home', { timeout: 60_000 }, async t => {
@@ -102,7 +103,7 @@ test('lifecycle upgrade distinguishes versions, preserves completed delivery/cus
   const pending = cli(p.launcher, ['status']); assert.equal(pending.status, 0, pending.stderr); assert.equal(pending.data.data.installation, 'incomplete'); assert.equal(pending.data.data.installedActiveVersion, VERSION); assert.equal(pending.data.data.pending.version, NEXT); assert.equal(pending.data.data.config.status, 'invalid');
   await fs.writeFile(p.config, config); const recovered = await install(source, { home }); assert.equal(recovered.action, 'upgrade'); assert.equal(recovered.result, 'recovered'); assert.equal(recovered.fromVersion, VERSION); assert.equal(recovered.toVersion, NEXT);
   const oldTool = path.join(p.root, 'releases', VERSION, 'bin/aimship.mjs'); const version = cli(oldTool, ['--version']); assert.equal(version.status, 0, version.stderr); assert.equal(version.data.data.toolVersion, VERSION); assert.equal(version.data.data.installedActiveVersion, NEXT);
-  assert.equal(await fs.readFile(path.join(completed.directory, 'state.json'), 'utf8'), completed.stateBytes); assert.equal(await fs.readFile(path.join(completed.directory, 'results.md'), 'utf8'), completed.resultBytes); assert.equal(await fs.readFile(custom, 'utf8'), 'User-owned custom instructions\n');
+  assert.equal(await fs.readFile(path.join(completed.directory, '.aimship/state.json'), 'utf8'), completed.stateBytes); assert.equal(await fs.readFile(path.join(completed.directory, 'results.md'), 'utf8'), completed.resultBytes); assert.equal(await fs.readFile(custom, 'utf8'), 'User-owned custom instructions\n');
   await fs.writeFile(p.active, '{damaged active pointer'); const diagnostic = cli(p.launcher, ['status']); assert.equal(diagnostic.status, 0, diagnostic.stderr); assert.equal(diagnostic.data.data.installation, 'damaged'); assert.equal(diagnostic.data.data.active.status, 'invalid'); assert.equal(await fs.readFile(p.active, 'utf8'), '{damaged active pointer');
 });
 
@@ -160,6 +161,6 @@ test('lifecycle last-host disconnect retains shared core for status, version, up
   const repeated = cli(p.launcher, ['install']); assert.equal(repeated.status, 0, repeated.stderr); assert.equal(repeated.data.data.action, 'reinstall'); assert.deepEqual(repeated.data.data.hosts, []);
   await setVersion(source, NEXT); const upgraded = await install(source, { home }); assert.equal(upgraded.action, 'upgrade'); assert.deepEqual(upgraded.hosts, []);
   const reconnected = cli(p.launcher, ['install', '--host', 'claude-code']); assert.equal(reconnected.status, 0, reconnected.stderr); assert.equal(reconnected.data.data.action, 'add-hosts'); assert.deepEqual(reconnected.data.data.addedHosts, ['claude-code']); assert.equal(await exists(path.join(home, '.claude/skills/aimship/SKILL.md')), true);
-  const full = cli(p.launcher, ['uninstall']); assert.equal(full.status, 0, full.stderr); assert.equal(full.data.data.coreRetained, false); assert.equal(await exists(p.launcher), false); assert.equal(await exists(p.active), false); assert.equal(await exists(p.config), true); assert.equal(await fs.readFile(path.join(completed.directory, 'state.json'), 'utf8'), completed.stateBytes);
+  const full = cli(p.launcher, ['uninstall']); assert.equal(full.status, 0, full.stderr); assert.equal(full.data.data.coreRetained, false); assert.equal(await exists(p.launcher), false); assert.equal(await exists(p.active), false); assert.equal(await exists(p.config), true); assert.equal(await fs.readFile(path.join(completed.directory, '.aimship/state.json'), 'utf8'), completed.stateBytes);
   assert.equal((await installationStatus({ home })).installation, 'uninstalled');
 });

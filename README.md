@@ -16,7 +16,7 @@ Requires Node.js 22+ and npm. Select a host with `--host`: `codex`, `cursor` or 
 npx aimship@preview install --host codex
 ```
 
-The npm command becomes available when the preview is published. For the current source or a local package, see the [installation guide](docs/installation.md).
+The published preview is available through npm. This source checkout contains the next local candidate; use the [installation guide](docs/installation.md) for a source or local package install.
 
 Aimship shares one installation across projects and selected hosts. It does not require a global npm install. After installation, start a new host session and enable access to the delivery folder and code repositories as needed.
 

@@ -1,62 +1,82 @@
 # Local tool protocol
 
-The agent normally runs these tools to handle file structure and version/revision checks, not business decisions. Cross-delivery overlap checking is an agent workflow using existing state and focused local Git metadata, not a CLI concurrency guarantee or a new registry. All commands emit JSON; errors include a code, message and recovery advice with a nonzero exit status. Run `node bin/aimship.mjs help` in a source checkout for the complete current interface.
+Commands emit JSON. Errors include code/message/recovery and use a nonzero exit. `help` describes options; installation `status` is separate from a delivery's generated `status.md`. The agent interprets business meaning and authorization. Examples use placeholders for absolute paths and the bound version.
 
-## Bind and create
+## Create and bind
 
-An installed entry invokes the stable `.aimship/bin/aimship.mjs` launcher. `bind` returns the active immutable release, core, stage directory, CLI path, rules version, configured material root and config/custom locations. Use the returned fixed CLI and version for this session. Paths in examples below are placeholders to replace with your actual paths, safely quoted for your shell.
+`bind` returns fixed CLI/core/stage paths, version and configured data root. Keep that binding for the session. Installation does not create deliveries.
 
-```sh
-node '<stable-launcher>' bind
-node '<fixed-cli>' init '<delivery-dir>' --rules-version '0.1.0-preview.4' --input '<init.json>'
-```
-
-Before `init`, save the original request and current requirements/Scope in the actual delivery directory. `init` creates state once; it does not create requirement templates or infer authority. Minimal input:
+Before init, save `source/request.md` and the PRD/Scope draft from the [templates](../skills/aimship/references/document-patterns.md). No templates are automatically created. Example input:
 
 ```json
 {
-  "goal": {"summary": "Explain the selected design", "endpoint": "Design handoff"},
-  "goalRef": "requirements.md",
-  "stageRuns": [],
-  "next": {"action": "Record the agreed stage arrangement", "inputRefs": ["requirements.md"]}
+  "goal": {"summary":"Define the selected design", "endpoint":"Design handoff"},
+  "goalRef":"prd.md",
+  "documentPolicy":{"authority":"authored","interaction":false,"prototypeCovered":false,"interface":"none","databases":[]},
+  "documents":[{"kind":"prd","path":"prd.md","mode":"new","version":"1"}],
+  "stageRuns":[],
+  "next":{"action":"Draft the agreed design","inputRefs":["prd.md"]}
 }
 ```
 
-Identity, schema/rules version, revision and timestamps are tool-managed. Do not include them in init input. A useful arrangement contains distinct `stageRuns` with `id`, `stage`, `scope`, `progress`, `inputRefs`, and `outputRefs`. `currentRun` names one of them or is null. Associate repositories as `{id, path, role}` with an absolute actual checkout/worktree root. IDs are local to this delivery; they do not establish cross-delivery repository identity. Use role and current scope to distinguish read-only reference from intended code writes; record actual authorized scope and working basis in the associated requirements/evidence.
-
-## Read, update and check
-
 ```sh
-node '<fixed-cli>' read '<delivery-dir>' --rules-version '0.1.0-preview.4'
-node '<fixed-cli>' update '<delivery-dir>' --revision 0 --rules-version '0.1.0-preview.4' --input '<patch.json>'
-node '<fixed-cli>' check '<delivery-dir>' --rules-version '0.1.0-preview.4'
-node '<fixed-cli>' resume '<delivery-dir>' --rules-version '0.1.0-preview.4'
+node '<stable-launcher>' bind
+node '<fixed-cli>' init '<delivery-dir>' --rules-version '<bound-version>' --input '<init.json>'
 ```
 
-Use the revision just read; a conflict requires rereading and reconciling. Updates recursively merge objects but replace arrays in full. `null` is a value, not deletion. `--input -` reads a JSON object from stdin. Completed stage runs need `resultRef`; retained old results use `priorResultRef` or `historyResultRefs`. Removing an already-started run or historical result reference is rejected.
+init allocates deliveryId and revision 0, creates `.aimship/state.json`, and generates `status.md`. Add that ID to the document information at the next save point. Identity/version/timestamps, documentDigests, identityHistory, retiredIdentities and legacyRunIds are managed; never supply them in a patch. `writeResult` is return metadata, not state input.
 
-References are delivery-relative, `repo:<id>/<relative-path>`, or HTTP(S) URLs, with optional fragments. Current checks inspect goal/next/current-input paths; `--all` also checks registered historical, decision, outcome, checkpoint and rule-change references. A file-existence result does not validate its fragment, contents or meaning. Remote references are not fetched by this tool. `resume.canProceed` is false for a recorded blocked current run, missing input paths or version mismatch. A true value only means these structural blockers were not found; the agent still checks authority, unresolved decisions and stage completion. Unknown schemas remain readable but cannot be overwritten.
+`documentPolicy.authority`: authored → prd.md; adopted → scope.md; editable → an explicitly authorized existing PRD containing this commission's complete scope/authorization/endpoint. `legacy` is migration-only. `interaction`, `prototypeCovered`, `interface` (none/http/other) and target `databases` IDs record artifact conditions. They do not select a preset route.
 
-`progress` is planned/active/blocked/done. Results are passed/failed/not-run/unknown/mixed; applicability is current/needs-review/unknown. `outcome.goal` is in-progress/met/not-met/unknown; acceptance is not-recorded/accepted/declined/unknown. A met goal requires a goal conclusion reference; acceptance requires its own decision reference. These are separate from merge/deployment references. The agent must assess the evidence; fields are not proof of success.
+Register documents as `{kind,path,mode,version}`. Kinds: prd, scope, tech-design, plan, testing, review, diagnosis, handoff, change-log, prototype, contract, sql, source. New formal Markdown follows the artifact map's root filename and ordered anchors. Reused files additionally need `basisRef` recording location/version/coverage/gaps and editability; unsupported content is explicitly not checked. New HTML prototype is prototype/index.html; register other agreed formats. HTTP contracts use openapi.yaml unless reused. SQL filenames follow database count. Source files are immutable adopted versions by workflow, not OS access controls.
 
-Changing the goal or goal reference requires a new `goal.decisionRef`; the tool preserves the old goal and outcome. Reopening increments `cycle` by one, retains a prior closure reference and resets current acceptance. Important changes remain in `openChanges` with stable ID/reference and open/closed status rather than disappearing when resolved.
-
-## Recovery and rules adoption
-
-Writes save `state.previous.json` and replace state atomically. If state is damaged, inspect actual artifacts and the backup before explicit recovery:
+## Update and inspect
 
 ```sh
-node '<fixed-cli>' recover '<delivery-dir>' --revision '<backup-revision>' --rules-version '<bound-version>'
+node '<fixed-cli>' read '<delivery-dir>' --rules-version '<bound-version>'
+node '<fixed-cli>' update '<delivery-dir>' --revision 0 --rules-version '<bound-version>' --input '<patch.json>'
+node '<fixed-cli>' check '<delivery-dir>' --all --rules-version '<bound-version>'
+node '<fixed-cli>' resume '<delivery-dir>' --rules-version '<bound-version>'
 ```
 
-Recovery preserves damaged bytes and refuses to roll back a valid or newer unknown state. It cannot reconstruct unrecorded effects. A stale lock requires confirming there is no active writer before removing only that lock. No parallel workflow scheduling is provided.
+Objects merge, arrays replace entirely; null is literal, not deletion. `--input -` accepts stdin JSON. A revision conflict requires rereading and reconciling, not guessing a revision. Keep one writing session per delivery.
 
-When an upgrade makes an old session mismatch, stop new stages. A compatible old tool can `checkpoint` only `{checkpoint: {summary, ref?}, next: {...}}` with its old rules version and current revision. It cannot complete a run or goal. Reload the active rules, inspect compatibility at a stable point, then use the active tool's `adopt` with input `{compatibilityRef: "results.md#rules-switch"}`. This records a rule switch without changing historical business facts. Schema 1 is the initial format; no legacy DeliveryArc migration or invented older Aimship migration is provided. Unsupported formats require a future supported migration and remain preserved meanwhile.
+Stage runs are ordered `{id,stage,scope,progress,inputRefs,outputRefs}`. currentRun refers to one ID or null. Progress: planned/active/blocked/done; result: passed/failed/not-run/unknown/mixed; applicability: current/needs-review/unknown. Done requires a precise resultRef. Preserve past results in priorResultRef/historyResultRefs; do not delete started runs. Shared files never complete two runs automatically. Plan must complete before implementation; batch review, then overall review, then independent verify remains the agent's semantic responsibility.
 
-## Installation diagnostics
+New Markdown uses explicit `<a id="..."></a>` anchors. Definition metadata in the document supplies namespace/ID/version/status/refs; see document-patterns. REV and RUN additionally set `run` to the stageRun ID and use a result anchor such as `review.md#rev-001-v1` or `testing.md#run-001-v1`. Basic uniqueness, exact reference resolution, REQ→AC, AC→TC and RUN→TC versions are checked; prose truth, every-assertion coverage and object versions require Agent review. `nextIds` reports historical maxima plus one, including retired IDs. Keep historical definitions; retired identities cannot be reused.
 
-User-facing installation, explicit update, version/status and uninstall commands are documented in one [installation guide](installation.md). `install` performs software installation and updates; this protocol's `update` continues to mean a revision-checked delivery-state update.
+References stay delivery-root-relative despite state being internal, or use `repo:<id>/<path>` / HTTP(S). Repository records `{id,path,role}` name actual absolute checkout/worktree roots. A branch is not a code version. Paths cannot escape roots through traversal or symlinks. check defaults to current inputs; --all adds registered history/decisions/outcomes. Exact fragments in registered new Markdown are checked; reused/remote/unsupported ones return not-checked. That does not establish semantics or passing verification.
 
-`--version` distinguishes the CLI/tool version from the active installed release. Use the stable launcher for the current installation. `status` is read-only, inspects the known installation and managed entry files, and reports registration separately from entry integrity. It does not establish host loading, login, permissions or semantic delivery readiness. The key fields are `installation`, `healthy`, `installedActiveVersion`, `pending`, `registeredHosts`, `hosts`, and `issues`. Each host separates `registered`, `entryPresent`, `entryIntegrity`, `sharedWith`, `hostLoaded`, `login`, and `permissions`; the final three remain `not-verified`. `unselectedHostDiscoveryPossible` warns about compatible discovery. A diagnostic command may exit successfully while reporting `healthy: false`; inspect its data. `--version` includes `toolVersion` and `installedActiveVersion`, which may differ when called from an older release.
+Read/check/resume are read-only. They return view diagnostics and changed registered documents; matching revisions do not prove unchanged formal content. Resume canProceed is conservative structural readiness, never authorization or acceptance. Read returns conflicting layout candidates and unknown formats without rewriting them. `scan <material-root>` reads immediate delivery children in both layouts, deduplicates deliveryId and reports conflicting/unknown/inaccessible records. It neither scans unknown roots nor determines code-writing safety; inspect recorded roles/scopes and actual Git/worktree identity.
 
-Installation transition results include previous and target versions; failures retain pending information for recovery. Disconnecting a named host retains the core, even when no registered hosts remain; full uninstall is a separate invocation without `--host`. Shared entries needed by another registration remain present. No purge-history command exists.
+## State and view recovery
+
+State writes are atomic per file and keep `.aimship/state.previous.json`. Across formal documents/state/status there is no transaction. First persist unfinished intent, edit and inspect documents, then save state. Managed document digests detect some external changes, never semantic equivalence.
+
+A write returns the actual state revision and `writeResult: {stateSaved:true,revision,view}`. If view status is protected/error, the JSON is already saved. Do not replay the business patch; explicitly repair:
+
+```sh
+node '<fixed-cli>' render '<delivery-dir>' --revision '<saved-revision>' --rules-version '<bound-version>'
+node '<fixed-cli>' render '<delivery-dir>' --revision '<saved-revision>' --rules-version '<bound-version>' --preserve-edits
+```
+
+A trusted view digest/revision is stored in `.aimship/view.json`. Missing/stale views can be regenerated; modified or untrusted existing status is preserved in place by default. --preserve-edits first saves its full bytes to `.aimship/status-edits-<id>.md`, then rebuilds. Inspect the preserved intent and update formal authority separately. View text does not authorize acceptance, scope changes or publication. render does not increment state revision.
+
+`recover <dir> --revision <backup-revision> --rules-version <bound-version>` restores only over missing/corrupt state, preserves corrupt bytes and advances revision. It refuses a valid or unknown state. Inspect actual effects afterward, never automatically repeat them. Remove only a stale task lock after confirming no writer exists.
+
+## Explicit migration and rule adoption
+
+Schema 1 root state remains readable; normal updates/adopt require migration first. Unknown schemas stay read-only. To migrate one selected old delivery, record a compatibility assessment and original/new artifact mapping:
+
+```sh
+node '<new-fixed-cli>' migrate '<delivery-dir>' --revision '<old-revision>' --rules-version '<new-version>' --input '<assessment.json>'
+node '<new-fixed-cli>' adopt '<delivery-dir>' --revision '<returned-revision>' --rules-version '<new-version>' --input '<assessment.json>'
+```
+
+Both inputs are `{"compatibilityRef":"change-log.md#rules-switch"}`. Migration saves original state/recovery bytes under `.aimship/legacy/`, journals checksums in `.aimship/migration.json`, converts layout/schema and increments revision while retaining old rulesVersion. Interrupted migration resumes with the original parameters only after checksum checks; conflicting copies are preserved. Adopt separately records the assessed rule change. It does not convert business meaning.
+
+Reconcile legacy documents by role, preserve original text/results/version basis, register reused files or create new forward-looking documents. Move evidence/host configuration only with mapped references and correct relative-link/workspace resolution. Never fabricate a past plan stage or tests. Legacy run IDs retain their old format. After adoption, legacy document policy still blocks stage/outcome advancement and resume readiness; reconcile documents and set the current policy first. Subsequent new runs follow the new mapping. Finished deliveries are never swept by install.
+
+A compatible old fixed tool can checkpoint only next/checkpoint facts during version mismatch, once per active version. It cannot complete stages. Save before migration, reload new rules, migrate then adopt. Old tools must not write migrated schema 2. No DeliveryArc migration is provided.
+
+Goal changes need a new goal.decisionRef; prior goals/outcomes are retained. A met goal requires goalConclusionRef; acceptance needs its own acceptanceRef. Merge and deployment refs remain independent. Reopening increments cycle, appends closureRefs and resets acceptance. See the [installation guide](installation.md) for lifecycle operations and their separate host-discovery limits.

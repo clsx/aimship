@@ -9,3 +9,5 @@ Keep agent workflow semantics in `skills/aimship/references`, deterministic file
 A passing structural test does not prove agent behavior. Record actual host/version/model/permission conditions for behavioral checks; leave unavailable combinations unverified. Review affected changes and preserve historical failure evidence when retesting.
 
 Use GitHub Issues for bugs and feature suggestions. Provide the version, host details and a minimal synthetic reproduction; redact credentials, personal paths and delivery data.
+
+Validate public links and the shared stage/template mapping with `npm run check:docs`. Run the isolated behavior examples with `node scripts/run-examples.mjs <new-output-directory>`; do not use a real user delivery as the output. Test results from older schemas do not establish current behavior.

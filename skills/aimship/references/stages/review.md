@@ -17,3 +17,7 @@ The agreed scope has actually been examined and issues blocking progression are 
 Do not replace an agreed human review with agent review. Review cannot be reported as a running test; unrelated work need not be re-reviewed.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use review.md. Preserve the `reviews` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.

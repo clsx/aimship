@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "documents": {
+    "prd": {
+      "path": "prd.md",
+      "sections": [
+        "info",
+        "goals",
+        "scope",
+        "requirements",
+        "states",
+        "acceptance",
+        "arrangement"
+      ]
+    },
+    "scope": {
+      "path": "scope.md",
+      "sections": [
+        "info",
+        "goals",
+        "adoption",
+        "exclusions",
+        "decisions",
+        "acceptance",
+        "arrangement"
+      ]
+    },
+    "tech-design": {
+      "path": "tech-design.md",
+      "sections": [
+        "basis",
+        "architecture",
+        "modules",
+        "data",
+        "errors",
+        "risks",
+        "coverage"
+      ]
+    },
+    "plan": {
+      "path": "plan.md",
+      "sections": [
+        "basis",
+        "batches",
+        "tasks",
+        "validation",
+        "execution",
+        "remaining"
+      ]
+    },
+    "testing": {
+      "path": "testing.md",
+      "sections": [
+        "basis",
+        "environment",
+        "cases",
+        "coverage",
+        "runs",
+        "conclusion"
+      ]
+    },
+    "review": {
+      "path": "review.md",
+      "sections": [
+        "basis",
+        "reviews",
+        "conclusion"
+      ]
+    },
+    "diagnosis": {
+      "path": "diagnosis.md",
+      "sections": [
+        "goals",
+        "symptoms",
+        "environment",
+        "evidence",
+        "causes",
+        "unknowns",
+        "conclusion"
+      ]
+    },
+    "handoff": {
+      "path": "handoff.md",
+      "sections": [
+        "goals",
+        "artifacts",
+        "usage",
+        "results",
+        "limits",
+        "outcomes"
+      ]
+    },
+    "change-log": {
+      "path": "change-log.md",
+      "sections": [
+        "changes",
+        "remaining"
+      ]
+    }
+  },
+  "stages": {
+    "frame": {
+      "kind": "requirement",
+      "section": "goals"
+    },
+    "requirements": {
+      "kind": "requirement",
+      "section": "requirements",
+      "sectionByKind": {
+        "prd": "requirements",
+        "scope": "adoption"
+      }
+    },
+    "scope": {
+      "kind": "requirement",
+      "section": "scope",
+      "sectionByKind": {
+        "prd": "scope",
+        "scope": "goals"
+      }
+    },
+    "prototype": {
+      "kind": "prototype",
+      "section": null
+    },
+    "diagnose": {
+      "kind": "diagnosis",
+      "section": "conclusion"
+    },
+    "tech-design": {
+      "kind": "tech-design",
+      "section": "coverage"
+    },
+    "contract": {
+      "kind": "contract",
+      "section": null
+    },
+    "plan": {
+      "kind": "plan",
+      "section": "tasks"
+    },
+    "test-design": {
+      "kind": "testing",
+      "section": "cases"
+    },
+    "implement": {
+      "kind": "plan",
+      "section": "execution"
+    },
+    "review": {
+      "kind": "review",
+      "section": "reviews"
+    },
+    "verify": {
+      "kind": "testing",
+      "section": "runs"
+    },
+    "handoff": {
+      "kind": "handoff",
+      "section": "outcomes"
+    }
+  }
+}

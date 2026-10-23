@@ -17,3 +17,7 @@ The report honestly matches the current commissioned endpoint. Complete the deli
 Showing results does not revise the endpoint. Required blocked verification means incomplete acceptance, even when code is ready. Small later corrections reopen with preserved closure; independent goals create related deliveries.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use handoff.md. Preserve the `outcomes` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.

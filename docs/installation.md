@@ -43,7 +43,7 @@ node "$trial/home/.aimship/bin/aimship.mjs" uninstall
 
 ## Registry installation after publication
 
-This candidate has not been published. After the maintainer confirms the package identity and publishes this exact preview, the proposed initial command is:
+The first published preview is 0.1.0-preview.4. The npm preview channel installs a published release; the 0.1.0-preview.5 source candidate is local until separately released. Install the published preview with:
 
 ```sh
 npx aimship@preview install --host codex
@@ -77,7 +77,7 @@ node "$HOME/.aimship/bin/aimship.mjs" status
 
 Repeating the same install is safe for unchanged managed files. Adding a host preserves existing registrations. `status` reads Aimship's known installation files and managed entries; it does not scan projects or query host accounts. It separates registered hosts, missing/modified files, shared entries, pending installation and active version from unverified host capabilities. It is diagnostic, not a semantic delivery validator.
 
-To update from a new local release, run that release's `install` command with the same installation home. No `--host` is necessary for an existing installation: registered hosts are retained, and a core whose last host was disconnected remains a core-only installation. After publication, the explicit preview-channel update is:
+To update from a new local release, run that release's `install` command with the same installation home. No `--host` is necessary for an existing installation: registered hosts are retained, and a core whose last host was disconnected remains a core-only installation. The explicit published preview-channel update is:
 
 ```sh
 npx aimship@preview install

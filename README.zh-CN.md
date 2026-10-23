@@ -16,7 +16,7 @@ Aimship 帮助你在 AI 编程工具中组织和推进开发任务，适用于�
 npx aimship@preview install --host codex
 ```
 
-此 npm 命令在预览版发布后可用。当前源码或本地安装包的使用方式见[安装指南](docs/installation.md)。
+npm 已提供预览版。本源码为后续本地候选；源码或本地安装包的使用方式见[安装指南](docs/installation.md)。
 
 多个项目和已接入宿主共用一份 Aimship，无需全局安装 npm 包。安装后开启新的宿主会话，并按实际需要授权访问交付目录和代码仓库。
 

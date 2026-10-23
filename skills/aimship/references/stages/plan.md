@@ -10,10 +10,14 @@ Define executable batches, each goal and requirement coverage, dependencies, aut
 
 ## Continue when
 
-Batches can be executed in order and together cover the delivery goal. Small work may keep a concise ordered arrangement in state rather than a separate plan.
+Batches can be executed in order and together cover the delivery goal. Every implementation, including a single small batch, requires a completed plan and plan.md before it begins.
 
 ## Decisions and blockers
 
 A material change in scope/endpoint needs a decision; routine task splitting does not. Record the reason if changing the existing order.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use plan.md. Preserve the `tasks` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.

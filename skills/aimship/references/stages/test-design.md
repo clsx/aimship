@@ -10,10 +10,14 @@ Map each goal/risk to observable checks: normal behavior, relevant errors/bounda
 
 ## Continue when
 
-The goal and material risks have appropriate checks and missing execution conditions are explicit. Simple checklists may share a later report.
+The goal and material risks have appropriate checks and missing execution conditions are explicit. Write cases and coverage in testing.md; execution remains explicitly not run until verify.
 
 ## Decisions and blockers
 
 Missing tools or execution authority do not justify deleting a valid case. Clarify acceptance omissions through current requirements rather than measuring only test count.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use testing.md. Preserve the `cases` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.

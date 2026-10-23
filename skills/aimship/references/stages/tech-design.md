@@ -17,3 +17,9 @@ The design can guide the agreed next work and correctness-affecting issues have 
 Missing schema/dialect or material compatibility/data decisions block dependent design claims. An explicitly revised conceptual-design endpoint must retain these limitations.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use tech-design.md. Preserve the `coverage` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+
+Produce database.sql for one target, or database-<id>.sql per independent target, before completing this stage. No SQL for no database change.

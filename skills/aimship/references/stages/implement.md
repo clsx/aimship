@@ -17,3 +17,9 @@ The planned batch is implemented and known deviations are resolved or explicitly
 Expanded external behavior, data handling or authorization needs return to the relevant decision. A rejected permission remains blocked and is not retried through another host.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use plan.md. Preserve the `execution` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+
+Update TASK/B status and actual execution in the existing plan.md, preserving planned versus actual and code versions. Do not generate implementation.md.

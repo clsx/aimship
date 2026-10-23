@@ -1,19 +1,39 @@
-# Optional document patterns
+# Delivery documents and traceability
 
-Use only the needed sections and artifacts. These are prompts for useful content, not empty files to generate automatically. Small work may combine diagnosis, test design, review, verification and handoff in `results.md`, with distinct referenced sections.
+[artifact-map.json](artifact-map.json) is the shared mapping for stages, templates and checks. Use [templates](templates/prd.md) for newly authored documents; preserve section order and anchors, translate visible headings freely, and explain inapplicable sections. Templates are drafting guidance, not empty artifacts to generate for every delivery.
 
-**Requirements / Scope:** original request or adopted source; background; current goal and endpoint; included/excluded scope; authorized objects and constraints; requirements and acceptance criteria; source mapping; conflicts/decisions and open questions. Keep original input separate from revised current content.
+One request has one directory. Formal documents are at its root. `source/request.md` preserves the original commission or source entry; other adopted versions stay in `source/` without overwriting. State, recovery copies, necessary evidence and generated host configuration belong under `.aimship/`. Generated `status.md` is the reading entry; no default INDEX, docs/sql hierarchy, AI copy, transcript or full export. A requested export is a dated object/version snapshot, never an editing authority.
 
-**Technical design:** current requirement basis; engineering constraints; chosen structure and alternatives/tradeoffs; interface links; data and compatibility; failure/recovery; risks and open decisions. For database changes link the independent SQL and its dialect/version, existing schema basis and execution conditions.
+## Input and output conditions
 
-**Plan:** batch ID and goal; requirement coverage; files/repositories and boundary; dependencies and interface; each batch review scope; overall review and independent verification. State tracks progress, so do not create a competing progress table.
+Author current requirements in `prd.md`, including scope. Adopt an authoritative PRD/prototype through `scope.md`, preserving source/version/original IDs and gaps. Prior authorship does not make an adopted source editable. Only explicit maintenance of an editable authoritative PRD that completely expresses this commission's scope/authorization/endpoint permits registered reuse without another PRD/Scope. Scattered ideas/screenshots/reference cases are inputs to a PRD, not automatically authoritative requirements.
 
-**Verification plan:** requirement/risk → scenario and observable expected result; environment/data/tools; normal, error, boundary and relevant regression cases; known execution gaps. Keep missing-condition cases visible.
+Interaction changes require a prototype when existing adopted material does not cover them and that work lies within the commissioned endpoint. New HTML uses `prototype/index.html`; register other agreed formats or reused entries. No interaction change means no invented prototype. Investigation/clarification-only requirements describe that commission and leave future development undefined.
 
-**Review record:** actor/source and date; exact objects/versions/differences; batch/overall/affected scope; requirements/design basis; findings, disposition and conclusion. A single-batch review explicitly covers both batch and overall responsibilities.
+`plan` must finish before first implementation, even one small batch. `plan.md` holds both planned TASK/B records and actual execution, distinctly; state holds stage progress. `testing.md` holds cases/coverage and appended RUN records; verification follows overall review. Verify-only may register existing cases with version/coverage, without claiming test-design occurred. Review-only does not require implementation/tests. No arbitrary small-task merging, `implementation.md`, `test-plan.md`, `verification.md`, or `results.md` for new work.
 
-**Verification record:** actor/source and date; case version; tested code/build and environment; executed commands/operations; assertions and actual results; pass/fail/not-run/unknown; evidence locations; missing conditions and recovery action. Append a retest rather than rewriting the earlier failure.
+Use `tech-design.md`. HTTP changes use `openapi.yaml` or the registered engineering authority; no extra contract wrapper. Non-HTTP formats are explicitly registered. Database changes require independent `database.sql` (one target) or `database-<id>.sql` per target before tech-design completes. SQL headers identify target/dialect/version/schema basis/conditions; ordered sections cite requirements/design. Never substitute a Markdown block or migration reference, or execute/change migration mechanisms without authorization.
 
-**Change:** stable ID; reason and decision source; old/new meaning; affected artifacts/runs; remaining uncertainty; work completed and review/verification result. One important decision affecting several artifacts remains one record.
+`diagnosis.md` belongs only to an explicitly selected independent investigation. Known-cause bugs and ordinary development debugging do not add diagnose. Major unknowns require a recorded stage adjustment; hold dependent work. Implementation defects go to implementation, design errors to design, requirement gaps to PRD/Scope, incorrect expectations to versioned cases.
 
-**Handoff:** current goal (and explicit revision if any); completed deliverables and links; how to use/check; actual review and verification scope; limitations/remaining work; goal achievement, acceptance, merge and deployment as separate facts; continuation if incomplete.
+## Identities and references
+
+New local identities: REQ (type distinguishes functional, shared rule, permission, technical or quality), AC, B, TASK, TC, REV, RUN, CHG, Q, PAGE. Start at 001, increment after the historical maximum (including retired), never reuse an identity for another obligation. Shared rules, independent acceptance and single-role access/performance requirements must not disappear inside generic feature prose. Preserve external prefixes and source/version namespace. Splits/merges receive new identities and map old to new; classification changes retain identity.
+
+One effective definition per namespace/ID; historical versions are explicitly labeled. Keep ordinary repeated citations as references, not duplicate definitions. New local Markdown uses explicit anchors and definition metadata beside the actual table row/section:
+
+```markdown
+<a id="req-001-v1"></a>
+<!-- aimship:def {"id":"REQ-001","version":1,"status":"current","refs":["local:AC-001@1"]} -->
+REQ-001 | functional | ... actual obligation and source ...
+```
+
+Optional `namespace` defaults to `local`; source identity may use `source-v1`. `status` is current/historical/retired. `refs` uses namespace:ID@version (no implicit latest). Put metadata at the single definition; table/Markdown citations elsewhere may repeat. Retain old TC definitions or necessary prior meaning and increment versions for semantic changes. RUN metadata cites exact TC versions; its prose binds code/build, actual command/assertion/result/evidence. Tools check metadata resolution and basic coverage; Agent checks whether it truly covers every assertion.
+
+REQ/source → AC → design/operation/SQL, TASK → actual repository object → REV, and AC → TC@version → RUN@object. Relationships live in those documents, not a trace.md or a second state matrix. Q is defined once in the discovering document with impact/needed decision/status/source; resolving it also updates the affected formal authority, linked to one CHG if meaning changes. Old review/test facts remain; only affected current applicability becomes needs-review.
+
+## Saving and checking
+
+Register `documentPolicy` and `documents` per [CLI](../../../docs/cli.md). Draft at stage start; completion requires the mapped artifact and precise result anchor, not merely a filename. New Markdown anchors/metadata are machine-checkable; reused/remote/binary material needs recorded basis and explicit unchecked scope. Local references remain relative to delivery root even though JSON moved internally.
+
+Save unfinished intent, update formal documents, inspect them, then revision-check state. A matching status revision does not prove documents unchanged. Read/check/resume diagnose only. A saved state with a failed view must be repaired using render at the returned revision, never replayed. Preserve hand-edited status before rebuilding and interpret intent against existing authority; it cannot confer acceptance or publishing permission.

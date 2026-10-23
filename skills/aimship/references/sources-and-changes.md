@@ -26,3 +26,9 @@ Markdown/HTML are principal carriers, not a format whitelist. Images, screenshot
 4. Review affected work and execute affected verification as required by the goal, then close the same change with its result and remaining issues.
 
 Formatting/typo corrections do not require semantic re-review. Implementation bugs are fixed against the requirements; do not weaken the requirements to match the bug. Tools detect structural problems, not every semantic dependency. State uncertainty in the impact analysis rather than claiming complete automatic coverage.
+
+## Location and version discipline
+
+Preserve raw adopted versions under source/, including source/request.md. Author current requirements in prd.md or adopt authoritative material through scope.md. Formal outputs remain at the delivery root. New source versions are additional records, never replacements of adopted originals. Normal business evidence belongs in .aimship/evidence/; installation diagnostics and repeated state returns belong in product-maintainer validation, not the delivery.
+
+Use CHG for significant changes, stable REQ/AC and exact TC versions. Retain failed RUN and historical REV records. Q closes only after its decision also reaches the affected formal text. See document-patterns for namespaces, retired IDs, split/merge mapping and structure. An explicit full export must identify its date and object/version and remain a snapshot.

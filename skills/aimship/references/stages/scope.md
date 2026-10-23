@@ -17,3 +17,7 @@ The goal, authority and scope are clear enough for the selected next work, with 
 Material conflicting sources or uncertain authority needs clarification; format differences alone do not. Never choose source priority by filename or date.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+
+## Artifact contract
+
+Use the selected PRD/Scope requirement entry. Preserve the `scope` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
