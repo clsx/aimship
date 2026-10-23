@@ -137,3 +137,83 @@ test('ITER malformed definition metadata cannot silently disappear from checks',
  await assert.rejects(updateState(dir,{},0,version,runtime),{code:'DOCUMENT_METADATA'});
  assert.equal((await readState(dir)).state.revision,0);
 });
+
+test('review: migration must verify the preserved recovery copy before deleting the original',async t=>{
+ const {dir,input}=await setup(t);await legacy(dir,input);
+ const old=await fs.readFile(path.join(dir,'state.json'));
+ const backup=json({...JSON.parse(old),revision:2});await fs.writeFile(path.join(dir,'state.previous.json'),backup);
+ await migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'});
+ const journalPath=path.join(dir,'.aimship/migration.json');const journal=JSON.parse(await fs.readFile(journalPath));
+ await fs.writeFile(journalPath,json({...journal,status:'prepared'}));
+ await fs.writeFile(path.join(dir,'state.json'),old);await fs.writeFile(path.join(dir,'state.previous.json'),backup);
+ await fs.writeFile(path.join(dir,'.aimship/legacy/state.previous.json'),'damaged recovery copy');
+ await assert.rejects(migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'}),{code:'MIGRATION_CONFLICT'});
+ assert.deepEqual(await fs.readFile(path.join(dir,'state.json')),old);
+ assert.equal(await fs.readFile(path.join(dir,'state.previous.json'),'utf8'),backup);
+ await fs.rm(path.join(dir,'.aimship/legacy/state.previous.json'));
+ await assert.rejects(migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'}),{code:'MIGRATION_CONFLICT'});
+ await fs.symlink(path.join(dir,'state.previous.json'),path.join(dir,'.aimship/legacy/state.previous.json'));
+ await assert.rejects(migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'}),{code:'SYMLINK'});
+ await fs.rm(path.join(dir,'.aimship/legacy/state.previous.json'));await fs.writeFile(path.join(dir,'.aimship/legacy/state.previous.json'),backup);
+ assert.equal((await migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'})).revision,4);
+ assert.equal(await fs.readFile(path.join(dir,'.aimship/legacy/state.previous.json'),'utf8'),backup);
+});
+
+test('review: every completed review remains locatable after later document edits',async t=>{
+ const {dir,state}=await init(t);await document(dir,'review',`<a id="rev-001-v1"></a>\n${def('REV-001',[],{run:'r1'})}`);
+ await updateState(dir,{documents:[...state.documents,reg('review')],stageRuns:[{id:'r1',stage:'review',scope:'whole',progress:'done',inputRefs:['prd.md'],outputRefs:['review.md'],resultRef:'review.md#rev-001-v1'}]},0,version,runtime);
+ const file=path.join(dir,'review.md');await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace('<a id="rev-001-v1"></a>',''));
+ await assert.rejects(updateState(dir,{},1,version,runtime),{code:'DOCUMENT_CHECK'});
+ assert.equal((await readState(dir)).state.revision,1);
+ const resumed=await run(['resume',dir,'--rules-version',version],{sourceRoot:source});assert.equal(resumed.data.canProceed,false);
+ assert.ok(resumed.data.documents.issues.some(x=>x.includes('rev-001-v1')));
+ await fs.appendFile(file,'<a id="rev-001-v1"></a>');
+ await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace(def('REV-001',[],{run:'r1'}),''));
+ await fs.appendFile(path.join(dir,'prd.md'),def('REV-001',[],{run:'r1'}));
+ await assert.rejects(updateState(dir,{},1,version,runtime),{code:'DOCUMENT_CHECK'});
+});
+
+test('review: external identities retain original nonnumeric numbering and exact references',async t=>{
+ const {dir,input}=await setup(t);
+ await document(dir,'prd',`${def('REQ-001',['source-v1:acceptance.login@1'])}\n${def('acceptance.login',[],{namespace:'source-v1',kind:'AC'})}\n${def('TC-001',['source-v1:acceptance.login@1'])}`);
+ const state=await initState(dir,input,version,runtime);
+ const report=await inspectDocuments(dir,state);assert.deepEqual(report.issues,[]);
+ assert.ok(report.identities.includes('source-v1:acceptance.login@1'));
+});
+
+test('review: migrated planned runs must use current contracts when execution begins',async t=>{
+ const {dir,input}=await setup(t);const old=await legacy(dir,input);
+ const planned={id:'old-planned',stage:'implement',scope:'future work',progress:'planned',inputRefs:['prd.md'],outputRefs:[]};
+ const historical={id:'old-review',stage:'review',scope:'old work',progress:'done',inputRefs:[],outputRefs:['old-review.md'],resultRef:'old-review.md'};
+ await fs.writeFile(path.join(dir,'old-review.md'),'Old review basis, preserved without new templates.');
+ await fs.writeFile(path.join(dir,'state.json'),json({...old,stageRuns:[historical,planned]}));
+ await migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'});
+ await updateState(dir,{compatibilityRef:'prd.md'},4,version,runtime,'adopt');
+ const reviewed={applicability:'needs-review',...historical};
+ await updateState(dir,{documentPolicy:policy,documents:input.documents,stageRuns:[reviewed,planned]},5,version,runtime);
+ await assert.rejects(updateState(dir,{stageRuns:[reviewed,{...planned,progress:'done',resultRef:'prd.md#scope'}]},6,version,runtime),{code:'DOCUMENT_CHECK'});
+ assert.equal((await readState(dir)).state.revision,6);
+ const active=await setup(t);const activeOld=await legacy(active.dir,active.input);
+ await fs.writeFile(path.join(active.dir,'state.json'),json({...activeOld,stageRuns:[{...planned,progress:'active'}]}));
+ await migrateState(active.dir,3,version,runtime,{compatibilityRef:'prd.md'});
+ await updateState(active.dir,{compatibilityRef:'prd.md'},4,version,runtime,'adopt');
+ await assert.rejects(updateState(active.dir,{documentPolicy:policy,documents:active.input.documents},5,version,runtime),{code:'DOCUMENT_CHECK'});
+});
+
+test('review: a generated page from a different delivery cannot be current at the same revision',async t=>{
+ const a=await init(t),b=await init(t);
+ await fs.copyFile(path.join(a.dir,'status.md'),path.join(b.dir,'status.md'));
+ await fs.copyFile(path.join(a.dir,'.aimship/view.json'),path.join(b.dir,'.aimship/view.json'));
+ assert.equal((await readState(b.dir)).view.status,'stale');
+ assert.equal((await run(['resume',b.dir,'--rules-version',version],{sourceRoot:source})).data.canProceed,false);
+ await renderState(b.dir,0,version,runtime);assert.match(await fs.readFile(path.join(b.dir,'status.md'),'utf8'),new RegExp(b.state.deliveryId));
+});
+
+test('review: unreadable or remote content cannot bypass new artifact location rules',async t=>{
+ const {dir,input}=await setup(t);
+ await assert.rejects(initState(dir,{...input,documents:[{...reg('prd'),path:'https://example.invalid/prd.md'}]},version,runtime),{code:'DOCUMENT_CHECK'});
+ await fs.writeFile(path.join(dir,'sketch.svg'),'<svg/>');
+ await assert.rejects(initState(dir,{...input,documents:[...input.documents,{kind:'prototype',path:'sketch.svg',mode:'new',version:'1'}]},version,runtime),{code:'DOCUMENT_CHECK'});
+ const state=await initState(dir,{...input,documents:[...input.documents,{kind:'prototype',path:'sketch.svg',mode:'reused',version:'1',basisRef:'prd.md#scope'}]},version,runtime);
+ assert.equal(state.revision,0);
+});

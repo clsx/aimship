@@ -20,6 +20,6 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 ## Artifact contract
 
-Use tech-design.md. Preserve the `coverage` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use tech-design.md. Preserve the `coverage` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Produce database.sql for one target, or database-<id>.sql per independent target, before completing this stage. No SQL for no database change.

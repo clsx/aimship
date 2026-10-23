@@ -43,7 +43,7 @@ node "$trial/home/.aimship/bin/aimship.mjs" uninstall
 
 ## Registry installation after publication
 
-The first published preview is 0.1.0-preview.4. The npm preview channel installs a published release; the 0.1.0-preview.5 source candidate is local until separately released. Install the published preview with:
+The first published preview is 0.1.0-preview.4. The npm preview channel installs a published release; the 0.1.0-preview.6 source candidate is local until separately released. Install the published preview with:
 
 ```sh
 npx aimship@preview install --host codex

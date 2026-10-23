@@ -20,6 +20,6 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 ## Artifact contract
 
-Use testing.md. Preserve the `runs` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use testing.md. Preserve the `runs` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Append RUN records in testing.md, referencing versioned TC and exact objects. Evidence goes in .aimship/evidence/; no installation diagnostics or repeated state output in ordinary deliveries.

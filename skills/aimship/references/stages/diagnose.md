@@ -20,6 +20,6 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 ## Artifact contract
 
-Use diagnosis.md. Preserve the `conclusion` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use diagnosis.md. Preserve the `conclusion` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Only a commissioned independent investigation produces diagnosis.md. Known-cause bugs and normal development debugging stay within their current stage. Record an arrangement change before adding a mid-delivery investigation.
