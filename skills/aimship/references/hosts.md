@@ -12,6 +12,6 @@ Installation discovery, actual selection, model behavior, directory access and c
 
 After compaction or manual switching, reload the fixed-version core, state and current-stage inputs if missing. Do not rely on a host retaining all skill text. If even the binding location is absent, request the delivery path. Re-invoking an entry to restore context continues the existing delivery; it does not create another one.
 
-When changing hosts, use the same delivery directory and state; do not duplicate requirements, Scope or design to establish a new session. Permissions must be granted separately in each host. Keep one writing host/session for the delivery. User-facing entry/reload and lifecycle instructions are in [the installation guide](../../../docs/installation.md).
+When changing hosts, use the same delivery directory and state; do not duplicate requirements, Scope or design to establish a new session. Permissions must be granted separately in each host. Keep one writing host/session for the delivery. User-facing entry/reload and lifecycle instructions are in [the user guide](../../../docs/guide.md#hosts).
 
 When reconciling an old Aimship-created workspace, resolve relative folders against its old file location before writing the new internal file. Verify actual checkout/worktree identity. Do not move or replace a user-owned existing workspace.

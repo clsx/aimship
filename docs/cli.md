@@ -60,7 +60,7 @@ node '<fixed-cli>' render '<delivery-dir>' --revision '<saved-revision>' --rules
 node '<fixed-cli>' render '<delivery-dir>' --revision '<saved-revision>' --rules-version '<bound-version>' --preserve-edits
 ```
 
-A trusted view digest/revision is stored in `.aimship/view.json`. Missing/stale views can be regenerated; modified or untrusted existing status is preserved in place by default. --preserve-edits first saves its full bytes to `.aimship/status-edits-<id>.md`, then rebuilds. Inspect the preserved intent and update formal authority separately. View text does not authorize acceptance, scope changes or publication. render does not increment state revision.
+The delivery identity, view digest and state revision are stored in `.aimship/view.json`; identity and revision must both match for a view to be current. Missing/stale views can be regenerated; modified or untrusted existing status is preserved in place by default. --preserve-edits first saves its full bytes to `.aimship/status-edits-<id>.md`, then rebuilds. Inspect the preserved intent and update formal authority separately. View text does not authorize acceptance, scope changes or publication. render does not increment state revision.
 
 `recover <dir> --revision <backup-revision> --rules-version <bound-version>` restores only over missing/corrupt state, preserves corrupt bytes and advances revision. It refuses a valid or unknown state. Inspect actual effects afterward, never automatically repeat them. Remove only a stale task lock after confirming no writer exists.
 
@@ -79,4 +79,4 @@ Reconcile legacy documents by role, preserve original text/results/version basis
 
 A compatible old fixed tool can checkpoint only next/checkpoint facts during version mismatch, once per active version. It cannot complete stages. Save before migration, reload new rules, migrate then adopt. Old tools must not write migrated schema 2. No DeliveryArc migration is provided.
 
-Goal changes need a new goal.decisionRef; prior goals/outcomes are retained. A met goal requires goalConclusionRef; acceptance needs its own acceptanceRef. Merge and deployment refs remain independent. Reopening increments cycle, appends closureRefs and resets acceptance. See the [installation guide](installation.md) for lifecycle operations and their separate host-discovery limits.
+Goal changes need a new goal.decisionRef; prior goals/outcomes are retained. A met goal requires goalConclusionRef; acceptance needs its own acceptanceRef. Merge and deployment refs remain independent. Reopening increments cycle, appends closureRefs and resets acceptance. See the [user guide](guide.md#update) for lifecycle operations and their separate host-discovery limits.
