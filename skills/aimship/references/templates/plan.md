@@ -32,3 +32,4 @@ Actual changes and object versions by TASK/B; preserve original plan and disting
 
 Unfinished effects and recovery, not a second stage ledger. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
+<!-- Review guidance: retain the fixed outline. Technical design precedes interface/SQL production; test cases precede planning. Self-check and explicit document approval are separate from stage done. For plan/testing, keep execution records after execution/runs respectively. -->

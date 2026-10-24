@@ -32,3 +32,5 @@ Formatting/typo corrections do not require semantic re-review. Implementation bu
 Preserve raw adopted versions under source/, including source/request.md. Author current requirements in prd.md or adopt authoritative material through scope.md. Formal outputs remain at the delivery root. New source versions are additional records, never replacements of adopted originals. Normal business evidence belongs in .aimship/evidence/; installation diagnostics and repeated state returns belong in product-maintainer validation, not the delivery.
 
 Use CHG for significant changes, stable REQ/AC and exact TC versions. Retain failed RUN and historical REV records. Q closes only after its decision also reaches the affected formal text. See document-patterns for namespaces, retired IDs, split/merge mapping and structure. An explicit full export must identify its date and object/version and remain a snapshot.
+
+Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and old-state compatibility. Read/resume never infer approval from done or create a new user decision.

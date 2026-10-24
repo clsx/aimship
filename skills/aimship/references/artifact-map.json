@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "documents": {
     "prd": {
       "path": "prd.md",
@@ -109,7 +109,8 @@
       "sectionByKind": {
         "prd": "requirements",
         "scope": "adoption"
-      }
+      },
+      "humanReview": true
     },
     "scope": {
       "kind": "requirement",
@@ -117,31 +118,39 @@
       "sectionByKind": {
         "prd": "scope",
         "scope": "goals"
-      }
+      },
+      "humanReview": true
     },
     "prototype": {
       "kind": "prototype",
-      "section": null
+      "section": null,
+      "humanReview": true
     },
     "diagnose": {
       "kind": "diagnosis",
-      "section": "conclusion"
+      "section": "conclusion",
+      "humanReview": true
     },
     "tech-design": {
       "kind": "tech-design",
-      "section": "coverage"
+      "section": "coverage",
+      "humanReview": true
     },
     "contract": {
       "kind": "contract",
-      "section": null
-    },
-    "plan": {
-      "kind": "plan",
-      "section": "tasks"
+      "section": null,
+      "humanReview": true,
+      "additionalKind": "sql"
     },
     "test-design": {
       "kind": "testing",
-      "section": "cases"
+      "section": "cases",
+      "humanReview": true
+    },
+    "plan": {
+      "kind": "plan",
+      "section": "tasks",
+      "humanReview": true
     },
     "implement": {
       "kind": "plan",

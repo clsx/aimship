@@ -2,89 +2,151 @@
 
 [English](README.md) · [使用指南](docs/guide.zh-CN.md)
 
-**面向 AI 编程工具的开发交付流程，贯通需求、实施与验证。**
+**面向 AI 工具的软件交付流程，贯通需求、设计、实施、审核与验证。**
 
-Aimship 适用于功能开发、缺陷修复、技术重构和方案设计。根据交付目标安排所需阶段，维护需求、设计、实施和验证记录，并支持基于已有资料接续工作。
+你提供目标、已有资料和代码位置，Aimship 帮助 Agent 将需求整理为清晰的范围、有依据的设计、可执行的计划和经过验证的成果，并衔接各阶段的工作，让你能了解推进过程、理解关键决定、判断实际交付结果。
 
-每个需求在 `~/Aimship/` 下使用独立交付目录，代码保留在原仓库。交付范围可以覆盖完整开发流程，也可以限定为需求分析、技术方案等指定成果。
+<a id="一个需求会留下哪些文档"></a>
+<a id="交付目录与文档"></a>
+<a id="交付成果"></a>
+统一的文档大纲、编号和引用，将需求与验收标准关联到设计、实施任务、审核和测试结果。文档按交付目标和实际需要生成，既提供一致的阅读与核对依据，也不要求每个阶段都填一份空模板。
 
-## 快速开始
+<a id="交付流程"></a>
+默认由你逐份审核经过 Agent 自检的文档。Agent 给出文档、短摘要和下一步，等待你审核；明确通过后，按你的安排自动衔接下一授权阶段。提出修改意见时，Agent 修订、自检后重新送审。文档通过与最终交付验收分别记录。
 
-需要 **Node.js 22+ 和 npm**。宿主可选 `codex`、`cursor` 或 `claude-code`：
+文档与状态在工作过程中持续保存，使进度、决定和验证依据可追溯，减少重复交代背景和重新梳理已有工作的负担。
+
+[安装](#install) · [使用指南](docs/guide.zh-CN.md) · [升级与 AI 工具管理](#update) · [卸载](#uninstall)
+
+<a id="快速开始"></a>
+<a id="install"></a>
+## 安装
+
+需要 **Node.js 22+ 和 npm**。以下命令使用 POSIX shell 写法。
+
+### 安装已发布的预览版
 
 ```sh
 npx aimship@preview install --host codex
 ```
 
-安装后开启新的宿主会话，选择 Aimship：Codex CLI 使用 `$aimship`，Cursor 和 Claude Code 使用 `/aimship`。在需要时授权访问交付目录和相关代码仓库，然后描述任务：
+AI 工具可选 `codex`、`cursor` 或 `claude-code`。连接多个 AI 工具时重复该选项：
 
-> 使用 Aimship 给订单列表增加 Excel 导出功能。代码在我现有的仓库中。本次完成实施和验证，部署留待后续处理。
-
-该 npm 命令安装已发布的预览通道版本。指定版本、源码或本地包的安装方式，参见[安装说明](docs/guide.zh-CN.md#install)。
-
-安装一次即可用于多个项目和已选择的宿主。宿主集成仍处于实验阶段，真实 Skill 发现和跨宿主接续仍需验证。宿主未显示 Aimship 时，请参阅[宿主设置](docs/guide.zh-CN.md#hosts)。
-
-## 交付流程
-
-1. **明确需求。** 保留原始资料，自编 PRD 或通过 Scope 承接已有需求，确认本次目标和执行顺序。
-2. **准备实施。** 按确定的条件产出原型、技术方案、契约、实施计划和测试用例。
-3. **实施与审核。** 每批实施后进行 review，全部完成后再做整体 review。
-4. **验证与交接。** 对实际成果执行用例，保留失败和重测记录，说明交付结果与遗留事项。
-
-这是开发交付的基本过程，并非每个需求都要执行全部阶段。只做设计、review 或验证的委托，在约定的终点结束。普通调试在当前流程中处理；只有明确安排独立调查时才加入调查阶段。
-
-<a id="一个需求会留下哪些文档"></a>
-## 交付目录与文档
-
-**`status.md`** 是交付进度的统一阅读入口，包含当前阶段、阻塞事项、后续操作和文档链接。下方列出交付产物及其用途；实际生成范围由所选阶段和输入条件确定，未选阶段不生成空文档。`prd.md` 与 `scope.md` 是需求入口的两种选择，并非每个需求都要同时生成。
-
-```text
-~/Aimship/
-├── 20261023-订单导出/             # 每个需求一个独立交付目录
-│   ├── status.md                 # 自动生成的进度总览和阅读入口
-│   ├── prd.md                    # 自编需求：目标、范围、需求和验收标准
-│   ├── scope.md                  # 采用权威外部资料时使用，替代自编 PRD
-│   ├── tech-design.md            # 技术方案：架构、改动、数据、风险和需求覆盖
-│   ├── plan.md                   # 实施计划：批次、任务及实际执行记录
-│   ├── testing.md                # 测试用例、覆盖关系、执行与重测结果
-│   ├── review.md                 # 各批及整体审核、发现的问题和处理结论
-│   ├── handoff.md                # 交付结果、使用方式、验证结论和遗留事项
-│   ├── diagnosis.md              # 仅独立调查时生成的定位与证据记录
-│   ├── change-log.md             # 重要变更、决定及受影响的工作
-│   ├── openapi.yaml              # 新建 HTTP 契约；已有权威契约优先复用
-│   ├── database.sql              # 单数据库 SQL；多目标为 database-<id>.sql
-│   ├── prototype/                # 符合生成条件时新建的原型
-│   │   └── index.html            # HTML 原型入口，相关资源也放在此目录
-│   ├── source/                   # 保留原始需求和采用的外部资料版本
-│   │   ├── request.md            # 原始委托或来源入口
-│   │   └── …                     # 外部 PRD、原型、截图及其他输入
-│   └── .aimship/                 # 工具维护的内部状态与辅助证据
-│       ├── state.json            # 阶段、引用、版本及仓库／worktree 关联
-│       ├── state.previous.json   # 写入后用于恢复的上一版状态
-│       ├── view.json             # 进度视图的生成元信息
-│       └── evidence/             # 按需保留的验证等证据
-└── 20261024-另一个需求/           # 独立的资料与进度
+```sh
+npx aimship@preview install --host codex --host claude-code
 ```
 
-正式文档直接放在需求目录下；`source/` 保留采用的原件，`.aimship/` 保存内部记录。软件安装目录为 `~/.aimship/`，与各需求目录内的 `.aimship/` 分别管理。
+按 npm 提示确认获取安装包。`@preview` 表示已发布的预览通道，也可以替换为明确版本号，例如 `@0.1.0-preview.7`。预览通道用于实验性版本，不代表稳定版。
 
-文档名称、大纲和编号遵循统一模板。需求与验收标准关联到实施任务、审核、带版本的测试用例及执行结果。[使用指南](docs/guide.zh-CN.md#artifacts)进一步说明每种文档的生成条件和具体内容。
+### 指定版本或本地包
 
-## 适用场景与示例
+安装指定的已发布版本，例如：
 
-| 场景 | 委托示例 |
+```sh
+npx aimship@0.1.0-preview.7 install --host codex
+```
+
+如果已有 Aimship 的 `.tgz` 安装包，将 `VERSION` 替换为实际版本号，在包所在目录执行：
+
+```sh
+npx --offline file:./aimship-VERSION.tgz install --host codex
+```
+
+选择一种安装方式即可。不需要全局 npm 安装、管理员权限或 npm 登录；npm 缓存需要可写。源码开发和隔离安装验证见[贡献指南](CONTRIBUTING.md#isolated-installation-check)。
+
+### 可选：指定交付资料位置
+
+默认交付资料根目录为 `~/Aimship/`。首次安装时，可以用 `--data-root` 指定其他位置：
+
+```sh
+npx aimship@preview install --host codex --data-root "$HOME/MyDeliveries"
+```
+
+此选项设置后续新交付的默认资料位置，不是代码仓库位置，也不会搬迁已有资料。后续安装保留已有配置；无需逐项目安装。
+
+安装后，按[使用指南](docs/guide.zh-CN.md#hosts)在 AI 工具中选择 Aimship。AI 工具集成仍处于实验阶段，真实 Skill 发现和跨工具接续仍需验证。
+
+<a id="update"></a>
+<a id="update-or-stop-using-aimship"></a>
+<a id="升级与宿主管理"></a>
+<a id="升级与-ai-开发工具管理"></a>
+## 升级与 AI 工具管理
+
+升级到已发布的预览通道版本：
+
+```sh
+npx aimship@preview install
+```
+
+安装和升级使用同一个 `install` 命令。已有 AI 工具登记、配置、自定义内容和交付资料都会保留。安装器报告旧／目标版本、结果及冲突；没有后台自动升级或常驻进程。指定版本或本地包也使用[安装说明](#install)中的命令，指向原来的安装目录。
+
+<a id="添加宿主"></a>
+<a id="添加-ai-开发工具"></a>
+### 添加 AI 工具
+
+例如，已有 Codex 安装后再接入 Cursor：
+
+```sh
+npx aimship@preview install --host cursor
+```
+
+该命令保留已有 AI 工具，同时安装所选预览版本；如果预览通道有更新，也会升级软件。随后按[AI 工具设置](docs/guide.zh-CN.md#hosts)刷新对应会话。
+
+### 查询已安装版本
+
+```sh
+npx aimship@preview --version
+```
+
+输出中的 `installedActiveVersion` 是当前已安装版本，`toolVersion` 是此次 npx 运行的包版本，两者可能不同。查询本身不会升级安装。
+
+### 检查安装状态
+
+```sh
+npx aimship@preview status
+```
+
+此命令检查软件安装、AI 工具登记和受管理文件，报告是否健康及待处理问题；它不能确认 AI 工具已加载 Skill。查看需求进度请打开交付目录的 `status.md`。
+
+以上命令由 npx 获取并运行所选包；日常交付由 Agent 使用固定的本地入口和规则，无需反复下载包。
+
+升级后，先保存当前工作，再按[会话接续](docs/guide.zh-CN.md#continue)核对规则和交付状态；已有交付不会因为软件升级自动完成迁移。
+
+<a id="uninstall"></a>
+## 卸载
+
+只断开一个 AI 工具，保留核心和其他 AI 工具登记：
+
+```sh
+npx aimship@preview uninstall --host cursor
+```
+
+其他已登记 AI 工具还需要的共享入口会保留。断开最后一个 AI 工具也保留核心，以便诊断或重新连接；兼容 AI 工具仍可能发现剩余的共享入口。
+
+移除所有受管理的软件和 AI 工具入口：
+
+```sh
+npx aimship@preview uninstall
+```
+
+完整卸载保留交付资料、用户代码、自定义文件和必要配置。修改过或不属于它管理的文件会保留并报告。完全移除后，稳定入口也会移除；重启 AI 工具会话以清除缓存规则。删除交付历史是另一项需要明确提出的操作。
+
+<a id="installation-troubleshooting"></a>
+## 安装与升级问题
+
+| 现象 | 处理方式 |
 | --- | --- |
-| 已有 PRD 和原型 | “根据这些资料开发订单导出，保留原件，实施前先确认本次范围。” |
-| 功能需求分析与设计 | “梳理通知偏好功能，完成原型和技术方案，本次先不实施。” |
-| 技术重构 | “重构计价模块，不改变对外行为，完成实施和验证。” |
-| 故障调查 | “调查偶发超时的原因，给出证据和结论，本次先不修复。” |
-
-多个独立需求可以同时推进，每个交付只保留一个写入会话。共享代码时，安排串行实施或使用独立 checkout／worktree，详见[并行需求](docs/guide.zh-CN.md#parallel)。
+| 找不到 Aimship 或出现重复项 | 按[AI 工具设置](docs/guide.zh-CN.md#hosts)刷新会话并检查入口；安装健康不代表 AI 工具已经加载 Skill。 |
+| 管理位置被修改或被其他文件占用 | 保留内容，检查归属，明确合并定制内容后再重试。 |
+| 安装中断或稳定入口损坏 | 使用上面的 `status` 命令检查安装，排除原因后在同一目录重跑完全相同的待恢复版本；不要在恢复途中换版本。自定义安装用户目录可追加 `--home <安装用户目录>` 进行检查。 |
+| 版本与预期不一致 | 核对版本查询中的 `installedActiveVersion` 和 `toolVersion`，继续交付前刷新会话中的规则。 |
+| 包／版本不存在或下载失败 | 核对包名、明确版本和 registry；下载失败不算安装完成。 |
 
 ## 文档与贡献
 
-**[使用指南](docs/guide.zh-CN.md)**涵盖安装、日常使用、文档规则、进度接续、升级和排障。[CONTRIBUTING](CONTRIBUTING.md)说明开发与贡献要求；[CLI 协议](docs/cli.md)供 Agent 和工具开发者查阅。
+<a id="适用场景与示例"></a>
+**[使用指南](docs/guide.zh-CN.md)**说明如何开始需求、审核文档、查看成果、处理变更和接续。[交付文档参考](docs/reference.zh-CN.md)说明产物规则；[CONTRIBUTING](CONTRIBUTING.md)说明开发和隔离验证；[CLI 协议](docs/cli.md)供 Agent 和工具开发者查阅。
 
-通过 [GitHub Issues](https://github.com/clsx/aimship/issues)反馈问题和建议。Aimship 目前为预览版；目标完成、用户验收、合并和部署分别记录。
+Aimship 目前处于预览阶段，流程、使用体验和兼容性仍在完善。欢迎通过 [GitHub Issues](https://github.com/clsx/aimship/issues)反馈实际使用中遇到的问题和改进建议；参与开发请先阅读贡献指南。
 
 采用 [MIT 许可证](LICENSE)。

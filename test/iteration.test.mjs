@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { approveFixture } from '../scripts/testing/reviews.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -62,7 +63,7 @@ test('ITER AC-04/14: required plan, shared sections and exact result anchors are
  const plan={id:'p1',stage:'plan',scope:'all',progress:'done',inputRefs:['prd.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'};
  const s=await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan,{...implement,progress:'planned'}]},0,version,runtime);
  assert.equal(s.stageRuns[1].progress,'planned');
- await updateState(dir,{stageRuns:[plan,{...implement,progress:'done',resultRef:'plan.md#execution'}]},1,version,runtime);
+ await updateState(dir,{reviewHistory:await approveFixture(dir,s,['plan.md']),stageRuns:[plan,{...implement,progress:'done',resultRef:'plan.md#execution'}]},1,version,runtime);
  await assert.rejects(updateState(dir,{stageRuns:[plan,{...implement,progress:'done',resultRef:'plan.md#absent',priorResultRef:'plan.md#execution'}]},2,version,runtime),{code:'DOCUMENT_CHECK'});
  await fs.rename(path.join(dir,'plan.md'),path.join(dir,'implementation.md'));
  assert.ok((await inspectDocuments(dir,(await readState(dir)).state)).issues.some(x=>x.includes('plan.md')));
@@ -190,7 +191,7 @@ test('review: migrated planned runs must use current contracts when execution be
  await migrateState(dir,3,version,runtime,{compatibilityRef:'prd.md'});
  await updateState(dir,{compatibilityRef:'prd.md'},4,version,runtime,'adopt');
  const reviewed={applicability:'needs-review',...historical};
- await updateState(dir,{documentPolicy:policy,documents:input.documents,stageRuns:[reviewed,planned]},5,version,runtime);
+ await updateState(dir,{reviewPolicy:1,reviewHistory:[],documentPolicy:policy,documents:input.documents,stageRuns:[reviewed,planned]},5,version,runtime);
  await assert.rejects(updateState(dir,{stageRuns:[reviewed,{...planned,progress:'done',resultRef:'prd.md#scope'}]},6,version,runtime),{code:'DOCUMENT_CHECK'});
  assert.equal((await readState(dir)).state.revision,6);
  const active=await setup(t);const activeOld=await legacy(active.dir,active.input);

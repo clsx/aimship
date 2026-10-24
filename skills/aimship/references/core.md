@@ -37,7 +37,9 @@ Choose stages from the responsibilities below based on the goal and existing inp
 
 Show the selected order and endpoint. If the user already specified or accepted this arrangement, record the decision and proceed. An unanswered proposal remains a proposal. Once agreed, follow the order; adding, dropping or reordering work needs a reason and an updated record. Important changes follow [change flow](sources-and-changes.md). A stage may recur as distinct instances with stable IDs and explicit scopes.
 
-Explain each design's key decisions, why they fit the requirements, tradeoffs, artifact location and remaining questions. Ordinary internal implementation choices stay with the agent. Ask for material changes to goals, scope, external behavior, compatibility, significant cost, data handling or an explicit technical commitment. Honor an agreed human review point, without adding approvals to every document.
+Explain each design's key decisions, why they fit the requirements, tradeoffs, artifact location and remaining questions. Ordinary internal implementation choices stay with the agent. Ask for material changes to goals, scope, external behavior, compatibility, significant cost, data handling or an explicit technical commitment. Follow [document review](document-review.md): present each selected reviewable document after self-check and pause for explicit approval. An approval automatically starts the next authorized stage without a second start confirmation.
+
+Default applicable development order: PRD/Scope → technical design → interface/SQL → test cases → plan → implementation/review/verification → handoff. Adapt to the actual endpoint and existing inputs as described in [document review](document-review.md); do not force all stages into specialist commissions.
 
 ## Stage references
 
@@ -59,7 +61,7 @@ Read the reference for the current responsibility, not all thirteen on every tur
 | verify | Executing the agreed checks and recording evidence | [verify](stages/verify.md) |
 | handoff | Delivering against the current goal or handing over incomplete work | [handoff](stages/handoff.md) |
 
-Each run records its scope, required inputs, results and progress. A result may be a section in a shared document. Proceed when this run's requirements are met, the next inputs exist, authorization covers it and no relevant unresolved issue blocks it. An issue blocks only dependent work; changing the order to continue other work is still an explicit plan change.
+Each run records its scope, required inputs, results and progress. A result may be a section in a shared document. A `done` run records production completion, not human approval. Proceed when required document approvals match current content, this run's requirements are met, the next inputs exist, authorization covers it and no relevant unresolved issue blocks it. An issue blocks only dependent work; changing the order to continue other work is still an explicit plan change.
 
 ## Implementation and evidence
 
@@ -77,7 +79,7 @@ Use the installed tool's documented state protocol. Read the current revision be
 
 Important semantic changes retain historical review and test facts, mark affected conclusions for review and update the current editable authority. Do not overwrite external adopted sources. See [sources and change flow](sources-and-changes.md).
 
-At stable results save the state, remaining issues and next action. On a session switch give: “Use Aimship to continue <absolute delivery directory>; read the actual statePath returned by read (new: .aimship/state.json), the current goal/Scope and next-step inputs; <specific blocker if any>.” A new session reloads the same delivery, not the whole transcript. Use [recovery](recovery.md) for mismatch or uncertainty. Keep one active writing session per delivery.
+At stable results save the state, remaining issues, current review stop/pending document and next stage. Show the same facts in chat; an explicit approval releases the next authorized step without asking whether to begin again. On a session switch give: “Use Aimship to continue <absolute delivery directory>; read the actual statePath returned by read (new: .aimship/state.json), the current goal/Scope and next-step inputs; <specific blocker if any>.” A new session reloads the same delivery, not the whole transcript. Use [recovery](recovery.md) for mismatch or uncertainty. Keep one active writing session per delivery.
 
 End when the current confirmed goal is met. For design work this means the agreed design, not code execution. For development it includes agreed review and verification. “Show me the result” does not shorten the goal. If the user explicitly changes the endpoint, preserve the old goal, decision and unfinished work, update the arrangement, and assess the revised goal. An incomplete handoff is allowed but is not goal completion.
 

@@ -32,3 +32,4 @@ RUN, TC@version, exact code/build or document object, command/operation, asserti
 
 Separate passed, failed, blocked and unexecuted; explain applicability after change. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
+<!-- Review guidance: retain the fixed outline. Technical design precedes interface/SQL production; test cases precede planning. Self-check and explicit document approval are separate from stage done. For plan/testing, keep execution records after execution/runs respectively. -->

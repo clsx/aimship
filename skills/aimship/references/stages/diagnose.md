@@ -23,3 +23,7 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 Use diagnosis.md. Preserve the `conclusion` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Only a commissioned independent investigation produces diagnosis.md. Known-cause bugs and normal development debugging stay within their current stage. Record an arrangement change before adding a mid-delivery investigation.
+
+## Human document review
+
+Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, short summary and next stage → pause. Record explicit user approval of this version/content, then continue the next authorized step automatically. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.

@@ -37,3 +37,4 @@ Reasons, alternatives, compatibility and technical risks. Replace guidance with 
 
 REQ/AC to module/operation/SQL section and unresolved Q. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
+<!-- Review guidance: retain the fixed outline. Technical design precedes interface/SQL production; test cases precede planning. Self-check and explicit document approval are separate from stage done. For plan/testing, keep execution records after execution/runs respectively. -->

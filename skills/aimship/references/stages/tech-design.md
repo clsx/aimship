@@ -6,7 +6,7 @@ Read current requirements/Scope, relevant engineering instructions, architecture
 
 ## Work and result
 
-Choose an approach with concrete components, dependencies, errors/recovery, compatibility and tradeoffs. Link authoritative contracts instead of duplicating them. For database changes create separate delivery-local SQL and explain dialect/version, existing schema basis, conditions and sequence. Do not edit migration files or execute SQL without that commission.
+Choose an approach with concrete components, dependencies, errors/recovery, compatibility and tradeoffs. Link authoritative contracts instead of duplicating them. For database changes design the data change and the subsequent independent SQL deliverable; explain dialect/version, existing schema basis, conditions and sequence. Do not edit migration files or execute SQL without that commission.
 
 ## Continue when
 
@@ -22,4 +22,8 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 Use tech-design.md. Preserve the `coverage` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
-Produce database.sql for one target, or database-<id>.sql per independent target, before completing this stage. No SQL for no database change.
+Technical design does not require finished SQL before its review. After its approval, contract produces and presents database.sql for one target, or database-<id>.sql per independent target. No SQL for no database change.
+
+## Human document review
+
+Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, short summary and next stage → pause. Record explicit user approval of this version/content, then continue the next authorized step automatically. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.

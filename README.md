@@ -2,89 +2,151 @@
 
 [中文](README.zh-CN.md) · [Guide](docs/guide.md)
 
-**A development workflow for AI coding tools, connecting requirements, implementation and verification.**
+**A software delivery workflow for AI tools, connecting requirements, design, implementation, review and verification.**
 
-Aimship supports feature development, defect fixes, technical refactoring and solution design. It arranges stages around the delivery goal, maintains requirements, design, implementation and verification records, and supports continuation from existing materials.
+You provide the goal, existing materials and code locations. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
 
-Each request has an independent delivery directory under `~/Aimship/`, while code remains in its repositories. A commission can cover the full development workflow or specific outputs such as requirements analysis or technical design.
+<a id="what-a-delivery-contains"></a>
+<a id="delivery-structure-and-documents"></a>
+<a id="delivery-artifacts"></a>
+Standard document outlines, identifiers and references connect requirements and acceptance criteria to designs, implementation tasks, reviews and test results. Documents are produced as needed for the delivery goal, giving you a consistent basis for review without requiring an empty template for every stage.
 
-## Quick start
+<a id="delivery-workflow"></a>
+By default, you review documents individually after the agent's self-check. The agent presents the document, a short summary and the next step, then waits for your review. Explicit approval automatically advances to the next authorized stage according to your arrangements; requested changes lead to revision, self-check and another review. Document approval remains separate from final delivery acceptance.
 
-Requires **Node.js 22+ and npm**. Choose `codex`, `cursor` or `claude-code`:
+Documents and state are saved throughout the work, keeping progress, decisions and verification evidence traceable and reducing the need to repeat background or reconstruct earlier work.
+
+[Install](#install) · [Guide](docs/guide.md) · [Upgrade and AI tools](#update) · [Uninstall](#uninstall)
+
+<a id="quick-start"></a>
+<a id="install"></a>
+## Installation
+
+Requires **Node.js 22+ and npm**. Command examples use a POSIX shell.
+
+### Published preview
 
 ```sh
 npx aimship@preview install --host codex
 ```
 
-Start a new host session and select Aimship: `$aimship` in Codex CLI, or `/aimship` in Cursor and Claude Code. Authorize access to the delivery folder and relevant repositories when needed, then describe the work:
+Choose `codex`, `cursor` or `claude-code`. To connect several tools, repeat the option:
 
-> Use Aimship to add Excel export to the order list. The code is in my existing repository. Complete implementation and verification; leave deployment for later.
-
-The npm command installs the published preview channel. For a specific version, source checkout or local package, see the [installation instructions](docs/guide.md#install).
-
-One installation serves your projects and selected hosts. Host integrations are experimental: actual Skill discovery and cross-host continuation still need validation. See [host setup](docs/guide.md#hosts) if Aimship does not appear.
-
-## Delivery workflow
-
-1. **Establish the requirements.** Preserve original inputs, author a PRD or adopt existing requirements through Scope, and agree on the outcome and execution order.
-2. **Prepare the work.** Produce the needed prototype, technical design, contracts, implementation plan and test cases.
-3. **Implement and review.** Implement each batch and review it, then review the integrated change.
-4. **Verify and hand off.** Execute the cases against the actual result, preserve failures and retests, and record the outcome and remaining work.
-
-This outlines the development delivery process; not every request requires every stage. Design-only, review-only and verification-only commissions stop at their agreed endpoint. Ordinary debugging stays in the current workflow; a separate investigation stage is used only when explicitly arranged.
-
-<a id="what-a-delivery-contains"></a>
-## Delivery structure and documents
-
-**`status.md`** is the delivery overview, with the current stage, blockers, next actions and document links. The tree below lists delivery artifacts and their purposes. Files are generated according to the selected stages and input conditions; unselected stages produce no empty documents. `prd.md` and `scope.md` are alternative requirement entries, not two files required for every delivery.
-
-```text
-~/Aimship/
-├── 20261023-order-export/         # One request, one delivery folder
-│   ├── status.md                 # Generated overview and reading entry
-│   ├── prd.md                    # Authored requirements, scope and acceptance
-│   ├── scope.md                  # Used instead of PRD when adopting authoritative inputs
-│   ├── tech-design.md            # Architecture, changes, data, risks and requirement coverage
-│   ├── plan.md                   # Implementation batches, tasks and actual execution
-│   ├── testing.md                # Test cases, coverage, runs and retest results
-│   ├── review.md                 # Batch/overall reviews, findings and follow-up
-│   ├── handoff.md                # Delivered result, usage, validation and remaining work
-│   ├── diagnosis.md              # Only for an independent investigation
-│   ├── change-log.md             # Meaningful changes, decisions and affected work
-│   ├── openapi.yaml              # New HTTP contract; reuse an existing authority when available
-│   ├── database.sql              # SQL for one database; multiple targets use database-<id>.sql
-│   ├── prototype/                # Newly authored prototypes when required
-│   │   └── index.html            # Entry for an HTML prototype; its assets stay here
-│   ├── source/                   # Preserved original request and adopted input versions
-│   │   ├── request.md            # Original commission or source entry
-│   │   └── …                     # External PRD, prototype, screenshots and other inputs
-│   └── .aimship/                 # Managed state and supporting evidence
-│       ├── state.json            # Stages, references, versions and repository/worktree links
-│       ├── state.previous.json   # Previous state for recovery after writes
-│       ├── view.json             # Metadata for the generated status view
-│       └── evidence/             # Evidence retained when needed
-└── 20261024-another-request/      # Independent request and progress
+```sh
+npx aimship@preview install --host codex --host claude-code
 ```
 
-Formal documents are directly in the request folder. `source/` preserves adopted originals; `.aimship/` holds internal records. The software itself is installed separately in `~/.aimship/`.
+Confirm npm's package installation prompt. `@preview` selects the published preview channel; an exact published version, such as `@0.1.0-preview.7`, can be used instead. The preview channel is experimental and does not imply a stable release.
 
-Filenames, outlines and identifier rules come from shared templates. Requirements and acceptance criteria link to implementation tasks, reviews and versioned test cases/results. The [Guide](docs/guide.md#artifacts) explains exactly when each artifact is produced and what it contains.
+### A specific version or local package
 
-## Use cases and examples
+To install an exact published version, for example:
 
-| Use case | Example request |
+```sh
+npx aimship@0.1.0-preview.7 install --host codex
+```
+
+If you already have an Aimship `.tgz` package, replace `VERSION` with its actual version and run from the directory containing it:
+
+```sh
+npx --offline file:./aimship-VERSION.tgz install --host codex
+```
+
+Choose one installation method. No global npm installation, administrator privilege or npm login is required; the npm cache must be writable. For source development and isolated installation checks, see [Contributing](CONTRIBUTING.md#isolated-installation-check).
+
+### Optional: choose a delivery material location
+
+The default delivery material root is `~/Aimship/`. On the first installation, use `--data-root` to choose another location:
+
+```sh
+npx aimship@preview install --host codex --data-root "$HOME/MyDeliveries"
+```
+
+This sets the default material location for new deliveries. It is not a code repository location and does not move existing materials. Later installations retain the configuration; no per-project installation is needed.
+
+After installation, follow the [Guide](docs/guide.md#hosts) to select Aimship in your tool. AI tool integrations are experimental: actual Skill discovery and continuation across AI tools still need validation.
+
+<a id="update"></a>
+<a id="update-or-stop-using-aimship"></a>
+<a id="upgrades-and-host-management"></a>
+<a id="upgrades-and-ai-development-tools"></a>
+## Upgrades and AI tools
+
+For the published preview channel:
+
+```sh
+npx aimship@preview install
+```
+
+Installation and upgrades use the same `install` command. Existing tool registrations, configuration, custom content and deliveries are retained. The installer reports previous/target versions, results and conflicts; no background updater or resident process runs. For a specific version or local package, use the [installation commands](#install) against the original installation home.
+
+<a id="add-a-host"></a>
+<a id="add-an-ai-development-tool"></a>
+### Add an AI tool
+
+For example, connect Cursor after installing for Codex:
+
+```sh
+npx aimship@preview install --host cursor
+```
+
+This retains existing tools and installs the selected preview version; it also upgrades the software if the preview channel has advanced. Then refresh the relevant session as described in [tool setup](docs/guide.md#hosts).
+
+### Check the installed version
+
+```sh
+npx aimship@preview --version
+```
+
+In the output, `installedActiveVersion` is the active installed version and `toolVersion` is the package npx is running. They may differ. This query does not upgrade the installation.
+
+### Check installation health
+
+```sh
+npx aimship@preview status
+```
+
+This checks the software installation, tool registrations and managed files, reporting health and pending problems. It cannot confirm that a tool loaded the Skill. For delivery progress, open that delivery's `status.md`.
+
+These commands use npx to obtain and run the selected package. During delivery work, the agent uses the fixed local launcher and rules without repeated package downloads.
+
+After an upgrade, save current work and follow [session continuation](docs/guide.md#continue) to reconcile rules and delivery state. Upgrading the software does not automatically migrate existing deliveries.
+
+<a id="uninstall"></a>
+## Uninstallation
+
+Disconnect one tool while retaining the core and other registrations:
+
+```sh
+npx aimship@preview uninstall --host cursor
+```
+
+Shared entries remain when another registered tool needs them. Disconnecting the last tool still retains the core for diagnostics or reconnection; compatible tools might continue discovering a remaining shared entry.
+
+Remove all managed software and tool entries:
+
+```sh
+npx aimship@preview uninstall
+```
+
+Full uninstall retains delivery materials, user code, custom files and necessary configuration. Modified/unowned files are preserved and reported. The launcher is removed on complete removal. Restart tool sessions to discard cached rules. Deleting delivery history is a separate explicit action.
+
+<a id="installation-troubleshooting"></a>
+## Installation and upgrade problems
+
+| Symptom | What to do |
 | --- | --- |
-| Existing PRD and prototype | “Use these materials for order export. Preserve the originals and confirm the scope before implementation.” |
-| Feature requirements and design | “Help define notification preferences and produce a prototype and technical design. Stop before implementation.” |
-| Refactor | “Refactor the pricing module without changing observable behavior. Implement and verify it.” |
-| Investigate a failure | “Investigate this intermittent timeout and report the cause and evidence. Do not implement a fix yet.” |
-
-Independent deliveries can progress at the same time, with one writing session per delivery. When they share code, arrange sequential implementation or separate checkouts/worktrees. See [parallel work](docs/guide.md#parallel).
+| Aimship is absent or duplicated | Refresh the session and inspect entries using [tool setup](docs/guide.md#hosts); installation health does not prove the tool loaded the Skill. |
+| A managed path is modified or occupied by other files | Preserve the contents, inspect ownership and explicitly reconcile customizations before retrying. |
+| Installation was interrupted or the launcher is damaged | Use the `status` command above, resolve the cause, then rerun the exact pending version against the same home. Do not switch versions during recovery. Append `--home <installation-home>` when checking a custom installation home. |
+| Unexpected version | Compare `installedActiveVersion` and `toolVersion`, then refresh the session's rules before continuing delivery work. |
+| Package/version unavailable or download failed | Check the package, exact version and registry; a failed download is not a completed installation. |
 
 ## Documentation and contributions
 
-The **[Guide](docs/guide.md)** covers installation, daily use, document rules, continuation, updates and troubleshooting. For contributors, [CONTRIBUTING](CONTRIBUTING.md) covers development and checks; the [CLI protocol](docs/cli.md) is the agent/tool reference.
+<a id="use-cases-and-examples"></a>
+The **[Guide](docs/guide.md)** explains how to start work, review documents, inspect results, handle changes and resume. The [document reference](docs/reference.md) covers artifact rules; [CONTRIBUTING](CONTRIBUTING.md) covers development and isolated validation; the [CLI protocol](docs/cli.md) serves agents and tool developers.
 
-Report bugs and feature requests through [GitHub Issues](https://github.com/clsx/aimship/issues). Aimship is a preview; completed work, user acceptance, merge and deployment are recorded separately.
+Aimship is in preview, with ongoing improvements to the workflow, usability and compatibility. Share problems and suggestions from actual use through [GitHub Issues](https://github.com/clsx/aimship/issues); read the contribution guide before contributing to development.
 
 Released under the [MIT License](LICENSE).
