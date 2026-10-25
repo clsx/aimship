@@ -87,7 +87,7 @@ test('restoring standard scope retains the partial decision and cannot hide omit
  await assert.rejects(c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}}),{code:'DELIVERY_INCOMPLETE'});
 });
 test('resume requires explicit directory; old prompt is not an approval and new session retains actual pending content',async t=>{
- const c=await setup(t);await c.finish('r0');const prompt=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data.continuation;assert.ok(prompt.includes(c.dir));
+ const c=await setup(t);await c.finish('r0');const prompt=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data.continuation;assert.ok(prompt.includes(JSON.stringify(c.dir)));
  await fs.appendFile(path.join(c.dir,'prd.md'),'changed after prompt');const resumed=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data;assert.equal(resumed.canProceed,false);assert.equal(resumed.continuation,null);
  await assert.rejects(run(['resume',c.dir,'--delivery-id','wrong-id'],{sourceRoot:root}),{code:'DELIVERY_ID_MISMATCH'});
  await assert.rejects(run(['resume'],{sourceRoot:root}),{code:'USAGE'});await assert.rejects(run(['resume',path.join(c.dir,'wrong')],{sourceRoot:root}));
@@ -114,7 +114,7 @@ test('real CLI preserves waiting, boundary, continue-here and save-failure sessi
  cli('update',{stageRuns:state.stageRuns.map(r=>r.id==='r0'?{...r,progress:'done',resultRef:'prd.md'}:r)});
  let data=cli('resume');assert.equal(data.canProceed,false);assert.equal(data.session.action,'await-review');assert.equal(data.continuation,null);
  data=cli('update',{reviewHistory:await approveFixture(c.dir,state,['prd.md'])});assert.equal(data.writeResult.stateSaved,true);assert.equal(data.writeResult.view.status,'current');assert.equal(data.writeResult.session.action,'suggest-new-session');
- data=cli('resume');assert.equal(data.canProceed,true);assert.equal(data.session.action,'suggest-new-session');assert.ok(data.continuation.includes(c.dir));
+ data=cli('resume');assert.equal(data.canProceed,true);assert.equal(data.session.action,'suggest-new-session');assert.ok(data.continuation.includes(JSON.stringify(c.dir)));
  const approved=state.reviewHistory;cli('update',{stageRuns:state.stageRuns.map(r=>r.id==='r1'?{...r,progress:'active'}:r),currentRun:'r1'});
  data=cli('resume');assert.equal(data.session.action,'continue-current');assert.deepEqual(data.state.reviewHistory,approved);
  await fs.appendFile(path.join(c.dir,'status.md'),'unmanaged manual note');

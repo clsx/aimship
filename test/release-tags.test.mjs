@@ -73,7 +73,7 @@ test('existing-release context requires current main workflow and exact target t
 });
 
 test('sync workflow separates read-only validation from OIDC and never invokes package publication', async () => {
-  const workflow = await fs.readFile(new URL('../.github/workflows/publish-preview.yml', import.meta.url), 'utf8');
+  const workflow = (await fs.readFile(new URL('../.github/workflows/publish-preview.yml', import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
   const validation = workflow.split('\n  publish:\n')[0], sync = workflow.split('\n  sync-tags:\n')[1];
   assert.match(validation, /check-tags/); assert.doesNotMatch(validation, /id-token:/);
   assert.match(sync, /needs: validate/); assert.match(sync, /id-token: write/);

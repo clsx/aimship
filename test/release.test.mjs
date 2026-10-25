@@ -65,7 +65,7 @@ test('release package compares actual tar members and bytes with source and reje
   execFileSync('tar', ['-xzf', file, '-C', dir]);
   await fs.appendFile(path.join(dir, 'package', 'README.md'), '\nTampered test fixture.\n');
   // Preserve the npm member list, avoiding platform-dependent directory entries.
-  const members = execFileSync('tar', ['-tzf', file], { encoding: 'utf8' }).trim().split('\n');
+  const members = execFileSync('tar', ['-tzf', file], { encoding: 'utf8' }).trim().split(/\r?\n/);
   const bad = path.join(dir, 'tampered.tgz');
   execFileSync('tar', ['-czf', bad, '-C', dir, ...members]);
   await assert.rejects(verifyPackage(bad), /differs from source/);
@@ -76,7 +76,7 @@ test('release package compares actual tar members and bytes with source and reje
 });
 
 test('preview workflow keeps publication manual, separately permissioned, and uses the validated artifact', async () => {
-  const workflow = await fs.readFile(path.join(root, '.github/workflows/publish-preview.yml'), 'utf8');
+  const workflow = (await fs.readFile(path.join(root, '.github/workflows/publish-preview.yml'), 'utf8')).replace(/\r\n/g, '\n');
   assert.match(workflow, /workflow_dispatch:/);
   assert.doesNotMatch(workflow, /^  (push|pull_request|schedule|workflow_run):/m);
   const [validation, publication] = workflow.split('\n  publish:\n');

@@ -52,7 +52,7 @@ export async function waitForRegistry(manifest, { read = readRegistry, pause = m
 
 export async function verifyPackage(file, sourceRoot = root) {
   const { pkg, files } = await releaseFiles(sourceRoot);
-  const members = command('tar', ['-tzf', file], { encoding: 'utf8' }).trim().split('\n');
+  const members = command('tar', ['-tzf', file], { encoding: 'utf8' }).trim().split(/\r?\n/);
   const expected = Object.keys(files).map(name => `package/${name}`).sort();
   requireThat(JSON.stringify([...members].sort()) === JSON.stringify(expected), 'Tarball members differ from the distributable source files.');
   for (const member of members) {
