@@ -31,10 +31,10 @@ async function begin(name,authority,requirements,prdParts) {
  const c={dir,code,kind,state};
  c.save=async patch=>{c.state=await updateState(dir,patch,c.state.revision,version,runtime);assert.equal(c.state.writeResult.view.status,'current');};
  c.addDoc=async(kind,parts)=>{await makeDoc(dir,kind,parts);const file=path.join(dir,`${kind}.md`);await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace('pending init',c.state.deliveryId));await c.save({documents:[...c.state.documents,{kind,path:`${kind}.md`,mode:'new',version:'1'}]});};
- c.run=async(id,stage,result,scope)=>{
+ c.run=async(id,stage,result,scope,extra={})=>{
   const refs=stage==='implement'?['plan.md#tasks',`${kind}.md`]:[`${kind}.md`]; const artifact=result.split('#')[0];
   const old=c.state.stageRuns.find(r=>r.id===id);
-  const record={id,stage,scope,progress:'done',inputRefs:refs,outputRefs:[artifact],resultRef:result,result:'passed',applicability:'current',...(old?{historyResultRefs:[...new Set([...(old.historyResultRefs??[]),old.resultRef])]}:{})};
+  const record={id,stage,scope,progress:'done',inputRefs:refs,outputRefs:[artifact],resultRef:result,result:'passed',applicability:'current',...extra,...(old?{historyResultRefs:[...new Set([...(old.historyResultRefs??[]),old.resultRef])]}:{})};
   await c.save({stageRuns:old?c.state.stageRuns.map(r=>r.id===id?record:r):[...c.state.stageRuns,record],currentRun:id,next:{action:`Saved ${id}; follow the selected review stop`}});
   if(map.stages[stage].humanReview) {
    const status=await reviewStatus(dir,c.state);assert.ok(status.runs.find(r=>r.id===id).waiting.includes(artifact));
@@ -68,14 +68,15 @@ async function testing(c,cases) {await c.addDoc('testing',{basis:`[Acceptance]($
 async function review(c,id,scope,task='TASK-001') {
  if(!c.state.documents.some(d=>d.kind==='review'))await c.addDoc('review',{basis:'Current scope/design/plan and exact app file hashes below.',reviews:'Review records appended below.',conclusion:'Findings and dispositions belong to their recorded objects.'});
  const run=id==='REV-003' && c.state.stageRuns.some(r=>r.id==='review-REV-002' && r.applicability==='needs-review')?'review-REV-002':`review-${id}`;await c.append('review.md',definition(id,[`local:${task}@1`],{run})+`Reviewer: current Agent's scripted synthetic review. Scope: ${scope}. Objects: ${JSON.stringify(await c.object())}. Checked planned inputs, validation boundaries, requirements and module integration by reading source; no runtime claim. Findings: structural scope inspected. For the synthetic overall discount probe only, the deliberately seeded floor/half-up mismatch is a known fault retained solely to verify failure recording; it is not accepted implementation. Other scopes have no unresolved blocking finding. Runtime conclusions remain for verify.`);
- await c.run(run,'review',`review.md#${id.toLowerCase()}-v1`,scope);
+ const batches=c.state.stageRuns.filter(r=>r.stage==='implement').map(r=>r.id), overall=/overall|repair/.test(scope);
+ await c.run(run,'review',`review.md#${id.toLowerCase()}-v1`,scope,{reviewOf:overall?batches:batches.slice(-1),overall});
 }
 async function execute(c,id,tests,refs) {
  const results=[];for(const [name,fn] of tests){try{await fn();results.push({name,result:'passed'});}catch(error){results.push({name,result:'failed',message:error.message});}}
  await fs.mkdir(path.join(c.dir,'.aimship/evidence'),{recursive:true});const evidence=`.aimship/evidence/${id.toLowerCase()}.json`;
  const record={id,executor:'Node assertion harness, authored and inspected by current Agent',command:`node scripts/run-examples.mjs <isolated-output>`,node:process.version,objects:await c.object(),cases:refs,results};await fs.writeFile(path.join(c.dir,evidence),json(record));
  const run=`verify-${id}`;await c.append('testing.md',definition(id,refs,{run})+`Object/case versions, commands, exact assertions/results: [${id}](${evidence}). ${results.filter(r=>r.result==='passed').length} passed; ${results.filter(r=>r.result==='failed').length} failed; 0 skipped. All source objects have hashes; no Git assumed.`);
- await c.save({stageRuns:[...c.state.stageRuns,{id:run,stage:'verify',scope:'independent post-overall review execution',progress:'done',inputRefs:['testing.md#cases','review.md'],outputRefs:['testing.md'],resultRef:`testing.md#${id.toLowerCase()}-v1`,result:results.every(r=>r.result==='passed')?'passed':'failed',applicability:'current'}],currentRun:run,outcome:{goal:results.every(r=>r.result==='passed')?'in-progress':'not-met'},next:{action:results.every(r=>r.result==='passed')?'Assess goal and handoff':'Repair failing implementation, review affected scope, then retest'}});
+ await c.save({stageRuns:[...c.state.stageRuns,{id:run,stage:'verify',historyResultRefs:results.every(r=>r.result==='passed')?c.state.stageRuns.filter(r=>r.stage==='verify').map(r=>r.resultRef):[],scope:'independent post-overall review execution',progress:'done',inputRefs:['testing.md#cases','review.md'],outputRefs:['testing.md'],resultRef:`testing.md#${id.toLowerCase()}-v1`,result:results.every(r=>r.result==='passed')?'passed':'failed',applicability:'current'}],currentRun:run,outcome:{goal:results.every(r=>r.result==='passed')?'in-progress':'not-met'},next:{action:results.every(r=>r.result==='passed')?'Assess goal and handoff':'Repair failing implementation, review affected scope, then retest'}});
  return record;
 }
 async function finish(c) {

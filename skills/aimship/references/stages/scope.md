@@ -24,4 +24,4 @@ Use the selected PRD/Scope requirement entry. Preserve the `scope` section ancho
 
 ## Human document review
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, short summary and next stage → pause. Record explicit user approval of this version/content, then continue the next authorized step automatically. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: continue within the group, or suggest a new session at its boundary; continue here if requested. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.

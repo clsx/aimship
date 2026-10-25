@@ -60,7 +60,7 @@ test('revision checks, atomic replacement, one recovery copy and separate outcom
 test('goal revisions and reopening preserve prior goals, decisions and results', async t => {
   const { delivery, input } = await setup(t); await initState(delivery, input, VERSION, runtime);
   await assert.rejects(updateState(delivery, { goal: { endpoint: 'Design only' } }, 0, VERSION, runtime), { code: 'INVALID_STATE' });
-  const revised = await updateState(delivery, { stageRuns: [{...input.stageRuns[0],progress:'done',resultRef:'results.md#r-1'}], goal: { endpoint: 'Design only', decisionRef: 'requirements.md#decision-2' }, outcome: { goal: 'met', goalConclusionRef: 'results.md#h-1', acceptance: 'accepted', acceptanceRef: 'results.md#accepted' } }, 0, VERSION, runtime);
+  const revised = await updateState(delivery, { stageRuns: [{...input.stageRuns[0],progress:'done',resultRef:'results.md#r-1'}], deliveryPolicy:{version:1,partialRef:'requirements.md#decision-2'}, goal: { endpoint: 'Design only', decisionRef: 'requirements.md#decision-2' }, outcome: { goal: 'met', goalConclusionRef: 'results.md#h-1', acceptance: 'accepted', acceptanceRef: 'results.md#accepted' } }, 0, VERSION, runtime);
   assert.equal(revised.goalHistory[0].goal.endpoint, input.goal.endpoint);
   const opened = await updateState(delivery, { cycle: 2, closureRefs: ['results.md#h-1'], outcome: { goal: 'in-progress', acceptance: 'not-recorded' } }, 1, VERSION, runtime);
   assert.equal(opened.cycle, 2); assert.equal(opened.goalHistory.length, 1);

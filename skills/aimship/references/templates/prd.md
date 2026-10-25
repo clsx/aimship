@@ -37,3 +37,5 @@ AC, requirement reference, condition, operation, decidable expected result. Repl
 
 Selected order, artifact locations/reuse, dependencies, Q with impact/status/decision source. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
+
+<!-- Arrangement guidance: standard delivery sequence and applicable artifacts; preserve an explicit limited-scope decision without claiming standard completeness. Suggested session groups live in state, are shown in status, and are not approval conditions. -->

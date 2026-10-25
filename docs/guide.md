@@ -48,19 +48,23 @@ Provide the relevant repository and feature location, expected behavior, current
 
 The agent examines the implementation, confirms requirements and technical constraints, and arranges design, implementation, review and verification. Ordinary debugging stays within the current work; a significant unknown requiring independent investigation leads to an arrangement change. `plan.md` tracks implementation, while `review.md` and `testing.md` record review and actual verification results.
 
+Preserve adopted versions of external material; a URL alone may not retain a version, and access gaps must be explicit. An existing editable PRD may be reused when you explicitly commission its maintenance and it fully states this scope, authorization and endpoint. Earlier authorship alone does not permit changing an adopted original.
+
 In all these situations, the agent preserves the original request and maintains delivery records. Important business, scope, compatibility, cost or data decisions remain yours; routine technical decisions stay within your authorization. An unanswered decision is not treated as approval, and dependent work waits for resolution.
 
 <a id="review"></a>
 <a id="review-documents-and-continue"></a>
 ## 3. Proceed and review
 
-The usual development order is PRD/Scope → technical design → interfaces and independent SQL when applicable → test cases → implementation plan → implementation/review/verification → handoff and acceptance. Prototype, investigation and design-only work keep their agreed endpoint; review-only and verify-only reuse their existing basis.
+The standard sequence is requirements and acceptance criteria → technical design with applicable interface/SQL/interaction artifacts → test cases → implementation plan → implementation batches with batch review → overall review → verification → delivery acceptance. The agent organizes this sequence without asking you to select every core stage. Unrelated artifacts are not created; existing formal material is inspected before adoption, which does not itself constitute approval.
 
-For each document requiring your review, the agent generates and self-checks it, provides a link, a short summary and the next stage, then waits for your review. Read the document and either request changes or explicitly approve it. Requested edits are revised, self-checked and presented again. Questions, silence and asking to see results do not count as approval.
+After drafting and self-checking each document that needs your review, the agent shows the current stage status, document entry and review focus. Explicitly approve it or raise questions. Discussion, silence and requests to see results are not approval; revisions are self-checked and presented again. No next-stage continuation prompt is issued while review is pending.
 
-Your explicit approval is recorded against that document version and automatically starts the next authorized stage; no second start confirmation is needed. If you have explicitly arranged to continue in a new session, the agent saves a handoff first; see [session arrangements](#continue). The chat shows the current stage, pending document, review status and next stage. Document approval is separate from final delivery acceptance.
+After explicit approval, the agent records the decision and document version, saves progress and next work, checks the save result, and then suggests the next action in the same handling of your message. You need not separately confirm saving or the prompt; failed saves are reported honestly. Within a suggested session group, the next item starts directly. At a group boundary, the agent suggests a new session and provides a short entry without executing the next group in that response. Say “continue in this session” to proceed without another approval. See [session grouping suggestions](#continue).
 
-Authorized implementation, agent reviews, defect repairs and retests can proceed continuously. Each implementation batch is reviewed, followed by overall review and independent verification. New material decisions and production actions still need authorization.
+If you explicitly exclude test cases and testing, the agent explains and records that scope once, completes the authorized development and review, and hands over an **untested partial result**. It does not quietly add excluded work or repeatedly persuade you. Finishing that scope is not standard complete delivery or a passing verification result. Document approval remains separate from final delivery acceptance.
+
+Authorized implementation, batch checks/repairs and retests can proceed. Review or test findings first lead to repairs or the existing change flow. New material decisions and production actions still need their corresponding authorization.
 
 <a id="results"></a>
 <a id="3-inspect-progress-and-results"></a>
@@ -73,7 +77,7 @@ Start with the delivery's **`status.md`** for the current stage, pending documen
 
 By default, each request has its own delivery directory under `~/Aimship/`, while code stays in its existing repositories.
 
-The tree below lists delivery artifacts and their purposes. Files are generated according to the selected stages and input conditions; unselected stages produce no empty documents. `prd.md` and `scope.md` are alternative requirement entries, not two files required for every delivery.
+The tree below lists delivery artifacts and their purposes. Files follow the agreed delivery scope and actual artifact conditions; unrelated work produces no empty documents. `prd.md` and `scope.md` are alternative requirement entries, not two files required for every delivery.
 
 ```text
 ~/Aimship/
@@ -105,7 +109,7 @@ The tree below lists delivery artifacts and their purposes. Files are generated 
 
 Formal documents are directly in the request folder. `source/` preserves adopted originals; `.aimship/` holds internal records. The software itself is installed separately in `~/.aimship/`.
 
-Filenames, outlines and identifier rules come from shared templates. Requirements and acceptance criteria link to implementation tasks, reviews and versioned test cases/results. The [document reference](reference.md) explains exactly when each artifact is produced and what it contains.
+Filenames, outlines and identifier rules come from shared templates. Requirements and acceptance criteria link to implementation tasks, reviews and versioned test cases/results. The [document details](#document-details) explain when each artifact is produced and what it contains.
 
 <a id="changes"></a>
 <a id="review-verify-and-change"></a>
@@ -126,9 +130,9 @@ Meaningful changes and their impact are recorded in `change-log.md`; see `status
 <a id="6-resume-after-a-pause-or-in-another-session"></a>
 ## 6. Session arrangements and continuing work
 
-### The maintainer's session practice
+### Session grouping suggestions
 
-To manage growing context, the maintainer has used the following arrangement of separate sessions (windows):
+The following arrangement is based on experience from actual projects and can be adjusted to task size. At delivery creation or requirements confirmation, the agent records applicable suggested groups in state and shows them in `status.md`:
 
 | Work | Session arrangement |
 | --- | --- |
@@ -140,19 +144,23 @@ To manage growing context, the maintainer has used the following arrangement of 
 | Overall review | One session |
 | Test execution | One session per test batch |
 
-This is practical experience, not a required split or a stage completion condition. Adjust it to the task's size, volume of materials and accumulated context. Assess any combined arrangement in actual use. Sharing a session for technical design, SQL and interfaces still requires the agreed document order: review technical design first, then each applicable interface/SQL document individually. A shared window does not bypass approval.
+This is practical experience, not a required split or a stage completion condition. Adjust it to the task's size, volume of materials and accumulated context. Assess any combined arrangement in actual use. Sharing a session for technical design, SQL and interfaces still requires the agreed document order: review technical design first, then each applicable interface/SQL document individually. A shared session does not bypass approval.
 
-Implementation batches and test batches serve different purposes. Test batches follow the verification arrangement and need not correspond one-to-one with implementation batches; this does not require testing after every implementation batch. A new window alone does not guarantee independent judgment or quality. Each new session still needs the relevant complete formal documents, saved state and actual artifacts, not just a brief chat summary.
+Implementation batches and test batches serve different purposes. Test batches follow the verification arrangement and need not correspond one-to-one with implementation batches; this does not require testing after every implementation batch. A new session alone does not guarantee independent judgment or quality. Each new session still needs the relevant complete formal documents, saved state and actual artifacts, not just a brief chat summary.
 
 ### Arrange the next session and hand off
 
-Aimship defines stages, artifacts, reviews and handoffs; it does not create new sessions. When changing windows, open a new session in your AI tool and provide the same delivery directory and handoff information.
+At a suggested boundary, the agent first confirms that approval, results and state were saved, then reports current results and next work, suggests a new session, and provides one copyable entry using the actual delivery directory:
 
-If you want to change sessions after approving a document, say so with the approval, for example: “This document is approved. Save the handoff first; I will continue in a new window.” The agent records approval and your continuation arrangement without starting the next stage in the current session. For implementation or test batches, you can instead say: “Finish this batch, save the results and handoff, and leave the next batch for a new session.” This does not add human approval requirements to execution records.
+> Use Aimship to continue delivery <actual directory>; first read the current state and relevant formal documents, then continue the recorded work.
 
-Before ending the current session, have the agent save progress, review status, unresolved issues and the next step, and provide the full delivery directory path and relevant code locations. In the new session, select Aimship and provide the same delivery directory. The agent reads the relevant complete formal documents and state, checks actual artifacts and continues according to the saved arrangement. Ensure that a different tool can access the same materials and code.
+You do not need to repeat a session-switch instruction with each approval or separately confirm saving and prompt generation. Say “continue in this session” to proceed. Grouping is a context suggestion, not an approval or blocker. Final handoff has no unnecessary next-stage entry. Ask for a complete prompt when needed; the default is not a long prompt at every stage or a separate prompt/handoff file.
 
-Keep only one writing session per delivery; the old session must stop writing before the new one takes over. Pending documents still require your explicit approval, and changing windows cannot bypass review. Progress and next steps remain in the same `status.md`; you do not need to copy the entire chat.
+Aimship itself does not create sessions. After the current session confirms saving and stops writing, open a new session in your AI tool, select Aimship and paste the entry. The new session must uniquely locate the same delivery and inspect actual state, document approval versions, relevant complete formal documents, artifacts and unfinished operations before acting. A trustworthy binding avoids repeated path questions; a missing or ambiguous binding requires a directory or candidate selection, never a guessed latest delivery. Saying “continue next stage” or copying an old prompt grants no approval; a pending draft remains pending across sessions.
+
+Keep one writing session per delivery. Code locations and access permissions must remain available; switching sessions cannot bypass reviews or affected-work stops. Progress stays in the same `status.md`, without copying the entire chat.
+
+Official CLI documentation checked on 2026-10-25 describes [`/new`](https://developers.openai.com/codex/cli/slash-commands) for Codex, [`/new-chat`](https://cursor.com/docs/cli/reference/slash-commands) for Cursor CLI, and [`/clear`](https://code.claude.com/docs/en/interactive-mode#command-history) for Claude Code to start a fresh chat/session. Check the command list of your installed CLI version; these are documentation checks, not a claim of testing each tool. They differ from simply redrawing the screen or compacting context. Save and stop the current writer first.
 
 ### Handle interruptions and version changes
 
@@ -180,6 +188,8 @@ Review artifact locations, usage instructions, review and verification conclusio
 
 The agent records goal completion, user acceptance, merge and deployment separately. Asking for a preview does not shorten the goal; if you explicitly end early, the handoff preserves the original goal and unfinished work.
 
+Standard complete delivery needs evidence for the main sequence, required document approvals, passing batch/overall reviews, independent verification and final acceptance. `status.md` distinguishes standard completeness from completion of the agreed scope and user acceptance. Tools check records; they cannot independently prove execution or semantic quality. An explicitly limited result can be finished and handed over as partial scope; untested work is labeled untested. Historical outcomes and acceptance remain intact, initially unassessed under the new standard. Inspect evidence and explicitly adopt the new rules before continuing, without inventing historical approvals or tests.
+
 Small later corrections can continue the same delivery while preserving its earlier completion record. A new goal or substantial redesign starts a related delivery.
 
 <a id="troubleshoot"></a>
@@ -200,7 +210,7 @@ For a bug report, include the tool and Aimship versions, the operation, expected
 
 <a id="artifacts"></a>
 <a id="keep-only-useful-artifacts"></a>
-See the [delivery document reference](reference.md) for generation conditions, stage outputs, outlines and identifier rules. The agent maintains these as work progresses; you do not need to learn them all before starting.
+See the [document details](#document-details) for generation conditions, stage outputs, outlines and identifier rules. The agent maintains these as work progresses; you do not need to learn them all before starting.
 
 <a id="update"></a>
 <a id="update-or-stop-using-aimship"></a>
@@ -208,3 +218,60 @@ For software upgrades, adding tools, version queries and installation health che
 
 <a id="uninstall"></a>
 For tool disconnection or full uninstallation, see the [README](../README.md#uninstall). Source development and isolated validation belong in [Contributing](../CONTRIBUTING.md).
+
+<a id="document-details"></a>
+## Appendix: document details
+
+Use the preceding sections for everyday work. This appendix covers stage outputs, SQL and traceability; file locations follow the [delivery directory](#delivery-structure).
+
+<a id="choose-the-requirement-authority"></a>
+See [starting work](#start) for source adoption. PRD and Scope are alternative requirement authorities, not duplicate documents to create by default.
+
+<a id="stage-outputs-and-content"></a>
+### Stage outputs
+
+This is an internal responsibility/file mapping for understanding artifacts, not a menu of arbitrary stages to select. See [progress and review](#review) for the standard sequence and limited scope. Sharing plan/testing does not complete stages together, and file existence does not establish completion.
+
+| Stage | When used | Output and content |
+| --- | --- | --- |
+| `frame` | The problem or intended result needs clarification | Goal/background section of PRD/Scope: problem, outcome, non-goals and assumptions |
+| `requirements` | Requirements need authoring or adoption | `prd.md`: goals, scope, requirements, states, acceptance and arrangement; or `scope.md`: source adoption, scope, exclusions, decisions, acceptance and arrangement |
+| `scope` | Commission boundaries need explicit resolution | Update PRD scope or Scope goals/boundaries; no second requirements document |
+| `prototype` | Required interaction changes are not covered by existing material | New HTML at `prototype/index.html` with related assets; other agreed formats or reused entries are registered |
+| `diagnose` | An independent investigation is explicitly arranged | `diagnosis.md`: goal, symptoms, environment, evidence, causes, unknowns and conclusion |
+| `tech-design` | Technical solution needs designing | `tech-design.md`: basis, architecture, modules, data/contracts, errors, risks and requirement coverage; SQL is produced and reviewed in contract after this design is approved |
+| `contract` | Interfaces or database changes need formal artifacts | HTTP: `openapi.yaml` or the registered authority; agreed non-HTTP format; independent SQL per target, reviewed individually |
+| `test-design` | Test cases need authoring | `testing.md`: basis, environment, cases/assertions and requirement/acceptance coverage |
+| `plan` | Before any implementation, including one small batch | `plan.md`: basis, batches, tasks, validation approach, execution section and remaining work |
+| `implement` | Execute the accepted plan | Code in its repositories; actual task status, objects and deviations in the same `plan.md` |
+| `review` | Review a batch, the integrated result or a review-only commission | `review.md`: review basis, each review's scope/findings/resolution and conclusion |
+| `verify` | Execute versioned cases after the required review, or a verification-only commission | Append execution batches/RUNs, actual results/evidence, retests and conclusion to the same `testing.md` |
+| `handoff` | Deliver the agreed endpoint | `handoff.md`: goal, artifacts, usage, review/verification results, limits and completion/acceptance/integration outcomes |
+
+<a id="sql-changes-and-progress"></a>
+### SQL and engineering versions
+
+SQL identifies the target, dialect, version/schema basis and execution conditions, and links ordered statements to requirements/design. It is prepared and individually reviewed in contract after technical design approval and before test cases. A Markdown SQL snippet or migration reference does not replace this deliverable. Generating SQL does not authorize executing it or changing a repository's migration mechanism.
+
+Existing engineering HTTP contracts remain authoritative; avoid a second competing copy. Project current and target versions are recorded in PRD/Scope with their engineering source and observation basis; an unspecified version remains unspecified. `plan.md` records actual changes, while review and test results identify the exact commit/build or uncommitted content. Each repository has its own version and object references. These differ from Aimship’s rules version, state schema and save revision. The handoff records final code objects and actual merge/release status; a target version does not establish publication.
+
+<a id="fixed-outlines-and-traceable-identifiers"></a>
+### Outlines and traceable identifiers
+
+New documents follow [shared templates and rules](../skills/aimship/references/document-patterns.md). Section order and stable anchors are retained; visible headings can be translated. Inapplicable sections explain why. Short tasks use the same outline, with shorter content. Unselected stages do not produce empty documents, and there is no arbitrary small-task merging.
+
+| Identifier | Meaning |
+| --- | --- |
+| `REQ-001`, `AC-001` | Requirement and acceptance criterion |
+| `B-001`, `TASK-001` | Implementation batch and task |
+| `PAGE-001`, `Q-001` | Prototype page and tracked question |
+| `TC-001`, `RUN-001` | Test case and actual verification run |
+| `REV-001`, `CHG-001` | Review and meaningful change |
+
+Each series starts at `001` and advances beyond its historical maximum, including retired items; three digits are the minimum width. An ID is never reused for a different obligation. Within a namespace and version, an identity has one effective definition; other documents reference it. Classification or layout changes retain the ID, while splits/merges create new IDs linked to the originals.
+
+References connect requirements/acceptance to design, tasks, code objects, reviews, case versions and actual runs. These relationships may be many-to-many: `REQ-001` and `TC-001` are not related merely because their numbers match. Shared rules, permissions and quality requirements receive independent identities when independently testable. External IDs retain their spelling and source/version namespace; sources without IDs receive local mappings to their original locations. Changed case meaning gets a new version; earlier failures and their case/code versions remain traceable.
+
+For example: `REQ-001 → AC-002 → TC-004@1 → RUN-003` records the explicit requirement-to-result relationship. A RUN also identifies the tested code/build and evidence; the case ID alone does not prove execution.
+
+The tools check structure, references and basic coverage. The agent must still assess whether the content and assertions actually satisfy the requirement; valid metadata alone is not proof.

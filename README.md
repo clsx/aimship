@@ -4,7 +4,7 @@
 
 **A software delivery workflow for AI tools, connecting requirements, design, implementation, review and verification.**
 
-You provide the goal, existing materials and code locations. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
+For developers responsible for delivering a requirement. You provide the goal, existing materials and code locations. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
 
 <a id="what-a-delivery-contains"></a>
 <a id="delivery-structure-and-documents"></a>
@@ -12,7 +12,7 @@ You provide the goal, existing materials and code locations. Aimship helps the a
 Standard document outlines, identifiers and references connect requirements and acceptance criteria to designs, implementation tasks, reviews and test results. Documents are produced as needed for the delivery goal, giving you a consistent basis for review without requiring an empty template for every stage.
 
 <a id="delivery-workflow"></a>
-By default, you review documents individually after the agent's self-check. The agent presents the document, a short summary and the next step, then waits for your review. Explicit approval automatically advances to the next authorized stage according to your arrangements; requested changes lead to revision, self-check and another review. Document approval remains separate from final delivery acceptance.
+By default, you review documents individually after the agent's self-check. The agent presents current status, the document and review focus, then waits. After explicit approval is saved, work continues within the group; at a suggested session boundary it provides next work and a continuation entry, with the option to continue here; requested changes lead to revision, self-check and another review. Document approval remains separate from final delivery acceptance; an explicitly limited partial result is not presented as standard complete delivery.
 
 Documents and state are saved throughout the work, keeping progress, decisions and verification evidence traceable and reducing the need to repeat background or reconstruct earlier work.
 
@@ -145,7 +145,7 @@ Full uninstall retains delivery materials, user code, custom files and necessary
 ## Documentation and contributions
 
 <a id="use-cases-and-examples"></a>
-The **[Guide](docs/guide.md)** explains how to start work, review documents, inspect results, handle changes and resume. The [document reference](docs/reference.md) covers artifact rules; [CONTRIBUTING](CONTRIBUTING.md) covers development and isolated validation; the [CLI protocol](docs/cli.md) serves agents and tool developers.
+The **[Guide](docs/guide.md)** explains how to start work, review documents, inspect results, handle changes and resume. Artifact and traceability details are also in the Guide; [CONTRIBUTING](CONTRIBUTING.md) covers development and isolated validation; the [CLI protocol](docs/cli.md) serves agents and tool developers.
 
 Aimship is in preview, with ongoing improvements to the workflow, usability and compatibility. Share problems and suggestions from actual use through [GitHub Issues](https://github.com/clsx/aimship/issues); read the contribution guide before contributing to development.
 

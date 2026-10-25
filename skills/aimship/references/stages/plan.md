@@ -2,11 +2,11 @@
 
 ## Basis
 
-Read approved current PRD/Scope, test cases/coverage, applicable design/contracts and relevant repository boundaries.
+Read approved current PRD/Scope, test cases/coverage for standard delivery (or the explicit limited-scope basis), applicable design/contracts and relevant repository boundaries.
 
 ## Work and result
 
-Define executable batches, each goal and requirement coverage, dependencies, authorized file/repository scope and interfaces. Arrange batch implementation/review, overall review, then independent verification. Include known cross-delivery interface, database, test-data/service and integration dependencies in this same plan, with necessary sequencing or use arrangements. Keep test-code development in appropriate batches; do not add per-batch full testing gates.
+Define executable batches, each goal and requirement coverage, dependencies, authorized file/repository scope and interfaces. Arrange batch implementation/review, overall review, then independent verification within the agreed scope; explicitly excluded testing remains an untested partial handoff. Include known cross-delivery interface, database, test-data/service and integration dependencies in this same plan, with necessary sequencing or use arrangements. Keep test-code development in appropriate batches; do not add per-batch full testing gates.
 
 ## Continue when
 
@@ -24,4 +24,4 @@ Use plan.md. Preserve the `tasks` section anchor. Follow [document patterns](../
 
 ## Human document review
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, short summary and next stage → pause. Record explicit user approval of this version/content, then continue the next authorized step automatically. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: continue within the group, or suggest a new session at its boundary; continue here if requested. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.

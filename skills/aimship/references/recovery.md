@@ -21,3 +21,9 @@ Migration converts state layout/schema only. Reconcile legacy requirements/desig
 State is authoritative for stages; status is generated. JSON may have saved while view generation failed: use returned revision and render, never repeat update. Read/check/resume never repair implicitly. Inspect changed registered documents even when view revision matches. render --preserve-edits retains a modified status before replacing it; interpret intent and update the formal authority separately.
 
 Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and old-state compatibility. Read/resume never infer approval from done or create a new user decision.
+
+## Session boundary and completion compatibility
+
+Use the core’s session interaction. Locate the actual delivery before reading; an explicit path or trustworthy unique binding is necessary. Check deliveryId when supplied, current approval fingerprints, current inputs and unfinished side effects; never treat an old continuation prompt as authority. Pending review remains pending. A session suggestion is not a blocker; a request to continue here uses the same saved work without a new approval. No automatic sessions or clipboard actions.
+
+Older state without deliveryPolicy is historical-unassessed, not invalid. Preserve met/accepted and old evidence. Adopt active rules and explicitly add deliveryPolicy with compatibilityRef after a real scope/evidence assessment; partialRef records an actual limited commission. No inferred historical approvals, no bulk migration. Standard completion remains separately assessed. Unknown newer delivery policies are read-only.

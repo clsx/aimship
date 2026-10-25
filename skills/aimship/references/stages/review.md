@@ -21,3 +21,5 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 ## Artifact contract
 
 Use review.md. Preserve the `reviews` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+
+Record reviewOf with the actual implementation-run IDs; mark overall: true only for an overall review. The batch review shares that batch’s suggested session, while overall review has its own suggestion. Resolve findings before continuation; a suggestion never substitutes for a passing review.

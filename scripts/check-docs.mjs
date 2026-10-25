@@ -15,8 +15,8 @@ let checked=0;
 for(const file of files.filter(f=>f.endsWith('.md'))) {
  const text=await fs.readFile(path.join(root,file),'utf8');
  for(const match of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
-  const ref=match[1];if(/^(https?:|#|<|\{)/.test(ref))continue;
-  const target=path.resolve(root,path.dirname(file),ref.split('#')[0]);
+  const ref=match[1];if(/^(https?:|<|\{)/.test(ref))continue;
+  const target=ref.startsWith('#')?path.join(root,file):path.resolve(root,path.dirname(file),ref.split('#')[0]);
   await fs.access(target);checked++;
   const fragment=ref.split('#')[1];if(fragment && target.endsWith('.md')) {
    const content=await fs.readFile(target,'utf8');const slugs=[...content.matchAll(/^#{1,6}\s+(.+)$/gm)].map(m=>m[1].toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu,'').replace(/\s+/g,'-'));
@@ -24,4 +24,4 @@ for(const file of files.filter(f=>f.endsWith('.md'))) {
   }
  }
 }
-console.log(JSON.stringify({ok:true,stages:STAGES.length,templates:Object.keys(map.documents).length,relativeLinks:checked,scope:'Public documentation links and shared stage/template mapping; not semantic acceptance.'},null,2));
+console.log(JSON.stringify({ok:true,stages:STAGES.length,templates:Object.keys(map.documents).length,relativeLinks:checked,scope:'Public relative and same-page links plus shared stage/template mapping; not semantic acceptance.'},null,2));

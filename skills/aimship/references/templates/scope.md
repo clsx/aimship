@@ -37,3 +37,5 @@ AC, requirement/source identity, conditions, actions and expected results. Repla
 
 Selected order, artifact locations/reuse, permissions and open Q. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
+
+<!-- Arrangement guidance: standard delivery sequence and applicable artifacts; preserve an explicit limited-scope decision without claiming standard completeness. Suggested session groups live in state, are shown in status, and are not approval conditions. -->
