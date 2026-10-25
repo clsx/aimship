@@ -77,7 +77,7 @@ test('sync workflow separates read-only validation from OIDC and never invokes p
   const validation = workflow.split('\n  publish:\n')[0], sync = workflow.split('\n  sync-tags:\n')[1];
   assert.match(validation, /check-tags/); assert.doesNotMatch(validation, /id-token:/);
   assert.match(sync, /needs: validate/); assert.match(sync, /id-token: write/);
-  assert.match(sync, /npm@12\.2\.1/); assert.match(sync, /fetch-depth: 0/);
+  assert.match(sync, /npm@11\.21\.0/); assert.match(sync, /fetch-depth: 0/);
   assert.match(sync, /release-preview\.mjs sync-tags/);
   assert.doesNotMatch(sync, /npm publish|release-preview\.mjs publish|contents: write|secrets\./);
 });

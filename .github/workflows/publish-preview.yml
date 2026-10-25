@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: 26.7.0
           package-manager-cache: false
-      - run: npm install --global npm@12.2.1 --ignore-scripts
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm test
       - run: npm run check:docs
       - run: npm run check:package
@@ -81,7 +81,7 @@ jobs:
         with:
           node-version: 26.7.0
           package-manager-cache: false
-      - run: npm install --global npm@12.2.1 --ignore-scripts
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           artifact-ids: ${{ needs.validate.outputs.artifact-id }}
@@ -107,5 +107,5 @@ jobs:
         with:
           node-version: 26.7.0
           package-manager-cache: false
-      - run: npm install --global npm@12.2.1 --ignore-scripts
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: node scripts/release-preview.mjs sync-tags "$RUNNER_TEMP/tag-sync"
