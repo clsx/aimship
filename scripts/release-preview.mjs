@@ -38,6 +38,17 @@ async function get(url, json = true) {
 }
 const readRegistry = () => get(`${registry}/aimship`);
 
+export async function waitForRegistry(manifest, { read = readRegistry, pause = ms => new Promise(resolve => setTimeout(resolve, ms)), attempts = 25 } = {}) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const current = await read();
+    const decision = publicationDecision(current, manifest);
+    requireThat(current['dist-tags'].latest === manifest.latestBefore, 'latest changed during verification; inspect before continuing.');
+    if (decision === 'already-published' && current.versions[manifest.version].dist.attestations?.url && current['dist-tags'].preview === manifest.version) return current;
+    if (attempt + 1 < attempts) await pause(10000);
+  }
+  throw new Error('Registry verification is still pending after the bounded wait. Publication may already have succeeded; inspect the registry before retrying.');
+}
+
 export async function verifyPackage(file, sourceRoot = root) {
   const { pkg, files } = await releaseFiles(sourceRoot);
   const members = command('tar', ['-tzf', file], { encoding: 'utf8' }).trim().split('\n');
@@ -91,12 +102,8 @@ async function publish(directory, verifyOnly = false) {
     // No retry here: an uncertain npm outcome must be checked against the registry first.
     command('npm', ['publish', file, '--registry', registry, '--tag', 'preview', '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
   }
-  let after;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    after = await readRegistry();
-    if (after.versions[release.version]?.dist?.attestations && after['dist-tags']?.preview === release.version) break;
-    if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 5000));
-  }
+  // npm accepts a publication before asynchronous processing makes it visible.
+  const after = await waitForRegistry(manifest);
   requireThat(publicationDecision(after, manifest) === 'already-published', 'Published version is not visible.');
   requireThat(after['dist-tags'].preview === release.version && after['dist-tags'].latest === manifest.latestBefore, 'Unexpected dist-tags; do not silently change them.');
   const dist = after.versions[release.version].dist;

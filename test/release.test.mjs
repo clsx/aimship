@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { registry, validateContext, publicationDecision, verifyPackage } from '../scripts/release-preview.mjs';
+import { registry, validateContext, publicationDecision, verifyPackage, waitForRegistry } from '../scripts/release-preview.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const head = 'a'.repeat(40);
@@ -28,6 +28,25 @@ test('registry release decision fails closed and only skips an identical already
   assert.equal(publicationDecision(metadata, manifest), 'already-published');
   metadata.versions[pkg.version].dist.integrity = 'sha512-other';
   assert.throws(() => publicationDecision(metadata, manifest), /different package bytes/);
+});
+
+test('post-publication verification tolerates asynchronous registry visibility without republishing', async () => {
+  const manifest = { version: pkg.version, integrity: 'sha512-example', latestBefore: '0.1.0-preview.4' };
+  const pending = { name: 'aimship', versions: {}, 'dist-tags': { latest: manifest.latestBefore, preview: '0.1.0-preview.8' } };
+  const visible = { ...pending, versions: { [manifest.version]: { dist: { integrity: manifest.integrity } } } };
+  const complete = structuredClone(visible);
+  complete['dist-tags'] = { ...pending['dist-tags'], preview: manifest.version };
+  complete.versions[manifest.version].dist.attestations = { url: `${registry}/attestations` };
+  const responses = [pending, visible, complete], delays = [];
+  assert.equal(await waitForRegistry(manifest, { read: async () => responses.shift(), pause: async ms => delays.push(ms), attempts: 3 }), complete);
+  assert.deepEqual(delays, [10000, 10000]);
+  let reads = 0;
+  await assert.rejects(waitForRegistry(manifest, { read: async () => { reads++; return pending; }, pause: async () => {}, attempts: 3 }), /Publication may already have succeeded/);
+  assert.equal(reads, 3);
+  const conflicting = structuredClone(complete); conflicting.versions[manifest.version].dist.integrity = 'sha512-other';
+  await assert.rejects(waitForRegistry(manifest, { read: async () => conflicting, pause: async () => assert.fail('must not retry conflicting bytes') }), /different package bytes/);
+  const changedLatest = structuredClone(complete); changedLatest['dist-tags'].latest = '0.1.0';
+  await assert.rejects(waitForRegistry(manifest, { read: async () => changedLatest }), /latest changed/);
 });
 
 test('release package compares actual tar members and bytes with source and rejects tampering', async t => {
