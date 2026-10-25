@@ -7,7 +7,7 @@ This guide explains what to provide, how the agent proceeds and where to find re
 <a id="install"></a>
 If Aimship is not installed yet, start with the README's [installation instructions](../README.md#install).
 
-[Select Aimship](#hosts) · [Start from your situation](#start) · [Proceed and review](#review) · [Progress and results](#results) · [Changing requirements](#changes) · [Sessions and continuation](#continue) · [Parallel work](#parallel) · [Complete delivery](#completion) · [Usage problems](#troubleshoot)
+[Select Aimship](#hosts) · [Start in different scenarios](#start) · [Proceed and review](#review) · [Progress and results](#results) · [Changing requirements](#changes) · [Sessions and continuation](#continue) · [Parallel work](#parallel) · [Complete delivery](#completion) · [Usage problems](#troubleshoot)
 
 <a id="hosts"></a>
 <a id="1-select-aimship-in-your-host"></a>
@@ -27,14 +27,15 @@ Each tool needs its own login, available model and access to delivery materials 
 AI tool integrations are experimental: actual Skill discovery, directory access and continuation across AI tools remain unverified. Healthy installation files do not prove that a tool loaded the Skill. Codex and Cursor share an entry, and compatible tools may discover entries in other locations; inspect paths and versions if duplicates appear, preserving unrelated or customized content. See the official [Cursor documentation](https://cursor.com/docs/skills) and [Codex skill locations](https://learn.chatgpt.com/docs/build-skills) for tool behavior.
 
 <a id="start"></a>
+<a id="choose-the-requirement-authority"></a>
 <a id="describe-the-work-and-its-endpoint"></a>
-## 2. Start from your current situation
+## 2. Start in different scenarios
 
-### Starting with an idea
+### Starting without a requirements document
 
 Describe the problem, who it affects, the expected change and known constraints. Include screenshots, discussion notes or references if available; a complete PRD is not required.
 
-The agent clarifies gaps that affect scope and acceptance, organizes requirements, and proposes the stages and execution order. After you confirm the goal and important tradeoffs, work proceeds. Requirements and acceptance criteria are usually recorded in `prd.md`; open `status.md` for current progress.
+The agent clarifies gaps in the goal, scope and acceptance criteria, organizes the requirements and acceptance criteria, and explains the work ahead. After you confirm the goal and important tradeoffs, work proceeds. Requirements and acceptance criteria are usually recorded in `prd.md`; open `status.md` for current progress.
 
 ### Working from an existing PRD, prototype or other materials
 
@@ -73,6 +74,7 @@ Authorized implementation, batch checks/repairs and retests can proceed. Review 
 Start with the delivery's **`status.md`** for the current stage, pending documents, review status, blockers, next stage and artifact links. Read verification conclusions alongside the tested version, environment and evidence. Checks lacking accounts, tools or environments remain blocked or unexecuted rather than passing.
 
 <a id="delivery-structure"></a>
+<a id="stage-outputs-and-content"></a>
 ### Delivery structure and documents
 
 By default, each request has its own delivery directory under `~/Aimship/`, while code stays in its existing repositories.
@@ -109,7 +111,8 @@ The tree below lists delivery artifacts and their purposes. Files follow the agr
 
 Formal documents are directly in the request folder. `source/` preserves adopted originals; `.aimship/` holds internal records. The software itself is installed separately in `~/.aimship/`.
 
-Filenames, outlines and identifier rules come from shared templates. Requirements and acceptance criteria link to implementation tasks, reviews and versioned test cases/results. The [document details](#document-details) explain when each artifact is produced and what it contains.
+<a id="fixed-outlines-and-traceable-identifiers"></a>
+The agent maintains links between requirements, acceptance criteria, implementation tasks, reviews and test results for traceability.
 
 <a id="changes"></a>
 <a id="review-verify-and-change"></a>
@@ -160,13 +163,15 @@ Aimship itself does not create sessions. After the current session confirms savi
 
 Keep one writing session per delivery. Code locations and access permissions must remain available; switching sessions cannot bypass reviews or affected-work stops. Progress stays in the same `status.md`, without copying the entire chat.
 
-Official CLI documentation checked on 2026-10-25 describes [`/new`](https://developers.openai.com/codex/cli/slash-commands) for Codex, [`/new-chat`](https://cursor.com/docs/cli/reference/slash-commands) for Cursor CLI, and [`/clear`](https://code.claude.com/docs/en/interactive-mode#command-history) for Claude Code to start a fresh chat/session. Check the command list of your installed CLI version; these are documentation checks, not a claim of testing each tool. They differ from simply redrawing the screen or compacting context. Save and stop the current writer first.
+### Continue after work stops unexpectedly
 
-### Handle interruptions and version changes
+If the agent stops because of a lost connection, a tool exit or a canceled operation, describe what it was doing and provide any available errors. Before continuing, the agent checks actual files, saved progress and unfinished operations to establish what completed and avoid repeating writes or other actions with side effects.
 
-After an unexpected interruption, have the agent check completed operations before repeating writes or other actions with side effects. If a repository moved, provide its new location so the agent can verify its identity and update the association. State conflicts or progress-view problems need reconciliation or repair, not forced overwrites.
+If a repository moved, provide its new location so the agent can verify its identity and update the association. State conflicts or progress-view problems need reconciliation or repair, not forced overwrites.
 
-After a software upgrade, an old session may retain old rules. Save work, then have the agent reconcile the current version and delivery records at a stable boundary; start a new session if context cannot refresh reliably. Older delivery formats require explicit migration, rule adoption and document reconciliation before work continues; unknown formats remain read-only. Originals and historical results are preserved without inventing work that was never performed or treating old completion records as approval. The [CLI protocol](cli.md) provides recovery details for the agent.
+### Continue an existing delivery after upgrading Aimship
+
+After upgrading Aimship, an old session may retain old rules. Save work, then have the agent reconcile the current version and delivery records at a stable boundary; start a new session if context cannot refresh reliably. Older delivery formats require explicit migration, rule adoption and document reconciliation before work continues; unknown formats remain read-only. Originals and historical results are preserved without inventing work that was never performed or treating old completion records as approval. The [CLI protocol](cli.md) provides recovery details for the agent.
 
 <a id="parallel"></a>
 <a id="work-on-two-requests-at-once"></a>
@@ -210,7 +215,7 @@ For a bug report, include the tool and Aimship versions, the operation, expected
 
 <a id="artifacts"></a>
 <a id="keep-only-useful-artifacts"></a>
-See the [document details](#document-details) for generation conditions, stage outputs, outlines and identifier rules. The agent maintains these as work progresses; you do not need to learn them all before starting.
+See [delivery structure and documents](#delivery-structure) for file locations and purposes. For database work or engineering versions, see the [SQL and engineering versions appendix](#document-details).
 
 <a id="update"></a>
 <a id="update-or-stop-using-aimship"></a>
@@ -220,58 +225,9 @@ For software upgrades, adding tools, version queries and installation health che
 For tool disconnection or full uninstallation, see the [README](../README.md#uninstall). Source development and isolated validation belong in [Contributing](../CONTRIBUTING.md).
 
 <a id="document-details"></a>
-## Appendix: document details
-
-Use the preceding sections for everyday work. This appendix covers stage outputs, SQL and traceability; file locations follow the [delivery directory](#delivery-structure).
-
-<a id="choose-the-requirement-authority"></a>
-See [starting work](#start) for source adoption. PRD and Scope are alternative requirement authorities, not duplicate documents to create by default.
-
-<a id="stage-outputs-and-content"></a>
-### Stage outputs
-
-This is an internal responsibility/file mapping for understanding artifacts, not a menu of arbitrary stages to select. See [progress and review](#review) for the standard sequence and limited scope. Sharing plan/testing does not complete stages together, and file existence does not establish completion.
-
-| Stage | When used | Output and content |
-| --- | --- | --- |
-| `frame` | The problem or intended result needs clarification | Goal/background section of PRD/Scope: problem, outcome, non-goals and assumptions |
-| `requirements` | Requirements need authoring or adoption | `prd.md`: goals, scope, requirements, states, acceptance and arrangement; or `scope.md`: source adoption, scope, exclusions, decisions, acceptance and arrangement |
-| `scope` | Commission boundaries need explicit resolution | Update PRD scope or Scope goals/boundaries; no second requirements document |
-| `prototype` | Required interaction changes are not covered by existing material | New HTML at `prototype/index.html` with related assets; other agreed formats or reused entries are registered |
-| `diagnose` | An independent investigation is explicitly arranged | `diagnosis.md`: goal, symptoms, environment, evidence, causes, unknowns and conclusion |
-| `tech-design` | Technical solution needs designing | `tech-design.md`: basis, architecture, modules, data/contracts, errors, risks and requirement coverage; SQL is produced and reviewed in contract after this design is approved |
-| `contract` | Interfaces or database changes need formal artifacts | HTTP: `openapi.yaml` or the registered authority; agreed non-HTTP format; independent SQL per target, reviewed individually |
-| `test-design` | Test cases need authoring | `testing.md`: basis, environment, cases/assertions and requirement/acceptance coverage |
-| `plan` | Before any implementation, including one small batch | `plan.md`: basis, batches, tasks, validation approach, execution section and remaining work |
-| `implement` | Execute the accepted plan | Code in its repositories; actual task status, objects and deviations in the same `plan.md` |
-| `review` | Review a batch, the integrated result or a review-only commission | `review.md`: review basis, each review's scope/findings/resolution and conclusion |
-| `verify` | Execute versioned cases after the required review, or a verification-only commission | Append execution batches/RUNs, actual results/evidence, retests and conclusion to the same `testing.md` |
-| `handoff` | Deliver the agreed endpoint | `handoff.md`: goal, artifacts, usage, review/verification results, limits and completion/acceptance/integration outcomes |
-
 <a id="sql-changes-and-progress"></a>
-### SQL and engineering versions
+## Appendix: SQL and engineering versions
 
 SQL identifies the target, dialect, version/schema basis and execution conditions, and links ordered statements to requirements/design. It is prepared and individually reviewed in contract after technical design approval and before test cases. A Markdown SQL snippet or migration reference does not replace this deliverable. Generating SQL does not authorize executing it or changing a repository's migration mechanism.
 
 Existing engineering HTTP contracts remain authoritative; avoid a second competing copy. Project current and target versions are recorded in PRD/Scope with their engineering source and observation basis; an unspecified version remains unspecified. `plan.md` records actual changes, while review and test results identify the exact commit/build or uncommitted content. Each repository has its own version and object references. These differ from Aimship’s rules version, state schema and save revision. The handoff records final code objects and actual merge/release status; a target version does not establish publication.
-
-<a id="fixed-outlines-and-traceable-identifiers"></a>
-### Outlines and traceable identifiers
-
-New documents follow [shared templates and rules](../skills/aimship/references/document-patterns.md). Section order and stable anchors are retained; visible headings can be translated. Inapplicable sections explain why. Short tasks use the same outline, with shorter content. Unselected stages do not produce empty documents, and there is no arbitrary small-task merging.
-
-| Identifier | Meaning |
-| --- | --- |
-| `REQ-001`, `AC-001` | Requirement and acceptance criterion |
-| `B-001`, `TASK-001` | Implementation batch and task |
-| `PAGE-001`, `Q-001` | Prototype page and tracked question |
-| `TC-001`, `RUN-001` | Test case and actual verification run |
-| `REV-001`, `CHG-001` | Review and meaningful change |
-
-Each series starts at `001` and advances beyond its historical maximum, including retired items; three digits are the minimum width. An ID is never reused for a different obligation. Within a namespace and version, an identity has one effective definition; other documents reference it. Classification or layout changes retain the ID, while splits/merges create new IDs linked to the originals.
-
-References connect requirements/acceptance to design, tasks, code objects, reviews, case versions and actual runs. These relationships may be many-to-many: `REQ-001` and `TC-001` are not related merely because their numbers match. Shared rules, permissions and quality requirements receive independent identities when independently testable. External IDs retain their spelling and source/version namespace; sources without IDs receive local mappings to their original locations. Changed case meaning gets a new version; earlier failures and their case/code versions remain traceable.
-
-For example: `REQ-001 → AC-002 → TC-004@1 → RUN-003` records the explicit requirement-to-result relationship. A RUN also identifies the tested code/build and evidence; the case ID alone does not prove execution.
-
-The tools check structure, references and basic coverage. The agent must still assess whether the content and assertions actually satisfy the requirement; valid metadata alone is not proof.

@@ -2,7 +2,7 @@
 
 [English](README.md) · [使用指南](docs/guide.zh-CN.md)
 
-**面向 AI 工具的软件交付流程，贯通需求、设计、实施、审核与验证。**
+**Aimship 是面向 AI 工具的软件交付流程，贯通需求、设计、实施、审核与验证。**
 
 面向有开发基础、对一项需求交付负责的开发者。你提供目标、已有资料和代码位置，Aimship 帮助 Agent 将需求整理为清晰的范围、有依据的设计、可执行的计划和经过验证的成果，并衔接各阶段的工作，让你能了解推进过程、理解关键决定、判断实际交付结果。
 
@@ -22,7 +22,7 @@
 <a id="install"></a>
 ## 安装
 
-需要 **Node.js 22+ 和 npm**。以下命令使用 POSIX shell 写法。
+需要 **Node.js 22+ 和 npm**。
 
 ### 安装已发布的预览版
 
@@ -59,10 +59,10 @@ npx --offline file:./aimship-VERSION.tgz install --host codex
 默认交付资料根目录为 `~/Aimship/`。首次安装时，可以用 `--data-root` 指定其他位置：
 
 ```sh
-npx aimship@preview install --host codex --data-root "$HOME/MyDeliveries"
+npx aimship@preview install --host codex --data-root "./MyDeliveries"
 ```
 
-此选项设置后续新交付的默认资料位置，不是代码仓库位置，也不会搬迁已有资料。后续安装保留已有配置；无需逐项目安装。
+示例使用当前执行目录下的 `MyDeliveries` 文件夹，也可以替换为所需位置的绝对路径。此选项设置后续新交付的默认资料位置，不是代码仓库位置，也不会搬迁已有资料。后续安装保留已有配置；无需逐项目安装。
 
 安装后，按[使用指南](docs/guide.zh-CN.md#hosts)在 AI 工具中选择 Aimship。AI 工具集成仍处于实验阶段，真实 Skill 发现和跨工具接续仍需验证。
 
@@ -145,7 +145,7 @@ npx aimship@preview uninstall
 ## 文档与贡献
 
 <a id="适用场景与示例"></a>
-**[使用指南](docs/guide.zh-CN.md)**说明如何开始需求、审核文档、查看成果、处理变更和接续。产物与追溯细则也在指南中；[CONTRIBUTING](CONTRIBUTING.md)说明开发和隔离验证；[CLI 协议](docs/cli.md)供 Agent 和工具开发者查阅。
+[使用指南](docs/guide.zh-CN.md)介绍如何开始交付、审核文档、查看成果、处理需求变更和继续工作。[贡献指南](CONTRIBUTING.md)说明开发和隔离验证；[CLI 协议](docs/cli.md)供 Agent 和工具开发者查阅。
 
 Aimship 目前处于预览阶段，流程、使用体验和兼容性仍在完善。欢迎通过 [GitHub Issues](https://github.com/clsx/aimship/issues)反馈实际使用中遇到的问题和改进建议；参与开发请先阅读贡献指南。
 

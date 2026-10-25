@@ -2,7 +2,7 @@
 
 [中文](README.zh-CN.md) · [Guide](docs/guide.md)
 
-**A software delivery workflow for AI tools, connecting requirements, design, implementation, review and verification.**
+**Aimship is a software delivery workflow for AI tools, connecting requirements, design, implementation, review and verification.**
 
 For developers responsible for delivering a requirement. You provide the goal, existing materials and code locations. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
 
@@ -22,7 +22,7 @@ Documents and state are saved throughout the work, keeping progress, decisions a
 <a id="install"></a>
 ## Installation
 
-Requires **Node.js 22+ and npm**. Command examples use a POSIX shell.
+Requires **Node.js 22+ and npm**.
 
 ### Published preview
 
@@ -59,10 +59,10 @@ Choose one installation method. No global npm installation, administrator privil
 The default delivery material root is `~/Aimship/`. On the first installation, use `--data-root` to choose another location:
 
 ```sh
-npx aimship@preview install --host codex --data-root "$HOME/MyDeliveries"
+npx aimship@preview install --host codex --data-root "./MyDeliveries"
 ```
 
-This sets the default material location for new deliveries. It is not a code repository location and does not move existing materials. Later installations retain the configuration; no per-project installation is needed.
+The example uses a `MyDeliveries` folder under the current working directory; you can replace it with an absolute path to your preferred location. This sets the default material location for new deliveries. It is not a code repository location and does not move existing materials. Later installations retain the configuration; no per-project installation is needed.
 
 After installation, follow the [Guide](docs/guide.md#hosts) to select Aimship in your tool. AI tool integrations are experimental: actual Skill discovery and continuation across AI tools still need validation.
 
@@ -145,7 +145,7 @@ Full uninstall retains delivery materials, user code, custom files and necessary
 ## Documentation and contributions
 
 <a id="use-cases-and-examples"></a>
-The **[Guide](docs/guide.md)** explains how to start work, review documents, inspect results, handle changes and resume. Artifact and traceability details are also in the Guide; [CONTRIBUTING](CONTRIBUTING.md) covers development and isolated validation; the [CLI protocol](docs/cli.md) serves agents and tool developers.
+The [Guide](docs/guide.md) explains how to start a delivery, review documents, inspect results, handle requirement changes and continue work. [Contributing](CONTRIBUTING.md) covers development and isolated validation; the [CLI protocol](docs/cli.md) serves agents and tool developers.
 
 Aimship is in preview, with ongoing improvements to the workflow, usability and compatibility. Share problems and suggestions from actual use through [GitHub Issues](https://github.com/clsx/aimship/issues); read the contribution guide before contributing to development.
 
