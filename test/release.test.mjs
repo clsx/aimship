@@ -40,6 +40,9 @@ test('post-publication verification tolerates asynchronous registry visibility w
   const responses = [pending, visible, complete], delays = [];
   assert.equal(await waitForRegistry(manifest, { read: async () => responses.shift(), pause: async ms => delays.push(ms), attempts: 3 }), complete);
   assert.deepEqual(delays, [10000, 10000]);
+  const latestPublished = structuredClone(complete);
+  latestPublished['dist-tags'] = { latest: manifest.version, preview: '0.1.0-preview.8' };
+  assert.equal(await waitForRegistry(manifest, { read: async () => latestPublished, pause: async () => assert.fail('preview synchronization happens after byte verification') }), latestPublished);
   let reads = 0;
   await assert.rejects(waitForRegistry(manifest, { read: async () => { reads++; return pending; }, pause: async () => {}, attempts: 3 }), /Publication may already have succeeded/);
   assert.equal(reads, 3);

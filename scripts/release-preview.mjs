@@ -44,7 +44,7 @@ export async function waitForRegistry(manifest, { read = readRegistry, pause = m
     const current = await read();
     const decision = publicationDecision(current, manifest);
     assertForwardTags(current, manifest.version);
-    if (decision === 'already-published' && current.versions[manifest.version].dist.attestations?.url && current['dist-tags'].preview === manifest.version) return current;
+    if (decision === 'already-published' && current.versions[manifest.version].dist.attestations?.url) return current;
     if (attempt + 1 < attempts) await pause(10000);
   }
   throw new Error('Registry verification is still pending after the bounded wait. Publication may already have succeeded; inspect the registry before retrying.');
@@ -102,7 +102,7 @@ async function publish(directory, verifyOnly = false) {
   if (verifyOnly) requireThat(decision === 'already-published', 'Version has not been published.');
   else if (decision === 'publish') {
     // No retry here: an uncertain npm outcome must be checked against the registry first.
-    command('npm', ['publish', file, '--registry', registry, '--tag', 'preview', '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
+    command('npm', ['publish', file, '--registry', registry, '--tag', 'latest', '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
   }
   // npm accepts a publication before asynchronous processing makes it visible.
   let after = await waitForRegistry(manifest);
