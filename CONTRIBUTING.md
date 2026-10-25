@@ -4,6 +4,8 @@ This repository is standalone. Runtime, tests and packaging must not read a pare
 
 Node.js 22+ is the intended runtime floor. Run `npm test` for deterministic tool tests (one worker by default) and `npm run check:package` for distributable-content checks. `npm pack` creates a local package. There are no runtime third-party dependencies.
 
+The manual [Check Windows workflow](.github/workflows/check-windows.yml) runs the full tests and documentation/package checks on a standard Windows runner, sequentially across Node 22, 24 and 26. Select the intended commit's branch when dispatching and record the resolved commit and environment from the run. It uses isolated test homes, does not publish or install into a real user's configuration, and does not establish AI-tool integration coverage.
+
 Keep agent workflow semantics in `skills/aimship/references`, deterministic file/state/install behavior in `lib`, and host entry handling thin. Changes should be driven by requirements or observed failures, with appropriate checks. Do not introduce route taxonomies, automatic agent scheduling, per-batch full testing gates, or a generic workflow platform.
 
 A passing structural test does not prove agent behavior. Record actual host/version/model/permission conditions for behavioral checks; leave unavailable combinations unverified. Review affected changes and preserve historical failure evidence when retesting.

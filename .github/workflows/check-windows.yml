@@ -1,0 +1,42 @@
+name: Check Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-check-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.repository == 'clsx/aimship' && github.event.repository.private == false
+    runs-on: windows-2025
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        node: ['22', '24', '26']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - name: Record environment and commit
+        run: |
+          node --version
+          npm --version
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, OSArchitecture
+          git rev-parse HEAD
+      - run: npm test
+      - run: npm run check:docs
+      - run: npm run check:package
+      - run: git diff --check

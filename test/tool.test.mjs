@@ -111,7 +111,7 @@ test('references check current inputs, repository paths and remote limitations',
   const checked = await checkReferences(delivery, state); assert.equal(checked.filter(x => x.status === 'exists').length, 2); assert.equal(checked.filter(x => x.status === 'not-checked').length, 1);
   await fs.rm(path.join(repo, 'api.yaml')); assert.ok((await checkReferences(delivery, state)).some(x => x.status === 'missing'));
   await assert.rejects(updateState(delivery, { goalRef: '../outside.md', goal: { decisionRef: 'requirements.md#decision' } }, 0, VERSION, runtime), { code: 'INVALID_STATE' });
-  await fs.symlink(path.join(root, 'repo'), path.join(delivery, 'escape'));
+  await fs.symlink(path.join(root, 'repo'), path.join(delivery, 'escape'), 'dir');
   const escaping = structuredClone(state); escaping.stageRuns[0].inputRefs = ['escape/api.yaml']; await fs.writeFile(path.join(repo, 'api.yaml'), 'x');
   assert.equal((await checkReferences(delivery, escaping)).find(x => x.ref === 'escape/api.yaml').status, 'outside-root');
 });
@@ -267,7 +267,7 @@ test('release conflicts, changed active pointer and symbolic link destinations a
   await fs.appendFile(path.join(source, 'skills/aimship/references/core.md'), 'Changed same version');
   await assert.rejects(install(source, { home }), { code: 'INSTALL_INCOMPLETE' });
   const installedCore = path.join(p.root, 'releases', VERSION, 'skills/aimship/references/core.md'); assert.ok(!(await fs.readFile(installedCore, 'utf8')).includes('Changed'));
-  const otherHome = path.join(root, 'symlink-home'); await fs.symlink(home, otherHome);
+  const otherHome = path.join(root, 'symlink-home'); await fs.symlink(home, otherHome, 'dir');
   await assert.rejects(install(source, { home: otherHome, hosts: ['codex'] }), { code: 'SYMLINK' });
   const fresh = await fixture(t); await install(fresh.source, { home: fresh.home, hosts: ['codex'] }); const active = installPaths(fresh.home).active;
   await fs.writeFile(active, json({ version: '9.9.9', launcherProtocol: 1 })); await assert.rejects(install(fresh.source, { home: fresh.home }), { code: 'USER_MODIFIED' });

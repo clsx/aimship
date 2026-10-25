@@ -55,7 +55,9 @@ test('post-publication verification tolerates asynchronous registry visibility w
 test('release package compares actual tar members and bytes with source and rejects tampering', async t => {
   const dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'aimship-release-')));
   t.after(() => fs.rm(dir, { recursive: true, force: true }));
-  const packed = JSON.parse(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--cache', path.join(dir, 'npm-cache'), '--pack-destination', dir], { cwd: root, encoding: 'utf8', timeout: 30000 }));
+  // npm test supplies npm_execpath; invoke its JS entry directly instead of a Windows .cmd shim.
+  const npmEntry = process.env.npm_execpath;
+  const packed = JSON.parse(execFileSync(npmEntry ? process.execPath : 'npm', [...(npmEntry ? [npmEntry] : []), 'pack', '--json', '--ignore-scripts', '--cache', path.join(dir, 'npm-cache'), '--pack-destination', dir], { cwd: root, encoding: 'utf8', timeout: 30000 }));
   const file = path.join(dir, packed[0].filename);
   const good = await verifyPackage(file);
   assert.equal(good.integrity, packed[0].integrity);
