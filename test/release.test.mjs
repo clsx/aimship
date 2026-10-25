@@ -46,7 +46,7 @@ test('post-publication verification tolerates asynchronous registry visibility w
   const conflicting = structuredClone(complete); conflicting.versions[manifest.version].dist.integrity = 'sha512-other';
   await assert.rejects(waitForRegistry(manifest, { read: async () => conflicting, pause: async () => assert.fail('must not retry conflicting bytes') }), /different package bytes/);
   const changedLatest = structuredClone(complete); changedLatest['dist-tags'].latest = '0.1.0';
-  await assert.rejects(waitForRegistry(manifest, { read: async () => changedLatest }), /latest changed/);
+  await assert.rejects(waitForRegistry(manifest, { read: async () => changedLatest }), /roll back latest/);
 });
 
 test('release package compares actual tar members and bytes with source and rejects tampering', async t => {
@@ -80,6 +80,6 @@ test('preview workflow keeps publication manual, separately permissioned, and us
   assert.match(publication, /needs: validate/);
   assert.match(publication, /artifact-ids: \$\{\{ needs.validate.outputs.artifact-id \}\}/);
   assert.doesNotMatch(workflow, /contents: write|NODE_AUTH_TOKEN|NPM_TOKEN|secrets\./);
-  assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, 2);
+  assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, 3);
   for (const line of workflow.split('\n').filter(line => line.includes('uses:'))) assert.match(line, /@[a-f0-9]{40} # v\d/);
 });

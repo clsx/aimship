@@ -4,9 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Exact preview tag (also select this tag as the workflow ref)
+        description: 'Exact preview tag (publish: select tag ref; sync-tags: select main)'
         required: true
         type: string
+
+      operation:
+        description: Publish a new approved release or synchronize an existing release
+        required: true
+        default: publish
+        type: choice
+        options:
+          - publish
+          - sync-tags
 
 permissions:
   contents: read
@@ -31,17 +40,22 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 26.7.0
           package-manager-cache: false
-      - run: npm install --global npm@11.19.0 --ignore-scripts
+      - run: npm install --global npm@12.2.1 --ignore-scripts
       - run: npm test
       - run: npm run check:docs
       - run: npm run check:package
       - run: git diff --check
-      - run: node scripts/release-preview.mjs prepare "$RUNNER_TEMP/release"
+      - if: inputs.operation == 'sync-tags'
+        run: node scripts/release-preview.mjs check-tags "$RUNNER_TEMP/tag-check"
+      - if: inputs.operation == 'publish'
+        run: node scripts/release-preview.mjs prepare "$RUNNER_TEMP/release"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: inputs.operation == 'publish'
         id: artifact
         with:
           name: preview-package
@@ -50,6 +64,7 @@ jobs:
           retention-days: 30
 
   publish:
+    if: inputs.operation == 'publish'
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -61,14 +76,36 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 26.7.0
           package-manager-cache: false
-      - run: npm install --global npm@11.19.0 --ignore-scripts
+      - run: npm install --global npm@12.2.1 --ignore-scripts
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           artifact-ids: ${{ needs.validate.outputs.artifact-id }}
           path: ${{ runner.temp }}/release/
           merge-multiple: true
       - run: node scripts/release-preview.mjs publish "$RUNNER_TEMP/release"
+
+  sync-tags:
+    if: inputs.operation == 'sync-tags'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 26.7.0
+          package-manager-cache: false
+      - run: npm install --global npm@12.2.1 --ignore-scripts
+      - run: node scripts/release-preview.mjs sync-tags "$RUNNER_TEMP/tag-sync"

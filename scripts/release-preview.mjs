@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { releaseFiles } from '../lib/install.mjs';
+import { assertForwardTags, syncTags } from './release-tags.mjs';
 
 export const registry = 'https://registry.npmjs.org';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -42,7 +43,7 @@ export async function waitForRegistry(manifest, { read = readRegistry, pause = m
   for (let attempt = 0; attempt < attempts; attempt++) {
     const current = await read();
     const decision = publicationDecision(current, manifest);
-    requireThat(current['dist-tags'].latest === manifest.latestBefore, 'latest changed during verification; inspect before continuing.');
+    assertForwardTags(current, manifest.version);
     if (decision === 'already-published' && current.versions[manifest.version].dist.attestations?.url && current['dist-tags'].preview === manifest.version) return current;
     if (attempt + 1 < attempts) await pause(10000);
   }
@@ -81,6 +82,7 @@ async function prepare(directory) {
   requireThat(packed.length === 1 && packed[0].filename === filename, 'Unexpected pack output.');
   const verified = await verifyPackage(path.join(directory, filename));
   const before = await readRegistry();
+  assertForwardTags(before, release.version);
   const manifest = { ...release, ...verified, filename, latestBefore: before['dist-tags']?.latest };
   manifest.registryStatus = publicationDecision(before, manifest);
   await fs.writeFile(path.join(directory, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
@@ -95,7 +97,7 @@ async function publish(directory, verifyOnly = false) {
   const actual = await verifyPackage(file);
   requireThat(actual.integrity === manifest.integrity && actual.sha256 === manifest.sha256, 'Artifact changed after validation.');
   const before = await readRegistry();
-  requireThat(before['dist-tags']?.latest === manifest.latestBefore, 'latest changed since validation; inspect before continuing.');
+  assertForwardTags(before, release.version);
   const decision = publicationDecision(before, manifest);
   if (verifyOnly) requireThat(decision === 'already-published', 'Version has not been published.');
   else if (decision === 'publish') {
@@ -103,19 +105,62 @@ async function publish(directory, verifyOnly = false) {
     command('npm', ['publish', file, '--registry', registry, '--tag', 'preview', '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
   }
   // npm accepts a publication before asynchronous processing makes it visible.
-  const after = await waitForRegistry(manifest);
+  let after = await waitForRegistry(manifest);
   requireThat(publicationDecision(after, manifest) === 'already-published', 'Published version is not visible.');
-  requireThat(after['dist-tags'].preview === release.version && after['dist-tags'].latest === manifest.latestBefore, 'Unexpected dist-tags; do not silently change them.');
   const dist = after.versions[release.version].dist;
   const downloaded = await get(dist.tarball, false);
   requireThat(digest(downloaded) === manifest.sha256, 'Registry package bytes differ from the validated artifact.');
   requireThat(dist.attestations?.url, 'Published package has no provenance attestations.');
   const attestations = await get(dist.attestations.url);
   requireThat(Array.isArray(attestations.attestations) && attestations.attestations.some(item => item.predicateType === 'https://slsa.dev/provenance/v1'), 'SLSA provenance was not returned.');
+  if (!verifyOnly) after = await synchronize(release.version, manifest.integrity);
+  requireThat(after['dist-tags'].latest === release.version && after['dist-tags'].preview === release.version, 'Release tags have not both been synchronized.');
   const result = { ...manifest, registryStatus: 'verified', distTags: after['dist-tags'], tarball: dist.tarball, attestations: dist.attestations.url };
   await fs.writeFile(path.join(directory, 'published.json'), JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result, null, 2));
-  if (process.env.GITHUB_STEP_SUMMARY) await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, `Published and verified aimship ${release.version}\n\nCommit: ${release.commit}\n\nSHA256: ${manifest.sha256}\n\npreview: ${after['dist-tags'].preview}; latest unchanged: ${manifest.latestBefore}\n\nProvenance: ${dist.attestations.url}\n`);
+  if (process.env.GITHUB_STEP_SUMMARY) await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, `Published and verified aimship ${release.version}\n\nCommit: ${release.commit}\n\nSHA256: ${manifest.sha256}\n\npreview: ${after['dist-tags'].preview}; latest: ${after['dist-tags'].latest}\n\nProvenance: ${dist.attestations.url}\n`);
+}
+
+const synchronize = (version, integrity) => syncTags(version, integrity, {
+  read: readRegistry,
+  add: (target, tag) => command('npm', ['dist-tag', 'add', `aimship@${target}`, tag, '--registry', registry], { stdio: 'inherit' }),
+});
+
+export function validateSyncContext(env, pkg, head, commit) {
+  requireThat(env.GITHUB_REF === 'refs/heads/main', 'Tag synchronization must run the current main workflow.');
+  requireThat(/^[a-f0-9]{40}$/.test(head) && env.GITHUB_SHA === head, 'Checkout must match the dispatched commit.');
+  return validateContext({ ...env, GITHUB_REF: `refs/tags/${env.RELEASE_TAG}`, GITHUB_SHA: commit }, pkg, commit);
+}
+
+async function synchronizeExisting(directory, checkOnly) {
+  const tag = process.env.RELEASE_TAG;
+  requireThat(/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)-preview\.(?:0|[1-9]\d*)$/.test(tag ?? ''), 'An exact preview tag is required.');
+  const head = command('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const commit = command('git', ['rev-parse', `refs/tags/${tag}^{commit}`], { encoding: 'utf8' }).trim();
+  const pkg = JSON.parse(command('git', ['show', `${commit}:package.json`], { encoding: 'utf8' }));
+  const release = validateSyncContext(process.env, pkg, head, commit);
+  requireThat(command('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim() === '', 'Release checkout must be clean.');
+  const metadata = await readRegistry();
+  assertForwardTags(metadata, release.version);
+  const dist = metadata.versions[release.version]?.dist;
+  requireThat(dist?.integrity && dist.attestations?.url, 'Existing published package and provenance are required; this operation never publishes.');
+  await fs.mkdir(directory, { recursive: true });
+  requireThat((await fs.readdir(directory)).length === 0, 'Verification directory must be empty.');
+  const source = path.join(directory, 'source');
+  await fs.mkdir(source);
+  const archive = path.join(directory, 'source.tar');
+  command('git', ['archive', '--format=tar', `--output=${archive}`, commit]);
+  command('tar', ['-xf', archive, '-C', source]);
+  const file = path.join(directory, 'published.tgz');
+  await fs.writeFile(file, await get(dist.tarball, false));
+  const actual = await verifyPackage(file, source);
+  requireThat(actual.version === release.version && actual.integrity === dist.integrity, 'Published bytes do not match the tagged source or registry integrity.');
+  const attestations = await get(dist.attestations.url);
+  requireThat(attestations.attestations?.some(item => item.predicateType === 'https://slsa.dev/provenance/v1'), 'Published SLSA provenance is required.');
+  const after = checkOnly ? metadata : await synchronize(release.version, actual.integrity);
+  const result = { ...release, ...actual, operation: checkOnly ? 'check-tags' : 'sync-tags', distTags: after['dist-tags'], provenance: dist.attestations.url };
+  console.log(JSON.stringify(result, null, 2));
+  if (process.env.GITHUB_STEP_SUMMARY) await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, `Tag ${checkOnly ? 'preflight' : 'synchronization'}: ${release.version}\n\n${JSON.stringify(result, null, 2)}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -124,6 +169,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     requireThat(directory && path.isAbsolute(directory), 'An absolute artifact directory is required.');
     if (operation === 'prepare') await prepare(directory);
     else if (operation === 'publish' || operation === 'verify') await publish(directory, operation === 'verify');
-    else throw new Error('Use prepare, publish or verify.');
+    else if (operation === 'sync-tags' || operation === 'check-tags') await synchronizeExisting(directory, operation === 'check-tags');
+    else throw new Error('Use prepare, publish, verify, check-tags or sync-tags.');
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
