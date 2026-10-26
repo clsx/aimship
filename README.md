@@ -4,7 +4,7 @@
 
 **Aimship is a software delivery workflow for AI tools, connecting requirements, design, implementation, review and verification.**
 
-For developers responsible for delivering a requirement. You provide the goal, existing materials and code locations. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
+For developers responsible for delivering a requirement. You provide the goal and existing materials; code can be associated when needed. Aimship helps the agent turn them into a clear scope, a reasoned design, an implementation plan and verified results. It connects these stages so that you can follow the work, understand key decisions and assess what has actually been delivered.
 
 <a id="what-a-delivery-contains"></a>
 <a id="delivery-structure-and-documents"></a>
@@ -12,7 +12,7 @@ For developers responsible for delivering a requirement. You provide the goal, e
 Standard document outlines, identifiers and references connect requirements and acceptance criteria to designs, implementation tasks, reviews and test results. Documents are produced as needed for the delivery goal, giving you a consistent basis for review without requiring an empty template for every stage.
 
 <a id="delivery-workflow"></a>
-By default, you review documents individually after the agent's self-check. The agent presents current status, the document and review focus, then waits. After explicit approval is saved, work continues within the group; at a suggested session boundary it provides next work and a continuation entry, with the option to continue here; requested changes lead to revision, self-check and another review. Document approval remains separate from final delivery acceptance; an explicitly limited partial result is not presented as standard complete delivery.
+The agent organizes requirements, design, implementation and verification; you review key documents and important decisions. Feedback leads to revisions, and approval enables subsequent work. Final acceptance is based on the agreed goal and actual verification results.
 
 Documents and state are saved throughout the work, keeping progress, decisions and verification evidence traceable and reducing the need to repeat background or reconstruct earlier work.
 
@@ -64,13 +64,9 @@ npx aimship@preview install --host codex --data-root "./MyDeliveries"
 
 The example uses a `MyDeliveries` folder under the current working directory; you can replace it with an absolute path to your preferred location. This sets the default material location for new deliveries. It is not a code repository location and does not move existing materials. Later installations retain the configuration; no per-project installation is needed.
 
-After installation, follow the [Guide](docs/guide.md#hosts) to select Aimship in your tool. AI tool integrations are experimental: actual Skill discovery and continuation across AI tools still need validation.
-
-## Start a delivery
-
-Explicitly select Aimship in your AI tool, or ask it to **use Aimship** for a concrete request. For example: “Use Aimship to deliver an export of the currently filtered orders. First clarify the fields; code will be prepared later.” A PRD, code repository and settled technical conditions are not required. A product name alone prompts a short clarification first.
-
-The agent preserves your request, helps you make the materials location accessible, and creates or resumes one delivery. Its receipt shows the actual saved directory, `status.md`, current work and next step. Opening a project or mentioning the name in passing does not activate Aimship. In a new session, explicitly use Aimship again and identify the same delivery; see the [Guide](docs/guide.md#start). Source edits do not update an installed Skill; contributors can use the [local source trial](CONTRIBUTING.md#local-source-trial).
+<a id="start-a-delivery"></a>
+<a id="getting-started"></a>
+After installation, follow the [Guide](docs/guide.md#start) to prepare a workspace, activate Aimship and begin your first request. For an existing delivery, follow [continuation](docs/guide.md#continue).
 
 <a id="update"></a>
 <a id="update-or-stop-using-aimship"></a>
