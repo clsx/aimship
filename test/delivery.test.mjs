@@ -37,9 +37,13 @@ test('standard delivery requires actual complete stages, batch/overall review, p
 });
 test('explicit no-tests scope can finish and be accepted without masquerading as standard completion',async t=>{
  for(const partial of [false,true]){
-  const c=await setup(t,{partial,omitTests:true});for(const r of c.state.stageRuns)await c.finish(r.id);
+  const c=await setup(t,{partial,omitTests:true});
+  for(const r of c.state.stageRuns) {
+   if(!partial && r.stage==='plan') {await assert.rejects(c.finish(r.id),{code:'REVIEW_CHECK'});break;}
+   await c.finish(r.id);
+  }
   const patch={outcome:{goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/decision.md'}};
-  if(!partial)await assert.rejects(c.save(patch),{code:'DELIVERY_INCOMPLETE'});
+  if(!partial)await assert.rejects(c.save(patch),{code:'REVIEW_CHECK'});
   else {await c.save(patch);const read=await readState(c.dir);assert.equal(read.completion.status,'partial-scope');assert.equal(read.completion.standardComplete,false);assert.ok(read.completion.gaps.some(g=>g.includes('verify')));assert.ok(!(await fs.readdir(c.dir)).includes('testing.md'));}
  }
 });
@@ -79,12 +83,13 @@ test('historical goal remains intact without fabricated approvals; explicit poli
 });
 test('restoring standard scope retains the partial decision and cannot hide omitted testing',async t=>{
  const c=await setup(t,{partial:true,omitTests:true});
+ for(const r of c.state.stageRuns)await c.finish(r.id);
  await assert.rejects(c.save({deliveryPolicy:{version:1,partialRef:null}}),{code:'INVALID_STATE'});
  await c.save({deliveryPolicy:{version:1,partialRef:null},goal:{endpoint:'Standard complete delivery',decisionRef:'source/request.md'}});
  assert.equal(c.state.goalHistory.at(-1).deliveryPolicy.partialRef,'source/decision.md');
  assert.ok((await checkReferences(c.dir,c.state,true)).every(r=>['exists','not-checked'].includes(r.status)));
- for(const r of c.state.stageRuns)await c.finish(r.id);
- await assert.rejects(c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}}),{code:'DELIVERY_INCOMPLETE'});
+ assert.equal((await readState(c.dir)).completion.standardComplete,false);
+ await assert.rejects(c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}}),{code:'REVIEW_CHECK'});
 });
 test('resume requires explicit directory; old prompt is not an approval and new session retains actual pending content',async t=>{
  const c=await setup(t);await c.finish('r0');const prompt=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data.continuation;assert.ok(prompt.includes(JSON.stringify(c.dir)));

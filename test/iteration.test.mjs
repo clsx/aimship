@@ -23,11 +23,18 @@ async function setup(t,name='delivery') {
 }
 const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
 async function document(dir,kind,extra='') {await fs.writeFile(path.join(dir,`${kind}.md`),(await fs.readFile(path.join(source,`skills/aimship/references/templates/${kind}.md`),'utf8'))+'\n'+extra+'\n');}
-async function init(t) {const f=await setup(t); return {...f,state:await initState(f.dir,f.input,version,runtime)};}
+async function init(t, planBasis=false) {
+ const f=await setup(t);
+ if(planBasis) {
+  for(const kind of ['tech-design','testing']) {await document(f.dir,kind);f.input.documents.push(reg(kind));}
+  f.input.reviewHistory=await approveFixture(f.dir,f.input,['prd.md','tech-design.md','testing.md']);
+ }
+ return {...f,state:await initState(f.dir,f.input,version,runtime)};
+}
 
 test('ITER AC-01/02: internal layout and generated status are a single stage view',async t=>{
  const {dir,state}=await init(t);
- assert.equal(await exists(path.join(dir,'state.json')),false); assert.equal(state.schemaVersion,2);
+ assert.equal(await exists(path.join(dir,'state.json')),false); assert.equal(state.schemaVersion,3);
  const text=await fs.readFile(path.join(dir,'status.md'),'utf8'); assert.match(text,/State revision: 0/); assert.match(text,/prd.md/); assert.doesNotMatch(text,/TASK-|Installation diagnostics/);
  const s=await updateState(dir,{next:{action:'Blocked on Q in PRD'},outcome:{goal:'not-met'}},0,version,runtime);
  assert.equal(s.writeResult.view.status,'current'); assert.match(await fs.readFile(path.join(dir,'status.md'),'utf8'),/Blocked on Q/);
@@ -57,7 +64,7 @@ test('ITER AC-03/06: hand edits survive and do not confer acceptance; external p
  const resumed=await run(['resume',dir,'--rules-version',version],{sourceRoot:source}); assert.equal(resumed.data.canProceed,false); assert.deepEqual(resumed.data.documentChanges.sort(),['plan.md','prd.md']); assert.equal(resumed.data.view.status,'current');
 });
 test('ITER AC-04/14: required plan, shared sections and exact result anchors are enforced',async t=>{
- const {dir,state}=await init(t); await document(dir,'plan');
+ const {dir,state}=await init(t,true); await document(dir,'plan');
  const implement={id:'i1',stage:'implement',scope:'batch',progress:'active',inputRefs:['prd.md'],outputRefs:['plan.md']};
  await assert.rejects(updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[implement]},0,version,runtime),{code:'DOCUMENT_CHECK'});
  const plan={id:'p1',stage:'plan',scope:'all',progress:'done',inputRefs:['prd.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'};
@@ -114,7 +121,7 @@ test('ITER AC-11/13/16/19: authored/adopted branches, SQL targets, localized anc
  }
  const {dir,input}=await setup(t); await document(dir,'tech-design'); await fs.writeFile(path.join(dir,'database-main.sql'),'-- target main; sqlite; schema v1; not executed\nCREATE TABLE sample(id INTEGER);');await fs.writeFile(path.join(dir,'database-audit.sql'),'-- target audit; sqlite; not executed\nCREATE TABLE log(id INTEGER);');
  const run={id:'d1',stage:'tech-design',scope:'two databases',progress:'done',inputRefs:['prd.md'],outputRefs:['tech-design.md'],resultRef:'tech-design.md#coverage'};
- const s=await initState(dir,{...input,documentPolicy:{...policy,databases:['main','audit']},documents:[...input.documents,reg('tech-design'),...['main','audit'].map(id=>({kind:'sql',path:`database-${id}.sql`,mode:'new',version:'1'}))],stageRuns:[run]},version,runtime);
+ const s=await initState(dir,{...input,reviewHistory:await approveFixture(dir,input,['prd.md']),documentPolicy:{...policy,databases:['main','audit']},documents:[...input.documents,reg('tech-design'),...['main','audit'].map(id=>({kind:'sql',path:`database-${id}.sql`,mode:'new',version:'1'}))],stageRuns:[run]},version,runtime);
  assert.equal(s.stageRuns[0].progress,'done');await fs.rm(path.join(dir,'database-audit.sql'));assert.ok((await inspectDocuments(dir,s)).issues.some(x=>x.includes('database-audit.sql')));
  const text=await fs.readFile(path.join(dir,'prd.md'),'utf8');await fs.writeFile(path.join(dir,'prd.md'),text.replace('## Acceptance criteria','## 验收标准'));
  assert.equal((await checkReferences(dir,{...s,goalRef:'prd.md#acceptance'}))[0].fragmentChecked,true);
@@ -122,7 +129,7 @@ test('ITER AC-11/13/16/19: authored/adopted branches, SQL targets, localized anc
 });
 
 test('ITER completion section and repository status links remain unambiguous',async t=>{
- const {root,dir,state}=await init(t);await document(dir,'plan');
+ const {root,dir,state}=await init(t,true);await document(dir,'plan');
  const plan={id:'plan',stage:'plan',scope:'before implementation',progress:'done',inputRefs:['prd.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'};
  await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan]},0,version,runtime);
  await assert.rejects(updateState(dir,{stageRuns:[plan,{id:'implement',stage:'implement',scope:'batch',progress:'done',inputRefs:['plan.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'}]},1,version,runtime),{code:'DOCUMENT_CHECK'});

@@ -31,11 +31,21 @@ AI tool integrations are experimental: actual Skill discovery, directory access 
 <a id="describe-the-work-and-its-endpoint"></a>
 ## 2. Start in different scenarios
 
+After explicit activation, a concrete problem or intended change is enough to start. The agent preserves relevant original wording and visible discussion, checks whether this is a new or existing delivery, and reuses the current accessible workspace. If access is missing, it names the materials path and the operation you need to complete. Code can wait; a project name is not proof of access.
+
+Initialization saves `source/request.md`, structured state and the generated `status.md`. Its receipt states what was saved, where, the bound Aimship version, code association, current work and next step. PRD/Scope is created when substantive requirements are drafted. Unknown endpoint, interaction, interface or database conditions remain unknown; “requirements first” does not mean “requirements only” or permission to implement.
+
+To adopt an ongoing conversation, explicitly ask to use Aimship for the discussed request. The agent uses visible relevant input and identifies missing history, without asking known questions again or converting suggestions into decisions. If access preparation requires a new session before saving, take the provided unsaved context and intended location with you, then explicitly activate Aimship again.
+
+When code is ready, supply the accessible local checkout. The agent reads necessary instructions and engineering facts and associates it with the same delivery. It may read code during requirements if a conclusion depends on existing behavior. Association does not clone, move or modify code or grant implementation permission. New facts use the existing change process.
+
+Repeated activation resumes the same identity and review stop. If a receipt is interrupted or the progress view fails, the agent checks what actually saved and repairs the missing view without recreating the delivery or overwriting materials. Ambiguous ownership is clarified. See [continuation](#continue) for the same steps in a new session; a passing mention of Aimship does not activate it.
+
 ### Starting without a requirements document
 
 Describe the problem, who it affects, the expected change and known constraints. Include screenshots, discussion notes or references if available; a complete PRD is not required.
 
-The agent clarifies gaps in the goal, scope and acceptance criteria, organizes the requirements and acceptance criteria, and explains the work ahead. After you confirm the goal and important tradeoffs, work proceeds. Requirements and acceptance criteria are usually recorded in `prd.md`; open `status.md` for current progress.
+After initialization, the agent clarifies gaps in the goal, scope and acceptance criteria, organizes the requirements and acceptance criteria, and explains the work ahead. After you confirm the goal and important tradeoffs, work proceeds. Requirements and acceptance criteria are usually recorded in `prd.md`; open `status.md` for current progress.
 
 ### Working from an existing PRD, prototype or other materials
 

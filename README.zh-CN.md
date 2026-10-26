@@ -66,6 +66,12 @@ npx aimship@preview install --host codex --data-root "./MyDeliveries"
 
 安装后，按[使用指南](docs/guide.zh-CN.md#hosts)在 AI 工具中选择 Aimship。AI 工具集成仍处于实验阶段，真实 Skill 发现和跨工具接续仍需验证。
 
+## 开始一次交付
+
+在 AI 工具中明确选择 Aimship，或明确要求**使用 Aimship** 处理具体诉求。例如：“使用 Aimship 交付按当前筛选条件导出订单的功能，先确认导出字段，代码稍后准备。”不要求先有 PRD、代码仓库或明确的技术条件。只有产品名称时，Agent 会先简短澄清实际问题。
+
+Agent 保留原始诉求，引导准备资料位置的访问条件，然后创建或续接同一次交付。回执会说明实际保存目录、`status.md`、当前工作和下一步。打开项目空间或偶然提到名称不会启用 Aimship。新会话仍需明确使用 Aimship 并定位原交付，详见[指南](docs/guide.zh-CN.md#start)。源码修改不会更新已安装的 Skill；贡献者可按[本地源码体验](CONTRIBUTING.md#local-source-trial)加载。
+
 <a id="update"></a>
 <a id="update-or-stop-using-aimship"></a>
 <a id="升级与宿主管理"></a>

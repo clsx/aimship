@@ -6,27 +6,30 @@ Commands emit JSON. Errors include code/message/recovery and use a nonzero exit.
 
 `bind` returns fixed CLI/core/stage paths, version and configured data root. Keep that binding for the session. Installation does not create deliveries.
 
-Before init, save `source/request.md` and the PRD/Scope draft from the [templates](../skills/aimship/references/document-patterns.md). No templates are automatically created. Example input:
+Before init, save the nonempty original input in `source/request.md`. A concrete request needs no PRD, code or known technical conditions yet. No templates are automatically created. Minimal input:
 
 ```json
 {
-  "goal": {"summary":"Define the selected design", "endpoint":"Design handoff"},
-  "goalRef":"prd.md",
-  "documentPolicy":{"authority":"authored","interaction":false,"prototypeCovered":false,"interface":"none","databases":[]},
-  "documents":[{"kind":"prd","path":"prd.md","mode":"new","version":"1"}],
-  "stageRuns":[],
-  "next":{"action":"Draft the agreed design","inputRefs":["prd.md"]}
+  "goal": {"summary":"Export the currently filtered orders", "endpoint":null},
+  "goalRef":"source/request.md",
+  "documentPolicy":{"authority":null,"interaction":null,"prototypeCovered":null,"interface":null,"databases":null},
+  "documents":[],
+  "stageRuns":[{"id":"requirements-1","stage":"requirements","scope":"Order export","progress":"active","inputRefs":["source/request.md"],"outputRefs":[]}],
+  "currentRun":"requirements-1",
+  "next":{"action":"Clarify export fields and acceptance criteria","inputRefs":["source/request.md"]}
 }
 ```
+
+Only goal.summary is required in the input; absent endpoint defaults to null, goalRef to source/request.md, documents to [], and documentPolicy fields to null. Known facts may be supplied. Null means unknown, while false/none/[] mean explicitly not applicable. The CLI validates saved structure, not whether the user's request is concrete or authorized; the Agent must establish that before creating records.
 
 ```sh
 node '<stable-launcher>' bind
 node '<fixed-cli>' init '<delivery-dir>' --rules-version '<bound-version>' --input '<init.json>'
 ```
 
-init allocates deliveryId and revision 0, creates `.aimship/state.json`, and generates `status.md`. Add that ID to the document information at the next save point. Identity/version/timestamps, documentDigests, identityHistory, retiredIdentities and legacyRunIds are managed; never supply them in a patch. `writeResult` is return metadata, not state input.
+init uses schema 3, allocates deliveryId and revision 0, creates `.aimship/state.json`, and generates `status.md`. Add that ID to the document information at the next save point. Identity/version/timestamps, documentDigests, identityHistory, retiredIdentities and legacyRunIds are managed; never supply them in a patch. `writeResult` is return metadata, not state input. Its receipt contains actual identity, directory/state/status paths, bound version, current stage and next action; statusPath is null when view repair is needed. Verify the saved files before presenting the user receipt. Repeated init returns ALREADY_EXISTS; read/resume the same delivery and render a missing view instead of replaying creation.
 
-`documentPolicy.authority`: authored → prd.md; adopted → scope.md; editable → an explicitly authorized existing PRD containing this commission's complete scope/authorization/endpoint. `legacy` is migration-only. `interaction`, `prototypeCovered`, `interface` (none/http/other) and target `databases` IDs record artifact conditions. They do not select a preset route.
+`documentPolicy.authority`: null while the requirement authority is undecided; authored → prd.md; adopted → scope.md; editable → an explicitly authorized existing PRD containing this commission's complete scope/authorization/endpoint. `legacy` is migration-only. `interaction`, `prototypeCovered`, `interface` (none/http/other) and target `databases` IDs record artifact conditions. They do not select a preset route. Register the first real PRD/Scope and switch goalRef in the same update; this reference-only transition does not need a fabricated goal decision. Actual goal/endpoint changes still require goal.decisionRef. Early frame/requirements/scope work can be active without the draft; done requires it. Design requires approved requirements and an agreed endpoint, but may analyze unknown technical conditions. Resolve those conditions before completing design or starting dependent contract/cases/plan/implementation. Required document approvals remain checked even when producer runs are absent; existing stage ordering and review semantics are unchanged.
 
 Register documents as `{kind,path,mode,version,assetRefs?}`. List local/repository prototype images, scripts and other review-relevant assets in assetRefs so their bytes participate in the document fingerprint; the Agent must identify the complete asset set. Kinds: prd, scope, tech-design, plan, testing, review, diagnosis, handoff, change-log, prototype, contract, sql, source. New formal Markdown follows the artifact map's root filename and ordered anchors. Reused files additionally need `basisRef` recording location/version/coverage/gaps and editability; unsupported content is explicitly not checked. New HTML prototype is prototype/index.html; register other agreed formats. HTTP contracts use openapi.yaml unless reused. SQL filenames follow database count. Source files are immutable adopted versions by workflow, not OS access controls.
 
@@ -66,7 +69,7 @@ The delivery identity, view digest and state revision are stored in `.aimship/vi
 
 ## Explicit migration and rule adoption
 
-Schema 1 root state remains readable; normal updates/adopt require migration first. Unknown schemas stay read-only. To migrate one selected old delivery, record a compatibility assessment and original/new artifact mapping:
+Schema 3 is used for new deliveries; older tools treat it as unknown/read-only. Existing schema 2 continues without automatic conversion, and its recorded history is preserved. Schema 1 root state remains readable; normal updates/adopt require migration first. Unknown schemas stay read-only. To migrate one selected old delivery, record a compatibility assessment and original/new artifact mapping:
 
 ```sh
 node '<new-fixed-cli>' migrate '<delivery-dir>' --revision '<old-revision>' --rules-version '<new-version>' --input '<assessment.json>'

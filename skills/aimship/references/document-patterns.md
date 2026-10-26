@@ -6,6 +6,8 @@ One request has one directory. Formal documents are at its root. `source/request
 
 ## Input and output conditions
 
+Initialization may start with preserved source/request.md before a PRD/Scope is formed. Do not generate an empty template for init. Register the substantive requirement draft and switch goalRef when ready; before completing requirements or dependent work, use the existing formal artifact and approval rules below. Unknown artifact conditions stay null until determined, distinct from false/none/[] (not applicable).
+
 Author current requirements in `prd.md`, including scope. Adopt an authoritative PRD/prototype through `scope.md`, preserving source/version/original IDs and gaps. Prior authorship does not make an adopted source editable. Only explicit maintenance of an editable authoritative PRD that completely expresses this commission's scope/authorization/endpoint permits registered reuse without another PRD/Scope. Scattered ideas/screenshots/reference cases are inputs to a PRD, not automatically authoritative requirements.
 
 Interaction changes require a prototype when existing adopted material does not cover them and that work lies within the commissioned endpoint. New HTML uses `prototype/index.html`; register other agreed formats or reused entries. No interaction change means no invented prototype. Investigation/clarification-only requirements describe that commission and leave future development undefined.

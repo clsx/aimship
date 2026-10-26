@@ -27,3 +27,11 @@ Follow [document review](document-review.md) for saved review stops, approval hi
 Use the core’s session interaction. Locate the actual delivery before reading; an explicit path or trustworthy unique binding is necessary. Check deliveryId when supplied, current approval fingerprints, current inputs and unfinished side effects; never treat an old continuation prompt as authority. Pending review remains pending. A session suggestion is not a blocker; a request to continue here uses the same saved work without a new approval. No automatic sessions or clipboard actions.
 
 Older state without deliveryPolicy is historical-unassessed, not invalid. Preserve met/accepted and old evidence. Adopt active rules and explicitly add deliveryPolicy with compatibilityRef after a real scope/evidence assessment; partialRef records an actual limited commission. No inferred historical approvals, no bulk migration. Standard completion remains separately assessed. Unknown newer delivery policies are read-only.
+
+## Early initialization and schema 3
+
+New initialization may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD/Scope at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
+
+If source exists but state does not, inspect the original input and ownership before completing init at that location. If state exists, resume its ID instead; init deliberately rejects duplicates. A failed view or interrupted receipt never requires a second init. Inspect state then repair only the view at the saved revision, preserving manual status edits. Do not remove locks without checking that the writer stopped.
+
+Schema 1 retains the existing explicit migration to schema 2. Schema 2 remains supported with its recorded conditions and history, without automatic rewriting or invented first-use facts. New deliveries use schema 3 so older tools refuse unknown semantics. Normal updates preserve the schema; no bulk conversion of old deliveries is required. Unknown future formats remain read-only.

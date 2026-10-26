@@ -66,6 +66,12 @@ The example uses a `MyDeliveries` folder under the current working directory; yo
 
 After installation, follow the [Guide](docs/guide.md#hosts) to select Aimship in your tool. AI tool integrations are experimental: actual Skill discovery and continuation across AI tools still need validation.
 
+## Start a delivery
+
+Explicitly select Aimship in your AI tool, or ask it to **use Aimship** for a concrete request. For example: “Use Aimship to deliver an export of the currently filtered orders. First clarify the fields; code will be prepared later.” A PRD, code repository and settled technical conditions are not required. A product name alone prompts a short clarification first.
+
+The agent preserves your request, helps you make the materials location accessible, and creates or resumes one delivery. Its receipt shows the actual saved directory, `status.md`, current work and next step. Opening a project or mentioning the name in passing does not activate Aimship. In a new session, explicitly use Aimship again and identify the same delivery; see the [Guide](docs/guide.md#start). Source edits do not update an installed Skill; contributors can use the [local source trial](CONTRIBUTING.md#local-source-trial).
+
 <a id="update"></a>
 <a id="update-or-stop-using-aimship"></a>
 <a id="upgrades-and-host-management"></a>

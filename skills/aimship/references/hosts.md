@@ -15,3 +15,7 @@ After compaction or manual switching, reload the fixed-version core, state and c
 When changing hosts, use the same delivery directory and state; do not duplicate requirements, Scope or design to establish a new session. Permissions must be granted separately in each host. Keep one writing host/session for the delivery. User-facing entry/reload and lifecycle instructions are in [the user guide](../../../docs/guide.md#hosts).
 
 When reconciling an old Aimship-created workspace, resolve relative folders against its old file location before writing the new internal file. Verify actual checkout/worktree identity. Do not move or replace a user-owned existing workspace.
+
+For initialization, materials access is sufficient; code may be associated later. An existing accessible project should be reused. When a new target folder cannot yet be opened, guide the user to the existing parent or to create/open the intended folder, according to actual tool capabilities. Preserve unsaved input before any session switch. Recheck necessary access in the new session; a project name is not evidence of permissions. Follow the core's initialization receipt after the actual save.
+
+For an unreleased source trial, explicitly read the checkout Skill and bind its package-root CLI. Verify releaseRoot/corePath/cliPath and schemaVersion, not just the package version: local edits may retain the published version number. Do not fall back to a cached installed Skill. Loading the source manually does not establish host automatic discovery.
