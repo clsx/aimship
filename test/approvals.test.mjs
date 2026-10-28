@@ -1,3 +1,4 @@
+import { documentFixture } from '../scripts/testing/documents.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -10,15 +11,16 @@ import { run } from '../lib/cli.mjs';
 import { approveFixture } from '../scripts/testing/reviews.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).version;
-const runtime={version,activeVersion:version};
+const runtime={version,activeVersion:version,dataRoot:await fs.realpath(os.tmpdir())};
 const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
 const stage=(id,kind,progress='planned',extra={})=>({id,stage:kind,scope:'synthetic bounded work',progress,inputRefs:[],outputRefs:[],...extra});
 async function setup(t, extra={}, approvedInputs=[]) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-review-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
  await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic review commission.');
  await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit approve current document. Not a real user message.');
- for(const kind of ['prd','tech-design','plan','testing','diagnosis','scope','review']) await fs.copyFile(path.join(root,`skills/aimship/references/templates/${kind}.md`),path.join(dir,`${kind}.md`));
- const input={goal:{summary:'Review state semantics',endpoint:'bounded synthetic test'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd'),reg('tech-design')],stageRuns:[stage('requirements','requirements','done',{outputRefs:['prd.md'],resultRef:'prd.md#requirements'}),stage('design','tech-design')],currentRun:'requirements',...extra};
+ await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicit commission for independent review or verification only; not a standard development delivery.');
+ for(const kind of ['prd','tech-design','plan','testing','diagnosis','scope','review']) await fs.writeFile(path.join(dir,`${kind}.md`),await documentFixture(kind));
+ const input={language:'en',goal:{summary:'Review state semantics',endpoint:'bounded synthetic test'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd'),reg('tech-design')],stageRuns:[stage('requirements','requirements','done',{outputRefs:['prd.md'],resultRef:'prd.md#requirements'}),stage('design','tech-design')],currentRun:'requirements',...extra};
  // Isolated later-stage fixtures still supply real registered, synthetically approved inputs.
  for(const kind of approvedInputs) if(!input.documents.some(d=>d.kind===kind)) input.documents.push(reg(kind));
  if(approvedInputs.length) input.reviewHistory=await approveFixture(dir,input,approvedInputs.map(k=>`${k}.md`));
@@ -92,7 +94,7 @@ test('approval: testing execution and plan execution do not revoke design approv
  await c.approve(['testing.md']);await c.save({stageRuns:[c.state.stageRuns[0],{...c.state.stageRuns[1],progress:'done',resultRef:'plan.md#tasks',outputRefs:['plan.md']}]});await c.approve(['plan.md']);
  await fs.appendFile(path.join(c.dir,'testing.md'),'New RUN evidence.');await fs.appendFile(path.join(c.dir,'plan.md'),'TASK actual execution.');await c.save({});
  assert.equal((await readState(c.dir)).review.documents.filter(d=>['plan.md','testing.md'].includes(d.path)).every(d=>d.status==='approved'),true);
- await fs.writeFile(path.join(c.dir,'testing.md'),(await fs.readFile(path.join(c.dir,'testing.md'),'utf8')).replace('<a id="cases"></a>','<a id="cases"></a>\nChanged expectation.'));
+ await fs.writeFile(path.join(c.dir,'testing.md'),(await fs.readFile(path.join(c.dir,'testing.md'),'utf8')).replace('## Test cases','## Test cases\nChanged expectation.'));
  assert.equal((await readState(c.dir)).review.documents.find(d=>d.path==='testing.md').status,'self-check-required');
 });
 test('approval: SQL follows technical review, SQL-only contract requires every target and individual approvals',async t=>{
@@ -104,19 +106,12 @@ test('approval: SQL follows technical review, SQL-only contract requires every t
  await c.approve(['database-main.sql']);const advance=()=>c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='cases'?{...r,progress:'active'}:r)});
  await assert.rejects(advance(),{code:'REVIEW_CHECK'});await c.approve(['database-audit.sql']);await advance();
 });
-test('approval: legacy schema2 is readable, cannot advance without policy or invent approvals',async t=>{
- const c=await setup(t),file=path.join(c.dir,'.aimship/state.json');const old=JSON.parse(await fs.readFile(file));old.schemaVersion=2;delete old.reviewPolicy;delete old.reviewHistory;await fs.writeFile(file,JSON.stringify(old));
- assert.equal((await readState(c.dir)).review.compatibility,'review-adoption-required');
- await assert.rejects(c.save({stageRuns:[old.stageRuns[0],{...old.stageRuns[1],progress:'active'}]}),{code:'REVIEW_CHECK'});
- await c.save({reviewPolicy:1,reviewHistory:[]});assert.equal(c.state.stageRuns[0].progress,'done');assert.equal(c.state.reviewHistory.length,0);
- await assert.rejects(c.save({stageRuns:[c.state.stageRuns[0],{...c.state.stageRuns[1],progress:'active'}]}),{code:'REVIEW_CHECK'});
-});
 test('approval: design-only, investigation, adopted scope, prototype and review-only retain their selected endpoints',async t=>{
  for(const [kind,name,section] of [['tech-design','tech-design','coverage'],['diagnosis','diagnose','conclusion'],['scope','scope','goals']]) {
   const isScope=kind==='scope';const c=await setup(t,{goalRef:isScope?'scope.md':'prd.md',documentPolicy:{authority:isScope?'adopted':'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg(isScope?'scope':'prd'),...(!isScope?[reg(kind)]:[])],stageRuns:[stage('only',name,'done',{resultRef:`${kind}.md#${section}`,outputRefs:[`${kind}.md`]})],currentRun:'only'},kind==='tech-design'?['prd']:[]);
   await c.approve([`${kind}.md`]);assert.equal((await readState(c.dir)).review.runs[0].ready,true);assert.equal(c.state.stageRuns.length,1);
  }
- const c=await setup(t,{stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'source/request.md'}]});
+ const c=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'source/request.md'}]});
  await c.save({stageRuns:[{...c.state.stageRuns[0],progress:'done',outputRefs:['review.md'],resultRef:'review.md'}]});assert.equal((await readState(c.dir)).review.runs[0].ready,true);
 });
 test('approval: test cases must precede plan and final goal cannot bypass outstanding approval',async t=>{
@@ -129,7 +124,7 @@ test('approval: prototype assets are bound and verify-only does not invent upstr
  await c.save({documents:[...c.state.documents,{kind:'prototype',path:'prototype/index.html',mode:'new',version:'1',assetRefs:['prototype/screen.bin']}],stageRuns:[stage('prototype','prototype','done',{outputRefs:['prototype/index.html'],resultRef:'prototype/index.html'})],currentRun:'prototype'});
  await c.approve(['prototype/index.html']);assert.equal((await readState(c.dir)).review.runs[0].ready,true);
  await fs.writeFile(path.join(c.dir,'prototype/screen.bin'),Buffer.from([0xfe,0x00]));assert.equal((await readState(c.dir)).review.runs[0].ready,false);
- const v=await setup(t,{documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'source/request.md'}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
+ const v=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'source/request.md'}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
  await v.save({stageRuns:[{...v.state.stageRuns[0],progress:'done',outputRefs:['testing.md'],resultRef:'testing.md'}]});assert.equal(v.state.stageRuns.length,1);assert.equal((await readState(v.dir)).review.runs[0].ready,true);
 });
 test('approval: fresh approval cannot hide a material revision without CHG/version and source evidence remains inspectable',async t=>{
@@ -152,12 +147,7 @@ test('approval: real CLI reports the stop and accepts an explicit recorded appro
  result=cli('update',{reviewHistory:await approveFixture(c.dir,c.state,['prd.md'])});assert.equal(result.status,0,result.stderr);
  result=cli('resume');assert.equal(result.status,0,result.stderr);const resumed=JSON.parse(result.stdout).data;assert.equal(resumed.canProceed,true);assert.equal(resumed.review.documents[0].status,'approved');assert.equal(resumed.state.outcome.acceptance,'not-recorded');
 });
-test('approval: unknown future review protocol remains readable and cannot be recovered over',async t=>{
- const {recoverState}=await import('../lib/state.mjs');const c=await setup(t);await c.save({next:{action:'checkpoint'}});
- const file=path.join(c.dir,'.aimship/state.json');const future=JSON.parse(await fs.readFile(file));future.reviewPolicy=2;await fs.writeFile(file,JSON.stringify(future));
- assert.equal((await readState(c.dir)).readOnly,true);assert.equal((await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data.canProceed,false);
- await assert.rejects(recoverState(c.dir,0,version,runtime),{code:'UNKNOWN_SCHEMA'});assert.equal(JSON.parse(await fs.readFile(file)).reviewPolicy,2);
-});
+
 test('approval: failed self-check is preserved and cannot be used to approve or release work',async t=>{
  const c=await setup(t),records=await approveFixture(c.dir,c.state,['prd.md']);await c.save({reviewHistory:[{...records[0],result:'failed'}]});
  assert.equal((await readState(c.dir)).review.documents[0].status,'self-check-failed');

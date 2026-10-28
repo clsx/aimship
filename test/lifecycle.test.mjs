@@ -40,10 +40,10 @@ async function completedDelivery(home) {
   const directory = path.join(home, 'Aimship/completed-design'); await fs.mkdir(directory, { recursive: true });
   await fs.writeFile(path.join(directory, 'requirements.md'), '# Synthetic original goal\nDesign handoff only.\n');
   await fs.writeFile(path.join(directory, 'results.md'), '# Synthetic recorded facts\n## Handoff\n## Acceptance\n');
-  const runtime = { version: VERSION, activeVersion: VERSION };
+  const runtime = { version: VERSION, activeVersion: VERSION, dataRoot: path.join(home, 'Aimship') };
   const run = { id: 'handoff-1', stage: 'handoff', scope: 'Confirmed design-only endpoint', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] };
   await fs.mkdir(path.join(directory,'source')); await fs.writeFile(path.join(directory,'source/request.md'),'Synthetic design request');
-  await initState(directory, { deliveryPolicy:{version:1,partialRef:'requirements.md'}, documentPolicy:{authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'handoff',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Synthetic design delivery', endpoint: 'Design handoff only' }, goalRef: 'requirements.md', stageRuns: [run], currentRun: 'handoff-1' }, VERSION, runtime);
+  await initState(directory, { language:'en', deliveryPolicy:{version:1,partialRef:'requirements.md'}, documentPolicy:{authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'handoff',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Synthetic design delivery', endpoint: 'Design handoff only' }, goalRef: 'requirements.md', stageRuns: [run], currentRun: 'handoff-1' }, VERSION, runtime);
   await updateState(directory, { stageRuns: [{ ...run, progress: 'done', resultRef: 'results.md#handoff' }], outcome: { goal: 'met', goalConclusionRef: 'results.md#handoff', acceptance: 'accepted', acceptanceRef: 'results.md#acceptance' } }, 0, VERSION, runtime);
   return { directory, stateBytes: await fs.readFile(path.join(directory, '.aimship/state.json'), 'utf8'), resultBytes: await fs.readFile(path.join(directory, 'results.md'), 'utf8') };
 }

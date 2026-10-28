@@ -20,6 +20,6 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 ## Artifact contract
 
-Use handoff.md. Preserve the `outcomes` section anchor. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use handoff.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Use the derived completion assessment alongside goal and acceptance. A user-authorized scope without cases/verification may be finished as an explicitly untested partial handoff, never standard complete delivery. No next-session prompt is needed at the final endpoint.

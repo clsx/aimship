@@ -6,32 +6,28 @@ A revision conflict means another writer or manual change intervened. Read and r
 
 A path move requires the provided new location and identity evidence, not a disk-wide name search. Keep IDs stable. Repair references after checking the relevant repository/delivery; do not move or copy code. Preserve manual document edits and assess their intent and downstream impact before updating state.
 
-A tool/version mismatch stops new stage advancement. Save only in-progress facts through the documented limited checkpoint if safe; it cannot finish a stage or declare a goal met. At a stable boundary read the current complete installation's core, current stage and state, handle any compatibility needs, then explicitly adopt the current rules version. Keep the same goal, decisions and history. If the old context cannot reliably refresh, give the manual continuation prompt; do not open a new conversation automatically.
+A tool/version mismatch stops new stage advancement. Run bind through the stable installation launcher and read the returned fixed-version core and CLI help. Use that bound tool and protocol, not cached metadata from another executable. Preserve unfinished work and actual decisions; do not change state versions by hand or invent approvals. If the conversation cannot reliably refresh, provide a manual continuation prompt; do not open a new conversation automatically.
 
-Unknown newer formats remain readable as files but must not be overwritten or silently downgraded. Structural migrations require a supported conversion, necessary backup, clear description and validation. If no migration exists, preserve the materials and state the gap; do not invent historical stages. Compatible rules updates do not require new goal approval. Never sweep ended deliveries during install; only assess an ended delivery when it is reopened.
 
-Installation and data are separate. Explicit install manages product-owned files and host entries. Preserve user customizations and unrelated same-name skills; report the exact conflict. Uninstall retains delivery materials, customization and necessary configuration. Recovery retains a bounded previous installation, not every runtime forever. Consult the CLI help for implemented operations; do not bypass checks with raw state edits to obtain a success result.
+Installation and data are separate. Explicit install manages product-owned files and AI-tool entries. Preserve user customizations and unrelated same-name skills; report the exact conflict. Uninstall retains delivery materials, customization and necessary configuration. Recovery retains a bounded previous installation, not every runtime forever. Consult the CLI help for implemented operations; do not bypass checks with raw state edits to obtain a success result.
 
-## Schema 1 to schema 2
+## State and view recovery
 
-Read reports the actual statePath and layout. Use migrate on one explicitly selected delivery, with the old revision and a compatibilityRef; then adopt active rules at the returned revision. The migration journal and byte-preserved source copies stay under .aimship. A pending journal requires the original migrate parameters, not a normal update. Conflicting dual layouts and unknown schemas never accept normal writes.
-
-Migration converts state layout/schema only. Reconcile legacy requirements/design/implementation/test-plan/verification by their actual role, retaining original text and versioned results. Register legacy files as reused with a compatibility basis; create missing new plan/testing content for future work without inventing historical stages. Move necessary evidence and Aimship-created host files only with a concrete mapping, rewrite report links, and resolve workspace relative folders from the old location. Ordinary business source is never overwritten.
 
 State is authoritative for stages; status is generated. JSON may have saved while view generation failed: use returned revision and render, never repeat update. Read/check/resume never repair implicitly. Inspect changed registered documents even when view revision matches. render --preserve-edits retains a modified status before replacing it; interpret intent and update the formal authority separately.
 
-Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and old-state compatibility. Read/resume never infer approval from done or create a new user decision.
+Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and current document checks. Read/resume never infer approval from done or create a new user decision.
 
-## Session boundary and completion compatibility
+## Session boundary and completion
 
 Use the core’s session interaction. Locate the actual delivery before reading; an explicit path or trustworthy unique binding is necessary. Check deliveryId when supplied, current approval fingerprints, current inputs and unfinished side effects; never treat an old continuation prompt as authority. Pending review remains pending. A session suggestion is not a blocker; a request to continue here uses the same saved work without a new approval. No automatic sessions or clipboard actions.
 
-Older state without deliveryPolicy is historical-unassessed, not invalid. Preserve met/accepted and old evidence. Adopt active rules and explicitly add deliveryPolicy with compatibilityRef after a real scope/evidence assessment; partialRef records an actual limited commission. No inferred historical approvals, no bulk migration. Standard completion remains separately assessed. Unknown newer delivery policies are read-only.
+Current deliveries require the document approval and delivery policies. Their recorded outcomes, actual decisions and execution history remain separate from ordinary business numbering.
 
-## Early initialization and schema 3
+## Early initialization and schema 4
 
-New initialization may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD/Scope at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
+New initialization saves the selected language and location basis and may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD/Scope at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
 
 If source exists but state does not, inspect the original input and ownership before completing init at that location. If state exists, resume its ID instead; init deliberately rejects duplicates. A failed view or interrupted receipt never requires a second init. Inspect state then repair only the view at the saved revision, preserving manual status edits. Do not remove locks without checking that the writer stopped.
 
-Schema 1 retains the existing explicit migration to schema 2. Schema 2 remains supported with its recorded conditions and history, without automatic rewriting or invented first-use facts. New deliveries use schema 3 so older tools refuse unknown semantics. Normal updates preserve the schema; no bulk conversion of old deliveries is required. Unknown future formats remain read-only.
+On resume, keep the saved language and original source/request.md. Record new intent through the formal requirements/change flow; never automatically translate or overwrite original materials.

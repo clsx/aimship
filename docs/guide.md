@@ -26,7 +26,22 @@
 
 ## Delivery directory at a glance
 
-The default materials root is `~/Aimship/`, unless installation configured another location. **Each delivery has its own directory; use the actual path in the AI's receipt.** Code stays in its project.
+The default materials root is `~/Aimship/` under your home directory, unless installation configured another location. **Each delivery has its own directory under that root; use the actual path in the AI’s receipt.** Explicitly state a different save location if needed.
+
+Carry out the delivery in your AI tool workspace, with access to both existing materials and the Aimship delivery directory:
+
+```text
+AI tool workspace
+├── Existing user project materials (supply as applicable; keep in place)
+│   ├── Prototypes, PRDs and other reference documents (if available)
+│   └── Project code (if available)
+└── This request’s delivery directory, created by Aimship initialization
+    └── Add original directory → ~/Aimship/20261027-login-signup/
+```
+
+[Activate Aimship and state the request](#guide-setup) below. Once initialization reports the actual path, add that delivery folder (`20261027-login-signup` in this example) to the current AI tool workspace, or grant access to it, then continue the delivery in this workspace. Provide access to existing project materials as needed; Aimship initialization does not create them. The directory name is only an example: do not create it manually in advance, copy the whole delivery, or create another set in the workspace.
+
+The delivery directory contains these materials:
 
 ```text
 ~/Aimship/                         # Materials root
@@ -44,7 +59,7 @@ The default materials root is `~/Aimship/`, unless installation configured anoth
     └── handoff.md                 # Results and handoff instructions
 ```
 
-Materials develop gradually and are kept as needed. `scope.md` adopts authoritative external requirements, `change-log.md` records important changes, and `diagnosis.md` is for standalone investigations. Open `status.md` for progress; tell the AI directly about requirement changes or acceptance decisions.
+Materials develop gradually and are kept as needed. Search readable REQ, AC and TC numbers across documents; corresponding numbers stay consistent without requiring anchor links. `scope.md` adopts authoritative external requirements, `change-log.md` records important changes, and `diagnosis.md` is for standalone investigations. Open `status.md` for progress; tell the AI directly about requirement changes or acceptance decisions.
 
 <a id="1-start-and-proceed"></a>
 <a id="start"></a>
@@ -79,15 +94,15 @@ Use one Aimship entry within a session, then continue after approval as arranged
 
 ### 1.1 Activate Aimship and state the request
 
-Follow the README to [install](../README.md#install), then open an accessible workspace in your AI tool. No PRD or code is needed to start.
-
 **User actions:** Explicitly request Aimship and state the goal. For example:
 
 > Use Aimship for username/password sign-up, login, logout and a home page requiring login. Complete development and local verification, without deployment; I will supply code later.
 
-**AI processing:** Preserves the request, creates or resumes a delivery, and reports its saved directory, current work and next action. It asks necessary clarifying questions.
+For existing prototypes, PRDs or other documents, supply their original locations; originals stay in place and you need not copy them manually. Following the source rules, the AI retains copies of the formally adopted versions and necessary dependencies under this delivery's `source/` and records the adoption basis. Materials consulted only as background need not be copied in full. Before later revisions, identify the editable artifact; new versions do not overwrite earlier evidence.
 
-**Outputs:** `source/request.md` preserves your words; `status.md` shows progress.
+**AI processing:** Determines the delivery directory and checks access, preserves the request, creates or resumes the delivery, and reports the actual saved directory, current work and next action. If access is unavailable, it asks you to add that directory or grant access; it does not relocate the delivery into the workspace.
+
+**Outputs:** `source/request.md` preserves your words; `status.md` shows progress. For a new delivery, the AI saves your preferred language, or otherwise the language of the current conversation. Status and new documents use that language; filenames, IDs, original sources and existing documents remain unchanged.
 
 <a id="14-read-the-document-and-give-a-decision"></a>
 <a id="15-continue-after-approval"></a>
@@ -121,7 +136,7 @@ Open the presented requirements document and applicable prototype separately. Ch
 
 > Use Aimship to continue the sign-up and login delivery at “actual delivery directory.” First read its state, approved materials and pending reviews.
 
-The AI resumes the original delivery and confirms technical design as next. If reviews remain pending, it stops there, without reinitializing or asking you to repeat all background. Staying in the original session is also fine.
+The AI rechecks access to the same delivery directory, reads its state and confirms technical design as next. If reviews remain pending, it stops there, without reinitializing or asking you to repeat all background. Staying in the original session is also fine.
 
 <a id="guide-design"></a>
 <a id="14-review-the-technical-design"></a>
@@ -241,7 +256,7 @@ The AI resumes the original delivery and confirms technical design as next. If r
 
 Follow suggestions in `status.md` between requirements, technical design/applicable contracts, cases, plan, implementation batches, overall review and verification batches, or stay in the same session. Grouping does not change individual document reviews.
 
-See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. If switching before the first save, carry the unsaved request, intended location and pending operations.
+See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. The saved delivery language carries over. If switching before the first save, carry the unsaved request, intended location and pending operations.
 
 <a id="22-continue-after-work-stops-unexpectedly"></a>
 <a id="continue-after-work-stops-unexpectedly"></a>
@@ -274,9 +289,9 @@ Manual progress-page edits are preserved first; conflicts need coordination. Do 
 
 ### 3.1 Existing materials or discussion
 
-See [Confirm requirements](#guide-requirements) for PRD/prototype input. Scattered screenshots and discussion can inform requirements; identify the location, version and adopted scope of additional materials. An editable PRD explicitly commissioned for maintenance can be reused if it fully states this scope, authorization and endpoint. It still needs review; its production history is not invented.
+Provide the PRD, prototype or screenshot locations, versions and scope to use. The AI checks them as described in [Confirm requirements](#guide-requirements). Explicitly request direct maintenance of an existing PRD if needed; the AI checks the goal and endpoint before submitting it for review. An existing file is not an approval.
 
-For an existing discussion, say “Use Aimship to carry forward the request we just discussed.” The AI preserves visible wording, decisions and open questions without repeating answered questions. It identifies gaps in unavailable history; suggestions are not approvals.
+For prior discussion, say “Use Aimship to continue the requirements we just discussed.” The AI organizes visible requests, decisions and open questions. Supply history it cannot see; suggestions are not approvals.
 
 <a id="16-changing-approved-requirements"></a>
 <a id="5-requirements-change-during-delivery"></a>
@@ -289,16 +304,18 @@ For an existing discussion, say “Use Aimship to carry forward the request we j
 
 ### 3.2 Change approved content
 
-Explain the change, reason and what should remain; identify document edits made outside the session. The AI records impact in `change-log.md`, preserves originals, resubmits affected documents and holds dependent work. Old approvals and test results remain historical evidence.
+Explain what changes, why, and what stays the same; identify any documents you edited yourself. The AI records important changes in `change-log.md`, resubmits affected documents and holds dependent work until confirmed. Unaffected work, earlier approvals and test history remain.
 
-Unaffected work is retained; typo or formatting edits need no full re-review. Small post-completion fixes can continue the same delivery; a new goal or major redesign starts a related one.
+Record new requests in requirements and the change log, without overwriting `source/request.md`. Restore accidental edits from a reliable original; if none exists, pause to resolve the gap. Typos and formatting need no full re-review. Small fixes can continue the same delivery; a new goal or major redesign gets a separate delivery linked to the original.
 
 <a id="guide-limits"></a>
 <a id="27-stop-at-a-limited-goal"></a>
 
 ### 3.3 Complete only part of the goal
 
-If you explicitly request requirements/design only or exclude testing, the AI records the endpoint and consequences, then hands off the authorized work. Untested work is labeled, and partial results are distinguished from standard complete delivery. Asking for a preview does not shorten the original goal. Only standalone investigation needs `diagnosis.md`; ordinary debugging adds no investigation stage.
+State if you only need requirements or design, or explicitly exclude testing. The AI records the endpoint and omissions, labels the handoff as partial and never marks untested work passed. Asking to “see a preview first” does not change the goal.
+
+Only standalone investigation uses `diagnosis.md`; ordinary debugging adds no investigation stage.
 
 <a id="guide-projects"></a>
 
@@ -313,9 +330,9 @@ If you explicitly request requirements/design only or exclude testing, the AI re
 
 ### 4.1 Associate code, fix defects or refactor
 
-When code becomes available, say “Associate ‘project directory’ with the current delivery.” The materials directory and approval history continue; association does not authorize code changes. The AI may read code early when requirements depend on existing behavior. New facts affecting approved conclusions follow change handling. A remote URL records a source, without automatic cloning or relocation.
+Provide the code directory, for example: “The code is at ‘project directory’; continue the current delivery.” The AI keeps the delivery directory and review records. It may read existing behavior early; edits still follow the agreed scope. Findings affecting approved content return for review. A remote address does not trigger automatic cloning or relocation.
 
-For defects, provide expected/current behavior, reproduction conditions or logs. For refactoring, state the technical goal and external behavior that must remain.
+For defects, provide expected behavior, the problem and reproduction steps or logs. For refactoring, state the improvement goal and behaviors to preserve.
 
 <a id="35-progress-several-deliveries-at-once"></a>
 <a id="7-progress-several-deliveries-at-once"></a>
@@ -328,9 +345,9 @@ For defects, provide expected/current behavior, reproduction conditions or logs.
 
 ### 4.2 Work on several requests
 
-Keep each delivery separate and identify shared code, interfaces, databases or environments. Requests can be analyzed concurrently; before writing the same code, sequence the work or use separate checkouts/worktrees.
+Keep each delivery separate and identify shared code, interfaces, databases or environments. Analysis can run concurrently; sequence edits to the same code, or use separate working directories and plan the merge.
 
-The AI checks accessible known deliveries for overlap and records coordination. It has no global lock or automatic scheduler and may miss outside work or stale records. A completed branch does not establish integration completion.
+The AI checks only known, accessible deliveries; it does not lock or schedule other sessions. Describe other ongoing changes and check the merged result afterward.
 
 <a id="4-problems-and-references"></a>
 <a id="troubleshoot"></a>
@@ -349,7 +366,9 @@ The AI checks accessible known deliveries for overlap and records coordination. 
 
 ### 5.1 A directory is inaccessible
 
-Provide the path and error. Reuse an accessible project workspace; open an existing parent or create/open the target using the AI tool's supported controls, then grant necessary access. Installation does not create delivery materials or grant permissions, and another project's access may not apply. Preserve an unsaved request and continue the same delivery when access is restored.
+Use the actual path reported by the AI to add the original delivery directory or grant the needed permissions in your AI tool. If the directory has not been created, use the tool’s supported controls to authorize the necessary parent directory, then continue initialization. Do not copy the delivery or create another one elsewhere.
+
+Reading a file does not prove it can be saved; the AI should report success from actual read/write results. Aimship does not operate permission controls for you. Keep unsaved requests in the current conversation; once access is restored, inspect existing files before continuing. Installation does not automatically create delivery directories or grant access.
 
 <a id="43-ai-tool-integration-notes"></a>
 <a id="ai-tool-integration-notes"></a>
@@ -360,9 +379,9 @@ Provide the path and error. Reuse an accessible project workspace; open an exist
 
 ### 5.2 The Aimship entry is missing
 
-Current entry conventions: the Skill selector in Codex, `$aimship` in its CLI, and `/aimship` in Cursor/Claude Code. After installation, try a new session or refresh the Skill list. Behavior depends on the actual AI tool version.
+Check installation status through the README, then try a new session or refresh your AI tool’s Skill list and explicitly select Aimship. The available entry depends on the tool’s version and supported controls; a healthy installation does not prove the Skill is loaded.
 
-Codex and Cursor share an installed entry; check source/version for duplicates while preserving custom content. Installation health does not prove loading, and real discovery, permissions and cross-tool continuation are not fully verified. See [Cursor documentation](https://cursor.com/docs/skills) and [Codex Skill locations](https://learn.chatgpt.com/docs/build-skills).
+For duplicate entries, check their sources and versions while preserving custom content. Codex and Cursor share an installed entry, so do not simply delete duplicates. Real discovery, permissions and cross-tool continuation are not fully verified. See [Cursor documentation](https://cursor.com/docs/skills) and [Codex Skill locations](https://learn.chatgpt.com/docs/build-skills).
 
 <a id="42-continue-an-existing-delivery-after-upgrading-aimship"></a>
 <a id="continue-an-existing-delivery-after-upgrading-aimship"></a>
@@ -371,9 +390,9 @@ Codex and Cursor share an installed entry; check source/version for duplicates w
 
 ### 5.3 Continue after upgrading
 
-[Upgrade through the README](../README.md#update). Save first, check the actual version and delivery records, and open a new session if needed. Updating software does not replace rules already loaded in an old session.
+Save current work before [upgrading through the README](../README.md#update). Activate Aimship again afterward and check the actual bound version and delivery state; installation itself does not update delivery records.
 
-Preserve earlier results and approvals. Handle migration or adoption of new rules explicitly at a stable boundary; unknown formats stay read-only, without invented approvals or tests.
+Use ordinary Markdown and searchable numbers to record delivery. Check the impact of rule changes and preserve actual approvals and test records without inventing results.
 
 <a id="45-installation-and-maintenance-references"></a>
 <a id="installation-and-maintenance-references"></a>
@@ -385,6 +404,6 @@ Preserve earlier results and approvals. Handle migration or adoption of new rule
 
 ### 5.4 Maintenance and feedback
 
-See the [README](../README.md#update) for installation, upgrades, adding AI tools, version and health checks, or [uninstallation](../README.md#uninstall) for removal.
+See the [README](../README.md#update) for installation, upgrades, adding AI tools, version and health checks, or [uninstallation](../README.md#uninstall) for removal. Health checks inspect installation files and configuration; they do not repair delivery documents. For an interrupted installation or missing files, follow the corresponding README instructions rather than reinstalling blindly.
 
-For feedback, include versions, actions, expected/actual results and a minimal reproduction. Redact credentials, personal paths and business data before filing an [Issue](https://github.com/clsx/aimship/issues). See [Contributing](../CONTRIBUTING.md) for development and the [CLI document](cli.md) for internal tool protocols.
+For feedback, provide versions, actions, expected and actual results, and minimal reproduction steps. Redact credentials, personal paths and business data before filing an [Issue](https://github.com/clsx/aimship/issues). See [Contributing](../CONTRIBUTING.md) for development and the [CLI document](cli.md) for tool protocols.

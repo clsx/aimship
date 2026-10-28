@@ -1,3 +1,4 @@
+import { documentFixture } from '../scripts/testing/documents.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -10,25 +11,26 @@ import { run } from '../lib/cli.mjs';
 import { approveFixture } from '../scripts/testing/reviews.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).version;
-const runtime={version,activeVersion:version};
+const runtime={version,activeVersion:version,dataRoot:await fs.realpath(os.tmpdir())};
 const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
 const stage=(stage,progress='active',extra={})=>({id:stage,stage,scope:'Synthetic order export',progress,inputRefs:[],outputRefs:[],...extra});
-const input=()=>({goal:{summary:'Export the currently filtered orders'},stageRuns:[stage('requirements')],currentRun:'requirements',next:{action:'Clarify export columns',inputRefs:['source/request.md']}});
+const input=()=>({language:'en',goal:{summary:'Export the currently filtered orders'},stageRuns:[stage('requirements')],currentRun:'requirements',next:{action:'Clarify export columns',inputRefs:['source/request.md']}});
 const known={authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]};
 async function setup(t) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-init-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
- await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'User request (synthetic): Export the currently filtered orders. Code and final endpoint are not decided.');
+ await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'User request (synthetic): Export the currently filtered orders. Code and final endpoint are not decided. Synthetic user choice: use this isolated temporary delivery directory.');
  return dir;
 }
-async function doc(dir,kind) {await fs.copyFile(path.join(root,`skills/aimship/references/templates/${kind}.md`),path.join(dir,`${kind}.md`));}
+async function doc(dir,kind) {await fs.writeFile(path.join(dir,`${kind}.md`),await documentFixture(kind));}
 async function inspect(command,dir) {return (await run([command,dir,'--rules-version',version],{sourceRoot:root})).data;}
 function cli(command,dir,value,revision) {
+ if(command==='init') value={...value,storage:{mode:'explicit',decisionRef:'source/request.md'}};
  const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,dir,'--rules-version',version,...(value?['--input','-']:[]),...(revision===undefined?[]:['--revision',String(revision)])],{input:value?JSON.stringify(value):undefined,encoding:'utf8',timeout:10000});
  assert.equal(result.status,0,result.stderr);return JSON.parse(result.stdout).data;
 }
 test('initialization: real CLI saves request without PRD/code/conditions; fresh CLI resumes same identity',async t=>{
  const dir=await setup(t),request=await fs.readFile(path.join(dir,'source/request.md'));
- const state=cli('init',dir,input());assert.equal(state.schemaVersion,3);assert.equal(state.goal.endpoint,null);assert.equal(state.goalRef,'source/request.md');assert.deepEqual(state.repositories,[]);assert.deepEqual(state.documents,[]);
+ const state=cli('init',dir,input());assert.equal(state.schemaVersion,4);assert.equal(state.goal.endpoint,null);assert.equal(state.goalRef,'source/request.md');assert.deepEqual(state.repositories,[]);assert.deepEqual(state.documents,[]);
  for(const value of Object.values(state.documentPolicy))assert.equal(value,null);
  const receipt=state.writeResult.receipt;assert.equal(receipt.status,'saved');assert.equal(receipt.directory,dir);assert.equal(receipt.currentStage,'requirements');assert.equal(receipt.nextAction,'Clarify export columns');assert.equal(receipt.deliveryId,state.deliveryId);
  await assert.rejects(fs.access(path.join(dir,'prd.md')));assert.match(await fs.readFile(receipt.statusPath,'utf8'),/unknown/);
@@ -58,7 +60,7 @@ test('initialization: missing stages or forged next/current pointers cannot bypa
  for(const kind of ['prototype','tech-design','contract','test-design','plan','implement']) {
   const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');await doc(dir,'testing');await doc(dir,'plan');await fs.mkdir(path.join(dir,'prototype'));await fs.writeFile(path.join(dir,'prototype/index.html'),'<p>synthetic</p>');await fs.writeFile(path.join(dir,'openapi.yaml'),'openapi: 3.1.0');
   const documents=['prd','tech-design','testing','plan'].map(reg).concat([{kind:'prototype',path:'prototype/index.html',mode:'new',version:'1'},{kind:'contract',path:'openapi.yaml',mode:'new',version:'1'}]);
-  const base={goal:{summary:'Synthetic request',endpoint:'Authorized design only'},goalRef:'prd.md',documentPolicy:known,documents};
+  const base={language:'en',goal:{summary:'Synthetic request',endpoint:'Authorized design only'},goalRef:'prd.md',documentPolicy:known,documents};
   const runs=kind==='implement'?[stage('plan','done',{resultRef:'plan.md#tasks',outputRefs:['plan.md']}),stage(kind)]:[stage(kind)];
   await assert.rejects(initState(dir,{...base,stageRuns:runs,currentRun:kind},version,runtime),{code:'REVIEW_CHECK'});
   let state=await initState(dir,base,version,runtime);
@@ -100,13 +102,6 @@ test('initialization: existing manual view is retained, missing or empty request
  await assert.rejects(initState(dir,input(),version,runtime),{code:'DOCUMENT_CHECK'});assert.equal(await fs.readFile(path.join(dir,'status.md'),'utf8'),'Unrelated user notes');
  await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic recovered original input');const state=await initState(dir,input(),version,runtime);assert.equal(state.writeResult.view.status,'protected');assert.equal(await fs.readFile(path.join(dir,'status.md'),'utf8'),'Unrelated user notes');
 });
-test('initialization: schema 2 stays unchanged on resume and update',async t=>{
- const dir=await setup(t);await doc(dir,'prd');let state=await initState(dir,{goal:{summary:'Synthetic legacy request',endpoint:'Requirements'},goalRef:'prd.md',documentPolicy:known,documents:[reg('prd')]},version,runtime);
- const file=path.join(dir,'.aimship/state.json');const historical={...state,schemaVersion:2};delete historical.writeResult;await fs.writeFile(file,JSON.stringify(historical));const before=await fs.readFile(file);
- for(const command of ['read','check','resume'])await inspect(command,dir);assert.deepEqual(await fs.readFile(file),before);
- state=await updateState(dir,{next:{action:'Continue original scope'}},0,version,runtime);assert.equal(state.schemaVersion,2);assert.equal(state.deliveryId,historical.deliveryId);
-
-});
 test('initialization: requirement-stage code reads are possible before draft or endpoint decisions',async t=>{
  const dir=await setup(t);let state=await initState(dir,input(),version,runtime);
  const code=path.join(dir,'existing-code');await fs.mkdir(code);await fs.writeFile(path.join(code,'behavior.txt'),'Observed current export behavior, synthetic fixture.');
@@ -116,11 +111,11 @@ test('initialization: requirement-stage code reads are possible before draft or 
 });
 test('initialization: non-applicable prototype coverage does not force an extra decision',async t=>{
  const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');
- const init={goal:{summary:'Synthetic noninteractive refactor',endpoint:'Design'},goalRef:'prd.md',documents:[reg('prd'),reg('tech-design')],documentPolicy:{...known,prototypeCovered:null},stageRuns:[stage('tech-design','done',{outputRefs:['tech-design.md'],resultRef:'tech-design.md#coverage'})],currentRun:'tech-design'};
+ const init={language:'en',goal:{summary:'Synthetic noninteractive refactor',endpoint:'Design'},goalRef:'prd.md',documents:[reg('prd'),reg('tech-design')],documentPolicy:{...known,prototypeCovered:null},stageRuns:[stage('tech-design','done',{outputRefs:['tech-design.md'],resultRef:'tech-design.md#coverage'})],currentRun:'tech-design'};
  init.reviewHistory=await approveFixture(dir,init,['prd.md']);const state=await initState(dir,init,version,runtime);assert.equal(state.documentPolicy.prototypeCovered,null);assert.deepEqual((await inspect('check',dir)).documents.issues,[]);
 });
 test('initialization: a null currentRun cannot hide an active unapproved dependency',async t=>{
- const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');let state=await initState(dir,{goal:{summary:'Synthetic request',endpoint:'Design'},goalRef:'prd.md',documentPolicy:known,documents:[reg('prd'),reg('tech-design')]},version,runtime);
+ const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');let state=await initState(dir,{language:'en',goal:{summary:'Synthetic request',endpoint:'Design'},goalRef:'prd.md',documentPolicy:known,documents:[reg('prd'),reg('tech-design')]},version,runtime);
  await assert.rejects(updateState(dir,{stageRuns:[stage('tech-design')],currentRun:null},0,version,runtime),{code:'REVIEW_CHECK'});
  state={...state,stageRuns:[stage('tech-design')],currentRun:null};delete state.writeResult;await fs.writeFile(path.join(dir,'.aimship/state.json'),JSON.stringify(state));
  assert.equal((await inspect('resume',dir)).canProceed,false);assert.equal((await inspect('check',dir)).review.canProceed,false);

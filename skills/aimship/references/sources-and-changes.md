@@ -2,7 +2,7 @@
 
 ## Adopt without rewriting the source
 
-Preserve the original request once. For external PRDs, prototypes and images keep the original and necessary adopted version read-only. Keep referenced HTML/Markdown assets when needed to understand that version. A mutable URL alone cannot establish what was adopted. Record origin, location, version/digest, adopted sections and reading gaps. Do not claim visual understanding from text extraction or file storage.
+Preserve the original request once. If source/request.md changes after initialization, restore its original bytes before continuing state writes; an unrelated update must not adopt a new source digest. Record subsequent intent in the editable PRD/Scope and a CHG when meaning changes. If the original cannot be recovered reliably, preserve the conflicting material and report the blocker instead of replacing the recorded basis. Preserve external PRD, prototype, handover-note and image originals at their supplied locations. Retain the adopted versions as described under [location and version discipline](#location-and-version-discipline); neither storing files nor extracting text establishes visual or interaction validation.
 
 Use existing requirement IDs. If none exist, assign local IDs mapped to source sections, pages, prototype screens or short excerpts. Scope records the current goal, inclusion/exclusion, source mappings, acceptance, constraints, conflicts and adopted decisions. Do not transcribe an entire adequate PRD or create a second one merely to fit a template. Self-owned requirements may also carry Scope.
 
@@ -29,8 +29,15 @@ Formatting/typo corrections do not require semantic re-review. Implementation bu
 
 ## Location and version discipline
 
-Preserve raw adopted versions under source/, including source/request.md. Author current requirements in prd.md or adopt authoritative material through scope.md. Formal outputs remain at the delivery root. New source versions are additional records, never replacements of adopted originals. Normal business evidence belongs in .aimship/evidence/; installation diagnostics and repeated state returns belong in product-maintainer validation, not the delivery.
+The agent preserves the necessary formally adopted versions under `source/`, alongside `source/request.md`; the user need not move or manually copy originals. This is source evidence retention, not a second editable delivery or automatic synchronization.
 
-Use CHG for significant changes, stable REQ/AC and exact TC versions. Retain failed RUN and historical REV records. Q closes only after its decision also reaches the affected formal text. See document-patterns for namespaces, retired IDs, split/merge mapping and structure. An explicit full export must identify its date and object/version and remain a snapshot.
+- Retain the adopted PRD, prototype, handover notes or images, plus HTML/Markdown images, styles, scripts and other resources needed to read or operate that adopted version. Do not copy unrelated workspace files. Background material that is only consulted need not be imported as a whole.
+- In the current PRD/Scope, identify the original location, retained version/path and version or digest, adopted scope, and any missing resources or reading limits. An unpinned mutable URL is insufficient evidence. If access or tools prevent retention, report the precise gap and hold conclusions that require it; never claim the adopted set is complete.
+- Keep `source/` versions read-only as adopted evidence. Name the actual editable document or prototype before revising it. New formal requirements use `prd.md` or `scope.md`; a newly authored HTML prototype uses `prototype/index.html`. An external original is editable only when explicitly authorized; a retained source copy does not become that editable authority by default.
+- Adopt an original's new version as a separate record, assess its impact and re-review affected work. Do not overwrite the earlier adopted version or silently synchronize either direction. Preserve the origin-to-version mapping so there is one clear current basis.
 
-Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and old-state compatibility. Read/resume never infer approval from done or create a new user decision.
+The CLI checks registered paths, artifacts and review evidence; it does not import materials, discover every asset dependency or prove a snapshot is complete. Normal business evidence belongs in .aimship/evidence/; installation diagnostics and repeated state returns belong in product-maintainer validation, not the delivery.
+
+Use CHG for significant changes, stable REQ/AC/TC numbers and the actual tested document/code version. Retain failed RUN and historical REV records. Q closes only after its decision also reaches the affected formal text. See document-patterns for ordinary numbered definitions, references and structure. An explicit full export must identify its date and object/version and remain a snapshot.
+
+Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and current document checks. Read/resume never infer approval from done or create a new user decision.

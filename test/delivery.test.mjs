@@ -10,7 +10,7 @@ import {approveFixture} from '../scripts/testing/reviews.mjs';
 import {run} from '../lib/cli.mjs';
 import {spawnSync} from 'node:child_process';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).version,runtime={version,activeVersion:version};
+const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).version,runtime={version,activeVersion:version,dataRoot:await fs.realpath(os.tmpdir())};
 const stages=[['requirements','prd'],['tech-design','tech-design'],['test-design','testing'],['plan','plan'],['implement','plan'],['review','review'],['review','review'],['verify','testing'],['handoff','handoff']];
 async function setup(t,{partial=false,omitTests=false}={}) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-delivery-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));await fs.mkdir(path.join(dir,'source'));
@@ -18,7 +18,7 @@ async function setup(t,{partial=false,omitTests=false}={}) {
  const docs=[...new Set(stages.map(x=>x[1]))].filter(k=>!omitTests || k!=='testing').map(kind=>({kind,path:`${kind}.md`,version:'adopted-1',mode:'reused',basisRef:'source/request.md'}));
  for(const d of docs)await fs.writeFile(path.join(dir,d.path),`# Synthetic adopted ${d.kind}\nFixed source and scope; inspect before reuse.\n`);
  const runs=stages.map(([stage,kind],i)=>({id:`r${i}`,stage,scope:`synthetic ${stage}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='review'?{reviewOf:['r4'],overall:i===6}:{})})).filter(r=>!omitTests || !['test-design','verify'].includes(r.stage));
- let state=await initState(dir,{deliveryPolicy:{version:1,...(partial?{partialRef:'source/decision.md'}:{})},goal:{summary:'Synthetic delivery',endpoint:partial?'Untested development and review handoff':'Standard complete delivery'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs,stageRuns:runs,currentRun:runs[0].id},version,runtime);
+ let state=await initState(dir,{language:'en',deliveryPolicy:{version:1,...(partial?{partialRef:'source/decision.md'}:{})},goal:{summary:'Synthetic delivery',endpoint:partial?'Untested development and review handoff':'Standard complete delivery'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs,stageRuns:runs,currentRun:runs[0].id},version,runtime);
  const save=async patch=>state=await updateState(dir,patch,state.revision,version,runtime);
  const finish=async id=>{
   const r=state.stageRuns.find(x=>x.id===id);await save({stageRuns:state.stageRuns.map(x=>x.id===id?{...x,progress:'done',result:'passed',resultRef:x.outputRefs[0]}:x),currentRun:id,next:{action:`After ${id}, follow actual saved work.`}});
@@ -73,14 +73,6 @@ test('save conflict or protected view never emits a successful handoff; repair d
  assert.equal((await readState(c.dir)).session.continuation,null);const history=c.state.reviewHistory;
  await renderState(c.dir,c.state.revision,version,runtime,true);assert.deepEqual((await readState(c.dir)).state.reviewHistory,history);
 });
-test('historical goal remains intact without fabricated approvals; explicit policy adoption assesses rather than rewrites history',async t=>{
- const c=await setup(t);const file=path.join(c.dir,'.aimship/state.json');const old=structuredClone(c.state);delete old.deliveryPolicy;for(const r of old.stageRuns)delete r.sessionGroup;old.outcome={goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/decision.md'};
- await fs.writeFile(file,JSON.stringify(old));const bytes=await fs.readFile(file);assert.equal((await readState(c.dir)).completion.status,'historical-unassessed');assert.deepEqual(await fs.readFile(file),bytes);
- await assert.rejects(c.save({deliveryPolicy:{version:1}}),{code:'INVALID_STATE'});
- await assert.rejects(c.save({deliveryPolicy:{version:1},compatibilityRef:'source/missing-assessment.md'}),{code:'INVALID_STATE'});
- await c.save({deliveryPolicy:{version:1},compatibilityRef:'source/decision.md'});const read=await readState(c.dir);assert.deepEqual(read.state.outcome,old.outcome);assert.deepEqual(read.state.reviewHistory,old.reviewHistory);assert.equal(read.completion.standardComplete,false);
- await c.save({next:{action:'Assess real evidence at existing stop'}});
-});
 test('restoring standard scope retains the partial decision and cannot hide omitted testing',async t=>{
  const c=await setup(t,{partial:true,omitTests:true});
  for(const r of c.state.stageRuns)await c.finish(r.id);
@@ -96,12 +88,11 @@ test('resume requires explicit directory; old prompt is not an approval and new 
  await fs.appendFile(path.join(c.dir,'prd.md'),'changed after prompt');const resumed=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data;assert.equal(resumed.canProceed,false);assert.equal(resumed.continuation,null);
  await assert.rejects(run(['resume',c.dir,'--delivery-id','wrong-id'],{sourceRoot:root}),{code:'DELIVERY_ID_MISMATCH'});
  await assert.rejects(run(['resume'],{sourceRoot:root}),{code:'USAGE'});await assert.rejects(run(['resume',path.join(c.dir,'wrong')],{sourceRoot:root}));
- const file=path.join(c.dir,'.aimship/state.json'),future=JSON.parse(await fs.readFile(file));future.deliveryPolicy.version=99;await fs.writeFile(file,JSON.stringify(future));assert.equal((await readState(c.dir)).readOnly,true);await assert.rejects(recoverState(c.dir,c.state.revision-1,version,runtime),{code:'UNKNOWN_SCHEMA'});
 });
 test('later failing review invalidates completeness until explicitly resolved and reverified',async t=>{
  const c=await setup(t);for(const r of c.state.stageRuns)await c.finish(r.id);
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/decision.md'}});
- await fs.appendFile(path.join(c.dir,'review.md'),'\n<a id="late-review"></a>\nSynthetic later review: unresolved defect.\n<a id="review-fix"></a>\nSynthetic repair review superseding the later finding.\n');
+ await fs.appendFile(path.join(c.dir,'review.md'),'\n## late-review\nSynthetic later review: unresolved defect.\n## review-fix\nSynthetic repair review superseding the later finding.\n');
  const late={id:'late-review',stage:'review',scope:'later overall review finding',reviewOf:['r4'],overall:true,progress:'done',result:'failed',inputRefs:[],outputRefs:['review.md'],resultRef:'review.md#late-review'};
  await c.save({stageRuns:[...c.state.stageRuns,late],currentRun:late.id});
  let read=await readState(c.dir);assert.equal(read.completion.standardComplete,false);assert.ok(read.completion.gaps.includes('Review results remain unresolved.'));

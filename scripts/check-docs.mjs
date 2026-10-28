@@ -4,11 +4,12 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { listFiles } from '../lib/io.mjs';
 import { STAGES } from '../lib/state.mjs';
-import { anchors, artifactMap } from '../lib/documents.mjs';
+import { artifactMap, sections } from '../lib/documents.mjs';
+const anchors = text => [...text.matchAll(/<a\s+id=["']([^"']+)["']\s*><\/a>/g)].map(m => m[1]);
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url))),map=await artifactMap();
 assert.deepEqual(Object.keys(map.stages).sort(),[...STAGES].sort());
 for(const [kind,spec] of Object.entries(map.documents)) {
- const text=await fs.readFile(path.join(root,`skills/aimship/references/templates/${kind}.md`),'utf8');assert.deepEqual(anchors(text),spec.sections,kind);
+ const text=await fs.readFile(path.join(root,`skills/aimship/references/templates/${kind}.md`),'utf8');assert.deepEqual(sections(text,spec).map(s=>s.count),spec.sections.map(()=>1),kind); assert.ok(!/<a\s+id=|aimship:def/.test(text),kind);
 }
 const files=[...await listFiles(path.join(root,'docs'))].map(f=>'docs/'+f).concat((await listFiles(path.join(root,'skills'))).filter(f=>f.endsWith('.md')).map(f=>'skills/'+f),['README.md','README.zh-CN.md','CONTRIBUTING.md']);
 let checked=0;

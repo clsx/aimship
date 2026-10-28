@@ -11,7 +11,27 @@
         "states",
         "acceptance",
         "arrangement"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Document information and sources",
+          "Background, goals and non-goals",
+          "Scope, engineering objects and endpoint",
+          "Requirements and behavior",
+          "States, interaction and recovery",
+          "Acceptance criteria",
+          "Dependencies, questions and stage arrangement"
+        ],
+        "zh-CN": [
+          "文档信息与来源",
+          "背景、目标与非目标",
+          "范围与交付终点",
+          "需求与行为",
+          "状态、交互与恢复",
+          "验收标准",
+          "依赖、待确认问题与阶段安排"
+        ]
+      }
     },
     "scope": {
       "path": "scope.md",
@@ -23,7 +43,27 @@
         "decisions",
         "acceptance",
         "arrangement"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Document information and source versions",
+          "Goal, engineering objects and endpoint",
+          "Source mapping and adopted scope",
+          "Exclusions and constraints",
+          "Conflicts, gaps and supplementary decisions",
+          "Acceptance basis",
+          "Authorization, questions and stage arrangement"
+        ],
+        "zh-CN": [
+          "文档信息与来源",
+          "目标与交付终点",
+          "采用范围与来源",
+          "排除范围",
+          "决定与冲突",
+          "验收标准",
+          "阶段安排"
+        ]
+      }
     },
     "tech-design": {
       "path": "tech-design.md",
@@ -35,7 +75,27 @@
         "errors",
         "risks",
         "coverage"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Basis and engineering context",
+          "Architecture and key flows",
+          "Modules and interaction implementation",
+          "Data, interfaces and SQL",
+          "Errors and nonfunctional design",
+          "Tradeoffs and risks",
+          "Requirement coverage and questions"
+        ],
+        "zh-CN": [
+          "设计依据",
+          "架构与边界",
+          "模块与职责",
+          "数据与接口",
+          "错误与恢复",
+          "风险与取舍",
+          "需求覆盖"
+        ]
+      }
     },
     "plan": {
       "path": "plan.md",
@@ -46,7 +106,25 @@
         "validation",
         "execution",
         "remaining"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Implementation basis and scope",
+          "Batches and dependencies",
+          "Tasks and completion criteria",
+          "Review and independent verification arrangement",
+          "Task status and execution records",
+          "Deviations, blockers and remaining work"
+        ],
+        "zh-CN": [
+          "计划依据",
+          "实施批次",
+          "实施任务",
+          "验证安排",
+          "执行记录",
+          "剩余工作"
+        ]
+      }
     },
     "testing": {
       "path": "testing.md",
@@ -57,7 +135,25 @@
         "coverage",
         "runs",
         "conclusion"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Basis and scope",
+          "Environment, data and execution conditions",
+          "Test cases",
+          "Coverage and verification arrangement",
+          "Execution and retest records",
+          "Defects, current conclusion and remaining work"
+        ],
+        "zh-CN": [
+          "测试依据",
+          "测试环境",
+          "测试用例",
+          "覆盖说明",
+          "执行记录",
+          "验证结论"
+        ]
+      }
     },
     "review": {
       "path": "review.md",
@@ -65,7 +161,19 @@
         "basis",
         "reviews",
         "conclusion"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Review basis and scope",
+          "Review records",
+          "Open findings and current conclusion"
+        ],
+        "zh-CN": [
+          "审查依据",
+          "审查记录",
+          "审查结论"
+        ]
+      }
     },
     "diagnosis": {
       "path": "diagnosis.md",
@@ -77,7 +185,27 @@
         "causes",
         "unknowns",
         "conclusion"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Investigation goal and scope",
+          "Observed and expected behavior",
+          "Environment and reproduction",
+          "Checks and evidence",
+          "Cause assessment",
+          "Impact and unknowns",
+          "Conclusion and next action"
+        ],
+        "zh-CN": [
+          "调查目标",
+          "问题表现",
+          "环境与范围",
+          "证据",
+          "原因分析",
+          "待确认问题",
+          "调查结论"
+        ]
+      }
     },
     "handoff": {
       "path": "handoff.md",
@@ -88,14 +216,42 @@
         "results",
         "limits",
         "outcomes"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Current goal comparison",
+          "Artifacts, repositories and versions",
+          "Usage",
+          "Review and verification",
+          "Limitations and remaining work",
+          "Acceptance, integration, release and continuation"
+        ],
+        "zh-CN": [
+          "目标与范围",
+          "成果清单",
+          "使用说明",
+          "验证结果",
+          "限制与遗留事项",
+          "交付结论"
+        ]
+      }
     },
     "change-log": {
       "path": "change-log.md",
       "sections": [
         "changes",
         "remaining"
-      ]
+      ],
+      "headings": {
+        "en": [
+          "Important changes",
+          "Unfinished impact handling"
+        ],
+        "zh-CN": [
+          "变更记录",
+          "剩余影响"
+        ]
+      }
     }
   },
   "stages": {

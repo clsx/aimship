@@ -20,7 +20,7 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 ## Artifact contract
 
-Use the selected PRD/Scope requirement entry. Preserve the `scope` section anchor (Scope uses adoption/goals as applicable). Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use the selected PRD/Scope requirement entry. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 ## Human document review
 

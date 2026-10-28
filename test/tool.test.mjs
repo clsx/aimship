@@ -12,15 +12,15 @@ import { checkReferences, initState, readState, recoverState, updateState } from
 
 const SOURCE = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const VERSION = JSON.parse(await fs.readFile(path.join(SOURCE, 'package.json'), 'utf8')).version;
-const runtime = { version: VERSION, activeVersion: VERSION, launcher: 'local-test-launcher' };
+const runtime = { version: VERSION, activeVersion: VERSION, launcher: 'local-test-launcher', dataRoot: await fs.realpath(os.tmpdir()) };
 async function setup(t) {
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'aimship-test-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const delivery = path.join(root, 'delivery'); await fs.mkdir(delivery);
-  await fs.writeFile(path.join(delivery, 'requirements.md'), '# Original request\nRepair the empty state.\n');
-  await fs.mkdir(path.join(delivery,'source')); await fs.writeFile(path.join(delivery,'source/request.md'),'Original synthetic commission.');
+  await fs.writeFile(path.join(delivery, 'requirements.md'), '# Original request\nReview existing empty-state repair evidence.\n## scope\nSynthetic explicit review-only commission, not a standard development delivery.\n## decision-2\nSynthetic later decision: conclude the limited design review.\n');
+  await fs.mkdir(path.join(delivery,'source')); await fs.writeFile(path.join(delivery,'source/request.md'),'Original synthetic commission. Synthetic user choice: use this isolated temporary delivery directory.');
   await fs.writeFile(path.join(delivery,'results.md'),'# Reused review records\nHistorical synthetic results.');
-  const input = { documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Repair empty state', endpoint: 'Reviewed and verified repair' }, goalRef: 'requirements.md', next: { action: 'Implement confirmed repair' }, stageRuns: [{ id: 'implement-1', stage: 'review', scope: 'single batch', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] }], currentRun: 'implement-1' };
+  const input = { language:'en', storage:{mode:'explicit',decisionRef:'source/request.md'}, deliveryPolicy:{version:1,partialRef:'requirements.md#scope'}, documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Review empty-state repair evidence', endpoint: 'Independent review conclusion' }, goalRef: 'requirements.md', next: { action: 'Review the existing repair evidence' }, stageRuns: [{ id: 'implement-1', stage: 'review', scope: 'single batch', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] }], currentRun: 'implement-1' };
   return { root, delivery, input };
 }
 async function fixture(t, version = VERSION) {
@@ -72,17 +72,6 @@ test('goal revisions and reopening preserve prior goals, decisions and results',
   assert.equal(preserved.stageRuns[0].priorResultRef, completed.resultRef);
 });
 
-test('unknown schemas are readable and never rewritten, including recovery', async t => {
-  const { delivery, input } = await setup(t); await initState(delivery, input, VERSION, runtime);
-  const future = json({ schemaVersion: 99, futureData: { preserved: true } }); await fs.writeFile(path.join(delivery, '.aimship/state.json'), future);
-  assert.equal((await readState(delivery)).readOnly, true);
-  await assert.rejects(updateState(delivery, {}, 0, VERSION, runtime), { code: 'UNKNOWN_SCHEMA' });
-  await fs.writeFile(path.join(delivery, '.aimship/state.previous.json'), json({ ...(await initInOther(t, input)), revision: 0 }));
-  await assert.rejects(recoverState(delivery, 0, VERSION, runtime), { code: 'UNKNOWN_SCHEMA' });
-  assert.equal(await fs.readFile(path.join(delivery, '.aimship/state.json'), 'utf8'), future);
-  const result = await run(['read', delivery], { sourceRoot: SOURCE }); assert.equal(result.data.readOnly, true);
-});
-async function initInOther(t, input) { const other = await setup(t); return initState(other.delivery, input, VERSION, runtime); }
 
 test('recovery preserves corrupted bytes, advances revision and never repeats work', async t => {
   const { delivery, input } = await setup(t); await initState(delivery, input, VERSION, runtime);
@@ -116,18 +105,16 @@ test('references check current inputs, repository paths and remote limitations',
   assert.equal((await checkReferences(delivery, escaping)).find(x => x.ref === 'escape/api.yaml').status, 'outside-root');
 });
 
-test('all references includes current and historical decision, outcome, rules and checkpoint evidence', async t => {
+test('all references includes current and historical business decision and outcome evidence', async t => {
   const { delivery, input } = await setup(t);
   const state = await initState(delivery, input, VERSION, runtime);
   const outcomeFields = ['goalConclusionRef', 'acceptanceRef', 'mergeRef', 'deploymentRef', 'handoffRef'];
   state.goal.decisionRef = 'missing-decision.md';
   for (const field of outcomeFields) state.outcome[field] = `missing-current-${field}.md`;
   state.goalHistory = [{ goal: { summary: 'Previous goal', endpoint: 'Previous endpoint', decisionRef: 'missing-historical-decision.md' }, goalRef: 'missing-historical-goal.md', outcome: Object.fromEntries(outcomeFields.map(field => [field, `missing-historical-${field}.md`])), revision: 0 }];
-  state.rulesHistory = [{ from: '0.0.1', to: VERSION, ref: 'missing-rule-assessment.md' }];
-  state.checkpoint = { summary: 'Unfinished facts', ref: 'missing-checkpoint.md' };
   await fs.writeFile(path.join(delivery, '.aimship/state.json'), json(state));
   assert.ok((await checkReferences(delivery, state)).every(x => ['exists','not-checked'].includes(x.status)));
-  const expected = ['missing-decision.md', ...outcomeFields.map(field => `missing-current-${field}.md`), 'missing-historical-decision.md', 'missing-historical-goal.md', ...outcomeFields.map(field => `missing-historical-${field}.md`), 'missing-rule-assessment.md', 'missing-checkpoint.md'];
+  const expected = ['missing-decision.md', ...outcomeFields.map(field => `missing-current-${field}.md`), 'missing-historical-decision.md', 'missing-historical-goal.md', ...outcomeFields.map(field => `missing-historical-${field}.md`)];
   await assert.rejects(run(['check', delivery, '--all', '--rules-version', VERSION], { sourceRoot: SOURCE }), error => {
     assert.equal(error.code, 'REFERENCE_CHECK');
     assert.deepEqual(error.details.references.filter(x => x.status === 'missing').map(x => x.ref).sort(), expected.sort());
@@ -227,9 +214,9 @@ test('incomplete install records pending work and same-version rerun repairs it'
 test('upgrade failure never mixes new entry references with the old active rules', async t => {
   const { source, home, root } = await fixture(t); const p = installPaths(home);
   await install(source, { home, hosts: ['codex'] });
-  const delivery = path.join(root, 'existing-delivery'); await fs.mkdir(delivery); await fs.writeFile(path.join(delivery, 'requirements.md'), '# Goal'); await fs.mkdir(path.join(delivery,'source')); await fs.writeFile(path.join(delivery,'source/request.md'),'Synthetic goal'); await fs.writeFile(path.join(delivery,'results.md'),'Synthetic results');
+  const delivery = path.join(root, 'existing-delivery'); await fs.mkdir(delivery); await fs.writeFile(path.join(delivery, 'requirements.md'), '# Goal'); await fs.mkdir(path.join(delivery,'source')); await fs.writeFile(path.join(delivery,'source/request.md'),'Synthetic goal. Synthetic user choice: use this isolated temporary delivery directory.'); await fs.writeFile(path.join(delivery,'results.md'),'Synthetic results');
   const oldCLI = path.join(p.root, 'releases', VERSION, 'bin/aimship.mjs');
-  const input = { documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Existing goal', endpoint: 'Verified delivery' }, goalRef: 'requirements.md' };
+  const input = { language:'en', storage:{mode:'explicit',decisionRef:'source/request.md'}, documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Existing goal', endpoint: 'Verified delivery' }, goalRef: 'requirements.md' };
   assert.equal(cli(oldCLI, ['init', delivery, '--rules-version', VERSION, '--input', '-'], json(input)).status, 0);
   const pkg = await readJSON(path.join(source, 'package.json')); pkg.version = '0.2.0-local.1'; await fs.writeFile(path.join(source, 'package.json'), json(pkg));
   await fs.writeFile(p.config, json({ schemaVersion: 99 }));
@@ -245,21 +232,20 @@ test('upgrade failure never mixes new entry references with the old active rules
   assert.equal(cli(p.launcher, ['bind']).parsed.data.version, pkg.version);
 });
 
-test('upgrade mismatch permits one limited checkpoint, followed by explicit compatible adoption', async t => {
-  const { source, home, root } = await fixture(t); const p = installPaths(home); await install(source, { home, hosts: ['codex'] });
-  const delivery = path.join(root, 'active delivery'); await fs.mkdir(delivery); await fs.writeFile(path.join(delivery, 'requirements.md'), '# Goal'); await fs.mkdir(path.join(delivery,'source')); await fs.writeFile(path.join(delivery,'source/request.md'),'Synthetic goal'); await fs.writeFile(path.join(delivery,'results.md'),'Synthetic results');
-  const input = { documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Synthetic delivery', endpoint: 'Design only' }, goalRef: 'requirements.md' };
-  const oldCLI = path.join(p.root, 'releases', VERSION, 'bin/aimship.mjs');
-  assert.equal(cli(oldCLI, ['init', delivery, '--rules-version', VERSION, '--input', '-'], json(input)).status, 0);
-  const packageFile = path.join(source, 'package.json'); const pkg = await readJSON(packageFile); pkg.version = '0.2.0-local.1'; await fs.writeFile(packageFile, json(pkg)); await install(source, { home });
-  const mismatch = cli(oldCLI, ['update', delivery, '--revision', '0', '--rules-version', VERSION, '--input', '-'], '{}'); assert.equal(mismatch.parsed.error.code, 'VERSION_MISMATCH');
-  const checkpoint = cli(oldCLI, ['checkpoint', delivery, '--revision', '0', '--rules-version', VERSION, '--input', '-'], json({ checkpoint: { summary: 'Saved actual in-progress facts' }, next: { action: 'Reload active core' } })); assert.equal(checkpoint.status, 0, checkpoint.stderr);
-  assert.equal(cli(oldCLI, ['checkpoint', delivery, '--revision', '1', '--rules-version', VERSION, '--input', '-'], json({ checkpoint: { summary: 'Again' } })).parsed.error.code, 'CHECKPOINT_ALREADY_SAVED');
-  const invalid = cli(oldCLI, ['checkpoint', delivery, '--revision', '1', '--rules-version', VERSION, '--input', '-'], json({ checkpoint: { summary: 'Done' }, outcome: { goal: 'met' } })); assert.equal(invalid.status, 1);
-  const adopted = cli(p.launcher, ['adopt', delivery, '--revision', '1', '--rules-version', pkg.version, '--input', '-'], json({ compatibilityRef: 'requirements.md#compatibility' })); assert.equal(adopted.status, 0, adopted.stderr); assert.equal(adopted.parsed.data.rulesHistory[0].from, VERSION);
-  assert.equal(adopted.parsed.data.outcome.goal, 'in-progress'); assert.equal((await readJSON(p.manifest)).previousVersion, VERSION);
-  pkg.version = '0.3.0-local.1'; await fs.writeFile(packageFile, json(pkg)); await install(source, { home });
-  assert.equal(await exists(path.join(p.root, 'releases', VERSION)), false); assert.equal(await exists(path.join(p.root, 'releases', '0.2.0-local.1')), true);
+
+test('installer manages only current entry paths and retains one bounded recovery release', async t => {
+  const {source,home}=await fixture(t); const p=installPaths(home);
+  await install(source,{home,hosts:['codex','cursor','claude-code']});
+  const manifest=await readJSON(p.manifest);
+  assert.ok(Object.keys(manifest.managed).every(f=>f.startsWith('.aimship/')||f.startsWith('.agents/')||f.startsWith('.claude/')));
+  const bytes=await fs.readFile(p.manifest);
+  manifest.managed['.cursor/skills/aimship/SKILL.md']='a'.repeat(64);await fs.writeFile(p.manifest,json(manifest));
+  await assert.rejects(install(source,{home}),{code:'INSTALL_FORMAT'});await fs.writeFile(p.manifest,bytes);
+  const pkg=await readJSON(path.join(source,'package.json'));
+  for(const version of ['0.2.0-local.1','0.3.0-local.1']) {pkg.version=version;await fs.writeFile(path.join(source,'package.json'),json(pkg));await install(source,{home});}
+  assert.equal(await exists(path.join(p.root,'releases',VERSION)),false);
+  assert.equal(await exists(path.join(p.root,'releases','0.2.0-local.1')),true);
+  assert.equal((await readJSON(p.manifest)).previousVersion,'0.2.0-local.1');
 });
 
 test('release conflicts, changed active pointer and symbolic link destinations are protected', async t => {
