@@ -14,7 +14,7 @@ The relevant interactions and states are clear and consistent with current requi
 
 ## Decisions and blockers
 
-Missing visual/browser tools require an explicit unverified scope. Resolve contradictory behavior through requirements/Scope; do not silently alter external prototypes.
+Missing visual/browser tools require an explicit unverified scope. Resolve contradictory behavior through requirements; do not silently alter external prototypes.
 
 Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
 
@@ -24,4 +24,4 @@ Use the registered prototype entry (new HTML: prototype/index.html). Follow [doc
 
 ## Human document review
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: continue within the group, or suggest a new session at its boundary; continue here if requested. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: stop at this stage boundary and suggest a new session; continue here when requested. Approval and continuation may be expressed together. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.

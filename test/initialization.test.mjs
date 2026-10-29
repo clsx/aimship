@@ -33,7 +33,7 @@ test('initialization: real CLI saves request without PRD/code/conditions; fresh 
  const state=cli('init',dir,input());assert.equal(state.schemaVersion,4);assert.equal(state.goal.endpoint,null);assert.equal(state.goalRef,'source/request.md');assert.deepEqual(state.repositories,[]);assert.deepEqual(state.documents,[]);
  for(const value of Object.values(state.documentPolicy))assert.equal(value,null);
  const receipt=state.writeResult.receipt;assert.equal(receipt.status,'saved');assert.equal(receipt.directory,dir);assert.equal(receipt.currentStage,'requirements');assert.equal(receipt.nextAction,'Clarify export columns');assert.equal(receipt.deliveryId,state.deliveryId);
- await assert.rejects(fs.access(path.join(dir,'prd.md')));assert.match(await fs.readFile(receipt.statusPath,'utf8'),/unknown/);
+ await assert.rejects(fs.access(path.join(dir,'prd.md')));assert.match(await fs.readFile(receipt.statusPath,'utf8'),/To be confirmed/);
  const before=await fs.readFile(path.join(dir,'.aimship/state.json'));
  for(const command of ['read','check','resume']) {const out=cli(command,dir);if(command==='resume'){assert.equal(out.canProceed,true);assert.equal(out.state.deliveryId,state.deliveryId);}}
  assert.deepEqual(await fs.readFile(path.join(dir,'.aimship/state.json')),before);assert.deepEqual(await fs.readFile(path.join(dir,'source/request.md')),request);

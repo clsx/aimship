@@ -78,7 +78,7 @@ test('ITER AC-04/14: required plan, shared sections and exact result locators ar
 });
 test('ITER AC-11/13/16/19: authored/adopted branches, SQL targets, localized headings and reused limits',async t=>{
  for(const [authority,interaction,covered] of [['adopted',true,true],['adopted',true,false],['authored',true,false],['authored',false,false],['authored',true,false]]) {
-  const f=await setup(t,`${authority}-${covered}`),kind=authority==='adopted'?'scope':'prd'; if(kind==='scope'){await document(f.dir,kind);await fs.rm(path.join(f.dir,'prd.md'));}
+  const f=await setup(t,`${authority}-${covered}`),kind='prd';
   const s=await initState(f.dir,{...f.input,goalRef:`${kind}.md`,documentPolicy:{...policy,authority,interaction,prototypeCovered:covered},documents:[reg(kind)]},version,runtime);assert.equal(s.goalRef,`${kind}.md`);assert.equal(s.stageRuns.length,0);
  }
  const {dir,input}=await setup(t); await document(dir,'tech-design'); await fs.writeFile(path.join(dir,'database-main.sql'),'-- target main; sqlite; schema v1; not executed\nCREATE TABLE sample(id INTEGER);');await fs.writeFile(path.join(dir,'database-audit.sql'),'-- target audit; sqlite; not executed\nCREATE TABLE log(id INTEGER);');

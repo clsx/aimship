@@ -83,12 +83,12 @@ test('independent review work is not blocked by an unrelated failed review',asyn
 
 test('last registered approved requirements remain resumable until a scope conclusion is recorded',async t=>{
  const c=await setup(t,{selected:definitions.slice(0,1),partial:true});await c.finish('req',null);
- let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'arrange-next');assert.match(read.session.instruction,/next authorized work/);assert.ok(read.session.continuation.includes(c.dir));
+ let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'await-continue');assert.match(read.session.instruction,/wait for the user to continue/);assert.ok(read.session.continuation.includes(c.dir));
  for(const command of ['read','check','resume']) {
   const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version],{encoding:'utf8',timeout:10000});assert.equal(result.status,0,result.stderr);
-  const data=JSON.parse(result.stdout).data;assert.equal(data.session.action,'arrange-next');assert.notEqual(data.session.continuation,null);
+  const data=JSON.parse(result.stdout).data;assert.equal(data.session.action,'await-continue');assert.notEqual(data.session.continuation,null);
  }
- await c.save({currentRun:null});assert.equal((await readState(c.dir)).session.action,'arrange-next');
+ await c.save({currentRun:null});assert.equal((await readState(c.dir)).session.action,'await-continue');
  await c.save({outcome:{goal:'met',goalConclusionRef:'prd.md'}});read=await readState(c.dir);assert.equal(read.session.action,'finished');assert.equal(read.completion.status,'partial-scope');assert.equal(read.completion.standardComplete,false);
 });
 

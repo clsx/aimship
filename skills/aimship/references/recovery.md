@@ -1,6 +1,6 @@
 # Resume, recover and update
 
-Start by locating the same delivery. Read state, current goal/Scope and next-step references. Verify actual artifacts or related changes only when needed to act or reuse a conclusion. Restoring context is not a new test result. If the directory is ambiguous, ask for the missing location, not already recorded goals and decisions.
+Start by locating the same delivery. Read state, current goal/PRD and next-step references. Verify actual artifacts or related changes only when needed to act or reuse a conclusion. Restoring context is not a new test result. If the directory is ambiguous, ask for the missing location, not already recorded goals and decisions.
 
 A revision conflict means another writer or manual change intervened. Read and reconcile; do not force overwrite. One writing session per delivery remains the supported workflow. On malformed state, preserve the damaged file, inspect the last recovery copy and actual subsequent artifacts, then explicitly recover only the trustworthy facts. If no reliable copy exists, reconstruct from readable requirements/change/results, marking uncertain authorization and results unknown. Never rerun a side effect just because state is incomplete.
 
@@ -26,7 +26,7 @@ Current deliveries require the document approval and delivery policies. Their re
 
 ## Early initialization and schema 4
 
-New initialization saves the selected language and location basis and may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD/Scope at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
+New initialization saves the selected language and location basis and may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
 
 If source exists but state does not, inspect the original input and ownership before completing init at that location. If state exists, resume its ID instead; init deliberately rejects duplicates. A failed view or interrupted receipt never requires a second init. Inspect state then repair only the view at the saved revision, preserving manual status edits. Do not remove locks without checking that the writer stopped.
 

@@ -33,7 +33,7 @@ test('standard delivery requires actual complete stages, batch/overall review, p
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}});assert.equal((await readState(c.dir)).completion.standardComplete,false);
  await c.save({outcome:{acceptance:'accepted',acceptanceRef:'source/decision.md'}});assert.equal((await readState(c.dir)).completion.standardComplete,true);
  const damaged=structuredClone(c.state);damaged.stageRuns.find(r=>r.stage==='verify').result='not-run';assert.equal(completionStatus(damaged,(await readState(c.dir)).review).standardComplete,false);
- for(const mutate of [s=>s.stageRuns.find(r=>r.overall).overall=false,s=>{for(const r of s.stageRuns.filter(r=>r.stage==='review'))r.reviewOf=[];},s=>s.documentPolicy.databases.push('main'),s=>s.documentPolicy.interaction=true,s=>s.stageRuns.find(r=>r.stage==='implement').result='failed']) {const s=structuredClone(c.state);mutate(s);assert.equal(completionStatus(s,(await readState(c.dir)).review).standardComplete,false);}
+ for(const mutate of [s=>s.stageRuns.find(r=>r.overall).overall=false,s=>{for(const r of s.stageRuns.filter(r=>r.stage==='review'))r.reviewOf=[];},s=>s.documentPolicy.databases.push('main'),s=>s.stageRuns.find(r=>r.stage==='implement').result='failed']) {const s=structuredClone(c.state);mutate(s);assert.equal(completionStatus(s,(await readState(c.dir)).review).standardComplete,false);}
 });
 test('explicit no-tests scope can finish and be accepted without masquerading as standard completion',async t=>{
  for(const partial of [false,true]){
@@ -47,19 +47,19 @@ test('explicit no-tests scope can finish and be accepted without masquerading as
   else {await c.save(patch);const read=await readState(c.dir);assert.equal(read.completion.status,'partial-scope');assert.equal(read.completion.standardComplete,false);assert.ok(read.completion.gaps.some(g=>g.includes('verify')));assert.ok(!(await fs.readdir(c.dir)).includes('testing.md'));}
  }
 });
-test('adopted materials are not approval; waiting, editing, group continuation and advisory boundary remain separate',async t=>{
+test('adopted materials are not approval; waiting, editing, stage continuation and advisory boundary remain separate',async t=>{
  const c=await setup(t);const before=await readState(c.dir);assert.equal(before.review.documents[0].approval,null);
  const r=c.state.stageRuns[0];await c.save({stageRuns:c.state.stageRuns.map(x=>x.id===r.id?{...x,progress:'done',resultRef:'prd.md'}:x)});
  assert.equal((await readState(c.dir)).session.action,'await-review');assert.equal((await readState(c.dir)).session.continuation,null);
- await c.save({reviewHistory:await approveFixture(c.dir,c.state,['prd.md'])});let read=await readState(c.dir);assert.equal(read.session.action,'suggest-new-session');assert.equal(read.review.canProceed,true);
+ await c.save({reviewHistory:await approveFixture(c.dir,c.state,['prd.md'])});let read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.equal(read.review.canProceed,true);
  // Continuing here is a normal authorized stage update, no new approval or session ID.
  await c.save({stageRuns:c.state.stageRuns.map(x=>x.id==='r1'?{...x,progress:'active'}:x),currentRun:'r1'});assert.equal((await readState(c.dir)).session.action,'continue-current');
- await c.finish('r1');await c.save({stageRuns:c.state.stageRuns.map(x=>x.id==='r2'?{...x,sessionGroup:'technical'}:x)});assert.equal((await readState(c.dir)).session.action,'continue-group');
+ await c.finish('r1');await c.save({stageRuns:c.state.stageRuns.map(x=>x.id==='r2'?{...x,sessionGroup:'technical'}:x)});assert.equal((await readState(c.dir)).session.action,'await-continue');
  const h=c.state.reviewHistory;await c.save({reviewHistory:[...h,{...h.at(-1),id:'edit',kind:'changes-requested'}]});assert.equal((await readState(c.dir)).session.action,'await-review');
 });
 test('session suggestions are saved and displayed; overall review and test batches have separate groups; failure does not advance',async t=>{
  const c=await setup(t);assert.equal(c.state.stageRuns[4].sessionGroup,c.state.stageRuns[5].sessionGroup);assert.notEqual(c.state.stageRuns[5].sessionGroup,c.state.stageRuns[6].sessionGroup);
- assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/Session suggestions/);
+ assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/Continue this delivery/);
  for(const r of c.state.stageRuns)await c.finish(r.id);
  assert.equal((await readState(c.dir)).session.continuation,null);
  const s=structuredClone(c.state);s.currentRun='r7';s.stageRuns[7].result='failed';assert.equal(sessionAdvice(c.dir,s,(await readState(c.dir)).review).action,'resolve-current');
@@ -109,11 +109,34 @@ test('real CLI preserves waiting, boundary, continue-here and save-failure sessi
  };
  cli('update',{stageRuns:state.stageRuns.map(r=>r.id==='r0'?{...r,progress:'done',resultRef:'prd.md'}:r)});
  let data=cli('resume');assert.equal(data.canProceed,false);assert.equal(data.session.action,'await-review');assert.equal(data.continuation,null);
- data=cli('update',{reviewHistory:await approveFixture(c.dir,state,['prd.md'])});assert.equal(data.writeResult.stateSaved,true);assert.equal(data.writeResult.view.status,'current');assert.equal(data.writeResult.session.action,'suggest-new-session');
- data=cli('resume');assert.equal(data.canProceed,true);assert.equal(data.session.action,'suggest-new-session');assert.ok(data.continuation.includes(JSON.stringify(c.dir)));
+ data=cli('update',{reviewHistory:await approveFixture(c.dir,state,['prd.md'])});assert.equal(data.writeResult.stateSaved,true);assert.equal(data.writeResult.view.status,'current');assert.equal(data.writeResult.session.action,'await-continue');
+ data=cli('resume');assert.equal(data.canProceed,true);assert.equal(data.session.action,'await-continue');assert.ok(data.continuation.includes(JSON.stringify(c.dir)));
  const approved=state.reviewHistory;cli('update',{stageRuns:state.stageRuns.map(r=>r.id==='r1'?{...r,progress:'active'}:r),currentRun:'r1'});
  data=cli('resume');assert.equal(data.session.action,'continue-current');assert.deepEqual(data.state.reviewHistory,approved);
  await fs.appendFile(path.join(c.dir,'status.md'),'unmanaged manual note');
  data=cli('update',{next:{action:'Saved real next action'}});assert.equal(data.writeResult.stateSaved,true);assert.equal(data.writeResult.view.status,'protected');assert.equal(data.writeResult.session.continuation,null);
  data=cli('resume');assert.equal(data.canProceed,false);assert.equal(data.session.action,'reconcile-save');assert.equal(data.continuation,null);
+});
+
+test('interaction delivery may complete without a selected prototype; non-review stage saves stop without extra approval',async t=>{
+ const c=await setup(t);await c.save({documentPolicy:{interaction:true,prototypeCovered:false}});
+ for(const r of c.state.stageRuns){
+  const count=c.state.reviewHistory.length;await c.finish(r.id);
+  if(['implement','review','verify'].includes(r.stage)){
+   assert.equal(c.state.reviewHistory.length,count);
+   const read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.equal(read.session.stop,true);assert.equal(read.session.suggestNewSession,true);
+  }
+ }
+ assert.equal((await readState(c.dir)).completion.readyForAcceptance,true);
+});
+
+test('a selected prototype still needs completion and its existing approval before dependent work',async t=>{
+ const c=await setup(t);
+ await fs.writeFile(path.join(c.dir,'prototype.md'),'# Prototype\nSelected account interaction and error states.');
+ const prototype={id:'prototype',stage:'prototype',scope:'Selected interaction design',progress:'planned',inputRefs:['prd.md'],outputRefs:['prototype.md']};
+ await c.save({documentPolicy:{interaction:true,prototypeCovered:false},documents:[...c.state.documents,{kind:'prototype',path:'prototype.md',mode:'reused',version:'1',basisRef:'source/request.md'}],stageRuns:[c.state.stageRuns[0],prototype,...c.state.stageRuns.slice(1)]});
+ await c.finish('r0');await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
+ await c.save({stageRuns:c.state.stageRuns.map(r=>r.id===prototype.id?{...r,progress:'done',resultRef:'prototype.md'}:r),currentRun:prototype.id});
+ await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
+ await c.save({reviewHistory:await approveFixture(c.dir,c.state,['prototype.md'])});await c.finish('r1');
 });

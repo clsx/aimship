@@ -2,7 +2,7 @@
 
 ## Basis
 
-Read the current goal/Scope, explicit goal revisions, deliverables, applicable review/verification and unresolved work.
+Read the current goal/PRD, explicit goal revisions, deliverables, applicable review/verification and unresolved work.
 
 ## Work and result
 
@@ -23,3 +23,5 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 Use handoff.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Use the derived completion assessment alongside goal and acceptance. A user-authorized scope without cases/verification may be finished as an explicitly untested partial handoff, never standard complete delivery. No next-session prompt is needed at the final endpoint.
+
+After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.

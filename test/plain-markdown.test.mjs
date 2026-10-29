@@ -71,7 +71,7 @@ test('approval boundaries: result append retains design approval; changed design
 test('omitting producer records does not permit approval of a requirements template',async t=>{
  const c=await setup(t);await fs.writeFile(path.join(c.dir,'prd.md'),await documentFixture('prd','en',false));
  const reviewHistory=await approveFixture(c.dir,c.state,['prd.md']);
- await assert.rejects(updateState(c.dir,{reviewHistory},0,version,runtime),e=>e.code==='DOCUMENT_CHECK' && e.details.issues.some(i=>i.includes('REQ records')));
+ await assert.rejects(updateState(c.dir,{reviewHistory},0,version,runtime),e=>e.code==='DOCUMENT_CHECK' && e.details.issues.some(i=>i.includes('requirement records')));
 });
 test('design records cannot be moved or added in excluded execution sections',async t=>{
  const c=await setup(t);const map=await artifactMap();

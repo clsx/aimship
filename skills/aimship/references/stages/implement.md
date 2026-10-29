@@ -10,7 +10,7 @@ Before entering implementation, or when a code working directory changes, apply 
 
 ## Continue when
 
-The planned batch is implemented and known deviations are resolved or explicitly routed. Move to this batch’s review; running a complete test suite is not a new batch gate.
+The planned batch is implemented and known deviations are resolved or explicitly routed. After saving and the user’s continuation, move to this batch’s review; running a complete test suite is not a new batch gate.
 
 ## Decisions and blockers
 
@@ -23,3 +23,5 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 Use plan.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Update TASK/B status and actual execution in plan.md's execution section, citing the existing task/batch numbers. Keep approved task definitions unchanged unless the plan itself changes; preserve planned versus actual and code versions. Do not generate implementation.md.
+
+After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.

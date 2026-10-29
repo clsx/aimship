@@ -59,7 +59,7 @@ The delivery directory contains these materials:
     └── handoff.md                 # Results and handoff instructions
 ```
 
-Materials develop gradually and are kept as needed. Search readable REQ, AC and TC numbers across documents; corresponding numbers stay consistent without requiring anchor links. `scope.md` adopts authoritative external requirements, `change-log.md` records important changes, and `diagnosis.md` is for standalone investigations. Open `status.md` for progress; tell the AI directly about requirement changes or acceptance decisions.
+Materials develop gradually and are kept as needed. Search readable REQ, AC and TC numbers across documents; corresponding numbers stay consistent without requiring anchor links. A complete applicable PRD is adopted directly; partial adoption produces this iteration’s `prd.md`. `change-log.md` records important changes, and `diagnosis.md` is for standalone investigations. Open `status.md` for progress; tell the AI directly about requirement changes or acceptance decisions.
 
 <a id="1-start-and-proceed"></a>
 <a id="start"></a>
@@ -76,7 +76,7 @@ Materials develop gradually and are kept as needed. Search readable REQ, AC and 
 
 Follow sign-up and login from requirements to acceptance. **This is fictional practice; wording and business choices need not be copied.** The example later supplies a project and isolated test database, with prototype review after requirements and before technical design. Actual prototype placement follows the delivery's needs.
 
-Use one Aimship entry within a session, then continue after approval as arranged; no invocation is needed at every stage. When your review is required, the AI presents one item at a time and waits for a clear decision. Revisions return for review.
+Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended, not required. Reviewable documents await explicit approval; other stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
 
 <a id="11-prepare-a-workspace"></a>
 <a id="12-activate-aimship-and-describe-the-request"></a>
@@ -98,9 +98,9 @@ Use one Aimship entry within a session, then continue after approval as arranged
 
 > Use Aimship for username/password sign-up, login, logout and a home page requiring login. Complete development and local verification, without deployment; I will supply code later.
 
-For existing prototypes, PRDs or other documents, supply their original locations; originals stay in place and you need not copy them manually. Following the source rules, the AI retains copies of the formally adopted versions and necessary dependencies under this delivery's `source/` and records the adoption basis. Materials consulted only as background need not be copied in full. Before later revisions, identify the editable artifact; new versions do not overwrite earlier evidence.
+For existing prototypes, PRDs or other documents, supply their original locations; originals stay in place and you need not copy them manually. Following the source rules, the AI retains copies of the formally adopted versions and necessary dependencies under this delivery's `source/` and records the adoption basis in the existing source record. Materials consulted only as background need not be copied in full. Before later revisions, identify the editable artifact; new versions do not overwrite earlier evidence.
 
-**AI processing:** Determines the delivery directory and checks access, preserves the request, creates or resumes the delivery, and reports the actual saved directory, current work and next action. If access is unavailable, it asks you to add that directory or grant access; it does not relocate the delivery into the workspace.
+**AI processing:** Determines the delivery directory and checks access, preserves the request, creates or resumes the delivery, and reports the actual saved directory, current work and next action. It starts requirement intake on the standard sequence without a full-delivery/design-only/init-only choice; explicit limits or pauses are respected. If access is unavailable, it asks you to add that directory or grant access; it does not relocate the delivery into the workspace.
 
 **Outputs:** `source/request.md` preserves your words; `status.md` shows progress. For a new delivery, the AI saves your preferred language, or otherwise the language of the current conversation. Status and new documents use that language; filenames, IDs, original sources and existing documents remain unchanged.
 
@@ -124,11 +124,11 @@ For existing prototypes, PRDs or other documents, supply their original location
 - No PRD/prototype: describe features and expected behavior, such as “Usernames must be unique; after logout, the home page must require login again.”
 - Existing materials: provide the PRD/prototype location, version and adopted scope. Say what is available even if it is incomplete.
 
-Open the presented requirements document and applicable prototype separately. Check scope, acceptance criteria and page behavior; approve the current item or identify what needs changing.
+Open the current requirements and any selected prototype. Check scope, acceptance criteria and page behavior; approve or give feedback. An evidenced existing approval of the current content is reused without asking again.
 
-**AI processing:** Clarifies gaps, preserves authoritative external originals and reuses sufficient prototype coverage. Without materials, it writes requirements first, then creates the needed prototype after approval in this example's arrangement. No interaction change means no new prototype. It self-checks, submits, records approval and continues one item at a time.
+**AI processing:** Adopts a complete applicable PRD without rewriting or renumbering. For partial adoption, it writes this iteration’s PRD with sources, inclusions, exclusions and acceptance, retaining source IDs where possible. Without a PRD, discussion produces one. Prototypes are optional; adequate existing ones are reused. It self-checks, confirms and saves each selected document, preserving originals.
 
-**Outputs:** `prd.md` states requirements and acceptance criteria, or `scope.md` records the adopted scope. This example creates `prototype/index.html` for pages and feedback states. A prototype is not implemented authentication; interaction checks not performed remain unverified.
+**Outputs:** The newly authored `prd.md` or retained PRD in `source/` is the requirement authority, without a separate Scope. This example selects `prototype/index.html` for pages and feedback states. A prototype is not implemented authentication; interaction checks not performed remain unverified.
 
 <a id="guide-session-example"></a>
 
@@ -187,9 +187,9 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 1.7 Implement batches and review each batch
 
-**User actions:** Inspect changes and progress; point out deviations, such as “The post-sign-up redirect differs from the prototype.” No line-by-line approval of execution logs is needed.
+**User actions:** Inspect changes and progress; point out deviations, such as “The post-sign-up redirect differs from the prototype.” No line-by-line approval of execution logs is needed; inspect the saved stage result and ask to continue.
 
-**AI processing:** Implements the plan, reviews each batch and resolves blocking issues before the next. After all batches, it performs the overall review before verification. Requirement changes return to the relevant review.
+**AI processing:** Implements the plan and reviews each batch, saving and stopping after implementation and after review. Continuation advances only after blocking issues are resolved. All batches are followed by overall review, then verification. Requirement changes return to the relevant review.
 
 **Outputs:** Project code, execution progress appended to `plan.md`, and batch findings and repairs in `review.md`.
 
@@ -198,9 +198,9 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 1.8 Review the complete change
 
-**User actions:** Read the overall findings and remaining issues, pointing out omissions if needed. Each review entry does not need a separate document approval.
+**User actions:** Read the overall findings and remaining issues, pointing out omissions if needed. Review records do not need a separate document approval; inspect the conclusion and ask to continue.
 
-**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access. It resolves issues blocking independent verification. A single-batch review can explicitly cover both batch and overall scope.
+**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access. It resolves issues blocking independent verification, saves the conclusion and stops before continuing to verification. A single-batch review can explicitly cover both batch and overall scope.
 
 **Outputs:** Overall conclusions appended to `review.md`. Code review does not replace running tests.
 
@@ -254,7 +254,7 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 2.1 When to switch sessions
 
-Follow suggestions in `status.md` between requirements, technical design/applicable contracts, cases, plan, implementation batches, overall review and verification batches, or stay in the same session. Grouping does not change individual document reviews.
+At each completed stage, follow the stop in `status.md`: approve or give feedback on pending documents, or ask to continue completed work. A new session is recommended but optional; “continue” does not approve a pending document. The page prioritizes current actions and shows future stages as not started, not current defects.
 
 See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. The saved delivery language carries over. If switching before the first save, carry the unsaved request, intended location and pending operations.
 
@@ -289,7 +289,7 @@ Manual progress-page edits are preserved first; conflicts need coordination. Do 
 
 ### 3.1 Existing materials or discussion
 
-Provide the PRD, prototype or screenshot locations, versions and scope to use. The AI checks them as described in [Confirm requirements](#guide-requirements). Explicitly request direct maintenance of an existing PRD if needed; the AI checks the goal and endpoint before submitting it for review. An existing file is not an approval.
+Provide the PRD, prototype or screenshot locations, versions and scope to use. The AI checks them as described in [Confirm requirements](#guide-requirements). A complete applicable PRD is adopted directly; partial adoption produces an iteration PRD without changing the original. Explicitly request edits to the original if needed. Existing files are not approval; evidenced current approvals are reused.
 
 For prior discussion, say “Use Aimship to continue the requirements we just discussed.” The AI organizes visible requests, decisions and open questions. Supply history it cannot see; suggestions are not approvals.
 
@@ -346,6 +346,8 @@ For defects, provide expected behavior, the problem and reproduction steps or lo
 ### 4.2 Work on several requests
 
 Keep each delivery separate and identify shared code, interfaces, databases or environments. Analysis can run concurrently; sequence edits to the same code, or use separate working directories and plan the merge.
+
+Pre-existing edits from other requests are not added to this requirement or cleaned merely because the working tree is dirty. Engineering baselines stay in engineering records, not the business PRD.
 
 The AI checks only known, accessible deliveries; it does not lock or schedule other sessions. Describe other ongoing changes and check the merged result afterward.
 

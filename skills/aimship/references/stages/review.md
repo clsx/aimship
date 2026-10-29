@@ -22,4 +22,6 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 Use review.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
-Record reviewOf with the actual implementation-run IDs; mark overall: true only for an overall review. The batch review shares that batch’s suggested session, while overall review has its own suggestion. Resolve findings before continuation; a suggestion never substitutes for a passing review.
+Record reviewOf with the actual implementation-run IDs; mark overall: true only for an overall review. Batch review and overall review each save their own stage stop, even when their context group is shared. Resolve findings before continuation; a suggestion never substitutes for a passing review.
+
+After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.

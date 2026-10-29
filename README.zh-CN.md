@@ -36,14 +36,14 @@ AI 工具可选 `codex`、`cursor` 或 `claude-code`。连接多个 AI 工具时
 npx aimship@preview install --host codex --host claude-code
 ```
 
-npx 的获取包提示只确认下载并运行该包；执行 `install` 才会安装或升级 Aimship。`@preview` 表示已发布的预览通道，也可以替换为明确版本号，例如 `@0.1.0-preview.14`。预览通道用于实验性版本，不代表稳定版。
+npx 的获取包提示只确认下载并运行该包；执行 `install` 才会安装或升级 Aimship。`@preview` 表示已发布的预览通道，也可以替换为明确版本号，例如 `@0.1.0-preview.15`。预览通道用于实验性版本，不代表稳定版。
 
 ### 指定版本或本地包
 
 安装指定的已发布版本，例如：
 
 ```sh
-npx aimship@0.1.0-preview.14 install --host codex
+npx aimship@0.1.0-preview.15 install --host codex
 ```
 
 如果已有 Aimship 的 `.tgz` 安装包，将 `VERSION` 替换为实际版本号，在包所在目录执行：
@@ -82,7 +82,7 @@ npx aimship@preview install
 
 升级完成后，建议重启 AI 工具并新建会话，再启用 Aimship，以便重新加载更新后的规则。已有会话可能仍保留旧规则。
 
-安装和升级使用同一个 `install` 命令。已有 AI 工具登记、配置、自定义内容和交付资料都会保留。安装器报告旧／目标版本、结果及冲突；没有后台自动升级或常驻进程。更新到指定版本时，例如运行 `npx aimship@0.1.0-preview.14 install`。已有安装无需重复填写 `--host` 或 `--data-root`。
+安装和升级使用同一个 `install` 命令。已有 AI 工具登记、配置、自定义内容和交付资料都会保留。安装器报告旧／目标版本、结果及冲突；没有后台自动升级或常驻进程。更新到指定版本时，例如运行 `npx aimship@0.1.0-preview.15 install`。已有安装无需重复填写 `--host` 或 `--data-root`。
 
 <a id="添加宿主"></a>
 <a id="添加-ai-开发工具"></a>

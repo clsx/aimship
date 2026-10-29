@@ -80,11 +80,11 @@ test('Chinese delivery language persists across update/render/resume; explicit E
  const c=await fixture(t);let state=await initState(c.dir,c.input,version,c.runtime);const original=await fs.readFile(path.join(c.dir,'source/request.md'));
  assert.equal(state.writeResult.receipt.currentStage,'requirements');
  assert.equal(state.next.action,'澄清诉求并准备需求审核。');
- let view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/# 交付状态/);assert.match(view,/缺少当前有效且已完成的技术设计记录/);assert.match(view,/等待|进行中/);assert.doesNotMatch(view,/# Delivery status|## Goal and basis|Missing current/);
+ let view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/# 交付进度/);assert.match(view,/技术设计.*尚未开始/);assert.match(view,/等待|进行中/);assert.doesNotMatch(view,/# Delivery status|## Goal and basis|Missing current/);
  state=await updateState(c.dir,{next:{action:'确认账号规则'}},state.revision,version,c.runtime);await renderState(c.dir,state.revision,version,c.runtime);
  const resumed=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data;
- assert.equal(resumed.state.language,'zh-CN');assert.match(resumed.continuation,/使用 Aimship 继续交付/);assert.match(resumed.completion.gaps[0],/尚未明确/);assert.match(resumed.warnings[0],/续接/);
- state=await updateState(c.dir,{language:'en'},state.revision,version,c.runtime);assert.equal(state.language,'en');assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/# Delivery status/);assert.deepEqual(await fs.readFile(path.join(c.dir,'source/request.md')),original);assert.equal(state.next.action,'确认账号规则');
+ assert.equal(resumed.state.language,'zh-CN');assert.match(resumed.continuation,/使用 Aimship 继续交付/);assert.match(resumed.completion.gaps[0],/尚待确认/);assert.match(resumed.warnings[0],/续接/);
+ state=await updateState(c.dir,{language:'en'},state.revision,version,c.runtime);assert.equal(state.language,'en');assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/# Delivery progress/);assert.deepEqual(await fs.readFile(path.join(c.dir,'source/request.md')),original);assert.equal(state.next.action,'确认账号规则');
 });
 test('original source drift cannot be accepted by unrelated update; restoring original permits deliberate requirement work',async t=>{
  const c=await fixture(t);let state=await initState(c.dir,c.input,version,c.runtime);const request=path.join(c.dir,'source/request.md'),original=await fs.readFile(request),file=path.join(c.dir,'.aimship/state.json'),bytes=await fs.readFile(file);
@@ -111,5 +111,5 @@ test('Chinese display translates enum labels but preserves run, group and approv
  state=await updateState(c.dir,{goalRef:'prd.md',documentPolicy:{authority:'authored'},documents:[{kind:'prd',path:'prd.md',mode:'new',version:'1'}],stageRuns:[{...state.stageRuns[0],progress:'done',resultRef:'prd.md#requirements',outputRefs:['prd.md']}]},state.revision,version,c.runtime);
  const records=await approveFixture(c.dir,state,['prd.md']);records[0].id='requirements';records[1].id='pending';
  state=await updateState(c.dir,{reviewHistory:records},state.revision,version,c.runtime);
- const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/当前工作: plan/);assert.match(view,/- pending: plan/);assert.match(view,/\| 已批准 \| pending \|/);assert.match(view,/\| 需求 \| 已完成记录/);
+ const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/当前阶段: 需求 · 已完成/);assert.match(view,/自检记录通过 · 已批准/);const read=await readState(c.dir);assert.equal(read.state.currentRun,'plan');assert.equal(read.state.stageRuns[0].sessionGroup,'pending');assert.equal(read.review.documents[0].approval,'pending');
 });

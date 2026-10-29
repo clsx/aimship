@@ -16,7 +16,7 @@
         "en": [
           "Document information and sources",
           "Background, goals and non-goals",
-          "Scope, engineering objects and endpoint",
+          "Scope and delivery endpoint",
           "Requirements and behavior",
           "States, interaction and recovery",
           "Acceptance criteria",
@@ -30,38 +30,6 @@
           "状态、交互与恢复",
           "验收标准",
           "依赖、待确认问题与阶段安排"
-        ]
-      }
-    },
-    "scope": {
-      "path": "scope.md",
-      "sections": [
-        "info",
-        "goals",
-        "adoption",
-        "exclusions",
-        "decisions",
-        "acceptance",
-        "arrangement"
-      ],
-      "headings": {
-        "en": [
-          "Document information and source versions",
-          "Goal, engineering objects and endpoint",
-          "Source mapping and adopted scope",
-          "Exclusions and constraints",
-          "Conflicts, gaps and supplementary decisions",
-          "Acceptance basis",
-          "Authorization, questions and stage arrangement"
-        ],
-        "zh-CN": [
-          "文档信息与来源",
-          "目标与交付终点",
-          "采用范围与来源",
-          "排除范围",
-          "决定与冲突",
-          "验收标准",
-          "阶段安排"
         ]
       }
     },
@@ -262,19 +230,6 @@
     "requirements": {
       "kind": "requirement",
       "section": "requirements",
-      "sectionByKind": {
-        "prd": "requirements",
-        "scope": "adoption"
-      },
-      "humanReview": true
-    },
-    "scope": {
-      "kind": "requirement",
-      "section": "scope",
-      "sectionByKind": {
-        "prd": "scope",
-        "scope": "goals"
-      },
       "humanReview": true
     },
     "prototype": {

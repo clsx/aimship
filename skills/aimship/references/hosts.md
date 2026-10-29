@@ -14,7 +14,7 @@ Installation discovery, actual selection, model behavior, directory access and c
 
 After compaction or manual switching, reload the fixed-version core, state and current-stage inputs if missing. Do not rely on an AI tool retaining all Skill text. If even the binding location is absent, request the delivery path. Re-invoking an entry to restore context continues the existing delivery; it does not create another one.
 
-When changing AI tools, use the same delivery directory and state; do not duplicate requirements, Scope or design to establish a new session. Permissions must be granted separately in each AI tool. Keep one writing tool/session for the delivery. User-facing entry/reload and lifecycle instructions are in [the user guide](../../../docs/guide.md#hosts).
+When changing AI tools, use the same delivery directory and state; do not duplicate requirements or design to establish a new session. Permissions must be granted separately in each AI tool. Keep one writing tool/session for the delivery. User-facing entry/reload and lifecycle instructions are in [the user guide](../../../docs/guide.md#hosts).
 
 Do not move or replace a user-owned workspace. Check the actual directory identity and access before continuing.
 

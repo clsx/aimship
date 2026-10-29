@@ -10,13 +10,13 @@ Identify this delivery, revision and adopted inputs. Replace guidance with actua
 
 Separate known facts, requirements and assumptions. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
-## Scope, engineering objects and endpoint
+## Scope and delivery endpoint
 
-Included/excluded work, repository IDs, authorization and endpoint. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Included/excluded business work, source correspondence, authorization and endpoint. Keep engineering dirty lists in existing engineering records, not this PRD. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## Requirements and behavior
 
-REQ, type, actor/object, trigger/precondition, behavior, observable result, boundaries/errors, source and AC. Shared business rules, access control (even one role), performance and reliability need independent identity when independently testable. Replace guidance with actual content; explain inapplicability, never prefill a result.
+REQ (or retained source business ID), type, actor/object, trigger/precondition, behavior, observable result, boundaries/errors, source and AC. Shared business rules, access control (even one role), performance and reliability need independent identity when independently testable. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## States, interaction and recovery
 
@@ -31,4 +31,4 @@ AC, requirement reference, condition, operation, decidable expected result. Repl
 Selected order, artifact locations/reuse, dependencies, Q with impact/status/decision source. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 
-<!-- Arrangement guidance: standard delivery sequence and applicable artifacts; preserve an explicit limited-scope decision without claiming standard completeness. Suggested session groups live in state, are shown in status, and are not approval conditions. -->
+<!-- Arrangement guidance: standard delivery sequence and applicable artifacts; preserve an explicit limited-scope decision without claiming standard completeness. Save and stop at each completed stage; session suggestions are not approval conditions. -->

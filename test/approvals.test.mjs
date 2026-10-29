@@ -19,7 +19,7 @@ async function setup(t, extra={}, approvedInputs=[]) {
  await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic review commission.');
  await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit approve current document. Not a real user message.');
  await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicit commission for independent review or verification only; not a standard development delivery.');
- for(const kind of ['prd','tech-design','plan','testing','diagnosis','scope','review']) await fs.writeFile(path.join(dir,`${kind}.md`),await documentFixture(kind));
+ for(const kind of ['prd','tech-design','plan','testing','diagnosis','review']) await fs.writeFile(path.join(dir,`${kind}.md`),await documentFixture(kind));
  const input={language:'en',goal:{summary:'Review state semantics',endpoint:'bounded synthetic test'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd'),reg('tech-design')],stageRuns:[stage('requirements','requirements','done',{outputRefs:['prd.md'],resultRef:'prd.md#requirements'}),stage('design','tech-design')],currentRun:'requirements',...extra};
  // Isolated later-stage fixtures still supply real registered, synthetically approved inputs.
  for(const kind of approvedInputs) if(!input.documents.some(d=>d.kind===kind)) input.documents.push(reg(kind));
@@ -37,7 +37,7 @@ test('approval: done and self-check cannot release dependency; explicit approval
   if(command==='resume')assert.equal(result.canProceed,false);
  }
  assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),before);
- assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/Awaiting review:.*prd.md/);
+ assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/prd.md.*pending/);
  const advance=()=>c.save({stageRuns:[c.state.stageRuns[0],{...c.state.stageRuns[1],progress:'active'}],currentRun:'design'});
  await assert.rejects(advance(),{code:'REVIEW_CHECK'});
  const history=await approveFixture(c.dir,c.state,['prd.md']);await c.save({reviewHistory:history.slice(0,1)});
@@ -106,9 +106,9 @@ test('approval: SQL follows technical review, SQL-only contract requires every t
  await c.approve(['database-main.sql']);const advance=()=>c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='cases'?{...r,progress:'active'}:r)});
  await assert.rejects(advance(),{code:'REVIEW_CHECK'});await c.approve(['database-audit.sql']);await advance();
 });
-test('approval: design-only, investigation, adopted scope, prototype and review-only retain their selected endpoints',async t=>{
- for(const [kind,name,section] of [['tech-design','tech-design','coverage'],['diagnosis','diagnose','conclusion'],['scope','scope','goals']]) {
-  const isScope=kind==='scope';const c=await setup(t,{goalRef:isScope?'scope.md':'prd.md',documentPolicy:{authority:isScope?'adopted':'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg(isScope?'scope':'prd'),...(!isScope?[reg(kind)]:[])],stageRuns:[stage('only',name,'done',{resultRef:`${kind}.md#${section}`,outputRefs:[`${kind}.md`]})],currentRun:'only'},kind==='tech-design'?['prd']:[]);
+test('approval: design-only, investigation, prototype and review-only retain their selected endpoints',async t=>{
+ for(const [kind,name,section] of [['tech-design','tech-design','coverage'],['diagnosis','diagnose','conclusion']]) {
+  const c=await setup(t,{goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd'),reg(kind)],stageRuns:[stage('only',name,'done',{resultRef:`${kind}.md#${section}`,outputRefs:[`${kind}.md`]})],currentRun:'only'},kind==='tech-design'?['prd']:[]);
   await c.approve([`${kind}.md`]);assert.equal((await readState(c.dir)).review.runs[0].ready,true);assert.equal(c.state.stageRuns.length,1);
  }
  const c=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'source/request.md'}]});

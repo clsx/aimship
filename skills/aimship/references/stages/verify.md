@@ -23,3 +23,5 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 Use testing.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
 Append RUN records in testing.md, citing TC numbers, the tested document version and exact objects. Evidence goes in .aimship/evidence/; no installation diagnostics or repeated state output in ordinary deliveries.
+
+After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.
