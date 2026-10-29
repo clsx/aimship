@@ -36,14 +36,14 @@ AI 工具可选 `codex`、`cursor` 或 `claude-code`。连接多个 AI 工具时
 npx aimship@preview install --host codex --host claude-code
 ```
 
-按 npm 提示确认获取安装包。`@preview` 表示已发布的预览通道，也可以替换为明确版本号，例如 `@0.1.0-preview.7`。预览通道用于实验性版本，不代表稳定版。
+npx 的获取包提示只确认下载并运行该包；执行 `install` 才会安装或升级 Aimship。`@preview` 表示已发布的预览通道，也可以替换为明确版本号，例如 `@0.1.0-preview.14`。预览通道用于实验性版本，不代表稳定版。
 
 ### 指定版本或本地包
 
 安装指定的已发布版本，例如：
 
 ```sh
-npx aimship@0.1.0-preview.13 install --host codex
+npx aimship@0.1.0-preview.14 install --host codex
 ```
 
 如果已有 Aimship 的 `.tgz` 安装包，将 `VERSION` 替换为实际版本号，在包所在目录执行：
@@ -80,7 +80,9 @@ npx aimship@preview install --host codex --data-root "./MyDeliveries"
 npx aimship@preview install
 ```
 
-安装和升级使用同一个 `install` 命令。已有 AI 工具登记、配置、自定义内容和交付资料都会保留。安装器报告旧／目标版本、结果及冲突；没有后台自动升级或常驻进程。指定版本或本地包也使用[安装说明](#install)中的命令，指向原来的安装目录。
+升级完成后，建议重启 AI 工具并新建会话，再启用 Aimship，以便重新加载更新后的规则。已有会话可能仍保留旧规则。
+
+安装和升级使用同一个 `install` 命令。已有 AI 工具登记、配置、自定义内容和交付资料都会保留。安装器报告旧／目标版本、结果及冲突；没有后台自动升级或常驻进程。更新到指定版本时，例如运行 `npx aimship@0.1.0-preview.14 install`。已有安装无需重复填写 `--host` 或 `--data-root`。
 
 <a id="添加宿主"></a>
 <a id="添加-ai-开发工具"></a>
@@ -97,22 +99,22 @@ npx aimship@preview install --host cursor
 ### 查询已安装版本
 
 ```sh
-npx aimship@preview --version
+node "$HOME/.aimship/bin/aimship.mjs" --version
 ```
 
-输出中的 `installedActiveVersion` 是当前已安装版本，`toolVersion` 是此次 npx 运行的包版本，两者可能不同。查询本身不会升级安装。
+该命令直接查询已安装的本机入口，`installedActiveVersion` 是实际生效版本。查询不会下载包或升级安装。
 
 ### 检查安装状态
 
 ```sh
-npx aimship@preview status
+node "$HOME/.aimship/bin/aimship.mjs" status
 ```
 
 此命令检查软件安装、AI 工具登记和受管理文件，报告是否健康及待处理问题；它不能确认 AI 工具已加载 Skill。查看需求进度请打开交付目录的 `status.md`。
 
-以上命令由 npx 获取并运行所选包；日常交付由 Agent 使用固定的本地入口和规则，无需反复下载包。
+以上查询使用默认安装位置；若安装时指定了其他 `--home`，使用该位置下的 `.aimship/bin/aimship.mjs`。
 
-升级后，先保存当前工作，再按[会话接续](docs/guide.zh-CN.md#continue)核对规则和交付状态；已有交付不会因为软件升级自动完成迁移。
+升级前保存当前工作。升级后用上述命令核对版本和健康状态，继续交付时按[会话接续](docs/guide.zh-CN.md#continue)核对交付状态。
 
 <a id="uninstall"></a>
 ## 卸载
@@ -140,8 +142,8 @@ npx aimship@preview uninstall
 | --- | --- |
 | 找不到 Aimship 或出现重复项 | 按[AI 工具设置](docs/guide.zh-CN.md#hosts)刷新会话并检查入口；安装健康不代表 AI 工具已经加载 Skill。 |
 | 管理位置被修改或被其他文件占用 | 保留内容，检查归属，明确合并定制内容后再重试。 |
-| 安装中断或稳定入口损坏 | 使用上面的 `status` 命令检查安装，排除原因后在同一目录重跑完全相同的待恢复版本；不要在恢复途中换版本。自定义安装用户目录可追加 `--home <安装用户目录>` 进行检查。 |
-| 版本与预期不一致 | 核对版本查询中的 `installedActiveVersion` 和 `toolVersion`，继续交付前刷新会话中的规则。 |
+| 安装中断或稳定入口损坏 | 使用上面的 `status` 命令检查安装，排除原因后在同一目录重跑完全相同的待恢复版本；不要在恢复途中换版本。自定义安装应使用原安装用户目录下的本机入口。 |
+| 版本与预期不一致 | 用本机入口查询 `installedActiveVersion`；需要升级时执行 `install`，再核对版本并刷新会话中的规则。 |
 | 包／版本不存在或下载失败 | 核对包名、明确版本和 registry；下载失败不算安装完成。 |
 
 ## 文档与贡献

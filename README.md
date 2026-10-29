@@ -36,14 +36,14 @@ Choose `codex`, `cursor` or `claude-code`. To connect several tools, repeat the 
 npx aimship@preview install --host codex --host claude-code
 ```
 
-Confirm npm's package installation prompt. `@preview` selects the published preview channel; an exact published version, such as `@0.1.0-preview.7`, can be used instead. The preview channel is experimental and does not imply a stable release.
+The npx package prompt confirms downloading and running the package; `install` performs the Aimship installation or upgrade. `@preview` selects the published preview channel; an exact published version, such as `@0.1.0-preview.14`, can be used instead. The preview channel is experimental and does not imply a stable release.
 
 ### A specific version or local package
 
 To install an exact published version, for example:
 
 ```sh
-npx aimship@0.1.0-preview.13 install --host codex
+npx aimship@0.1.0-preview.14 install --host codex
 ```
 
 If you already have an Aimship `.tgz` package, replace `VERSION` with its actual version and run from the directory containing it:
@@ -80,7 +80,9 @@ For the published preview channel:
 npx aimship@preview install
 ```
 
-Installation and upgrades use the same `install` command. Existing tool registrations, configuration, custom content and deliveries are retained. The installer reports previous/target versions, results and conflicts; no background updater or resident process runs. For a specific version or local package, use the [installation commands](#install) against the original installation home.
+After upgrading, we recommend restarting your AI tool and opening a new session, then activating Aimship to reload the updated rules. Existing sessions may still retain older rules.
+
+Installation and upgrades use the same `install` command. Existing tool registrations, configuration, custom content and deliveries are retained. The installer reports previous/target versions, results and conflicts; no background updater or resident process runs. To upgrade to a specific version, for example, run `npx aimship@0.1.0-preview.14 install`. Existing installations do not need `--host` or `--data-root` repeated.
 
 <a id="add-a-host"></a>
 <a id="add-an-ai-development-tool"></a>
@@ -97,22 +99,22 @@ This retains existing tools and installs the selected preview version; it also u
 ### Check the installed version
 
 ```sh
-npx aimship@preview --version
+node "$HOME/.aimship/bin/aimship.mjs" --version
 ```
 
-In the output, `installedActiveVersion` is the active installed version and `toolVersion` is the package npx is running. They may differ. This query does not upgrade the installation.
+This command queries the installed local launcher directly. `installedActiveVersion` is the active installed version. The query neither downloads a package nor upgrades the installation.
 
 ### Check installation health
 
 ```sh
-npx aimship@preview status
+node "$HOME/.aimship/bin/aimship.mjs" status
 ```
 
 This checks the software installation, tool registrations and managed files, reporting health and pending problems. It cannot confirm that a tool loaded the Skill. For delivery progress, open that delivery's `status.md`.
 
-These commands use npx to obtain and run the selected package. During delivery work, the agent uses the fixed local launcher and rules without repeated package downloads.
+These queries use the default installation location. If you installed with a different `--home`, use `.aimship/bin/aimship.mjs` under that location.
 
-After an upgrade, save current work and follow [session continuation](docs/guide.md#continue) to reconcile rules and delivery state. Upgrading the software does not automatically migrate existing deliveries.
+Save current work before upgrading. Afterwards, check the version and health with the commands above, and follow [session continuation](docs/guide.md#continue) to check delivery state when resuming work.
 
 <a id="uninstall"></a>
 ## Uninstallation
@@ -140,8 +142,8 @@ Full uninstall retains delivery materials, user code, custom files and necessary
 | --- | --- |
 | Aimship is absent or duplicated | Refresh the session and inspect entries using [tool setup](docs/guide.md#hosts); installation health does not prove the tool loaded the Skill. |
 | A managed path is modified or occupied by other files | Preserve the contents, inspect ownership and explicitly reconcile customizations before retrying. |
-| Installation was interrupted or the launcher is damaged | Use the `status` command above, resolve the cause, then rerun the exact pending version against the same home. Do not switch versions during recovery. Append `--home <installation-home>` when checking a custom installation home. |
-| Unexpected version | Compare `installedActiveVersion` and `toolVersion`, then refresh the session's rules before continuing delivery work. |
+| Installation was interrupted or the launcher is damaged | Use the `status` command above, resolve the cause, then rerun the exact pending version against the same home. Do not switch versions during recovery. For a custom installation, use the local launcher under its original installation home. |
+| Unexpected version | Query `installedActiveVersion` through the local launcher. To upgrade, run `install`, then check the version and refresh the session's rules. |
 | Package/version unavailable or download failed | Check the package, exact version and registry; a failed download is not a completed installation. |
 
 ## Documentation and contributions
