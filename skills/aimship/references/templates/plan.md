@@ -12,7 +12,7 @@ B ID, goal, dependencies and integration arrangement. Replace guidance with actu
 
 ## Tasks and completion criteria
 
-TASK, batch, REQ/AC or risk, repository ID, file/module, planned change, completion criteria, status, artifact ref. Replace guidance with actual content; explain inapplicability, never prefill a result.
+TASK, batch, REQ/AC or risk, repository ID, file/module, planned change and completion criteria. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## Review and independent verification arrangement
 
@@ -20,7 +20,7 @@ Each batch review, overall review then independent verification; no per-batch fu
 
 ## Task status and execution records
 
-Actual changes and object versions by TASK/B; preserve original plan and distinguish pre-existing changes. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Current status, actual changes, artifact references and object versions by existing TASK/B; preserve the approved tasks above and distinguish pre-existing changes. Record progress here, for example a table of Task | Status | Actual result. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## Deviations, blockers and remaining work
 

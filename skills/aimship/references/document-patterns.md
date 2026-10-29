@@ -22,7 +22,7 @@ Use `tech-design.md`. HTTP changes use `openapi.yaml` or the registered engineer
 
 Use readable IDs for different entities: REQ for requirements, AC for acceptance, TASK/B for implementation, TC for cases, REV/RUN for review/execution records, and CHG/Q/PAGE where useful. Start each kind at 001. Keep the same obligation's ID across documents; do not give different entities the same ID. Users should be able to search an ID in ordinary Markdown. Do not require hyperlinks or any reader's HTML support.
 
-Define each ID once in its owning document, in a table's first column, a heading or a bullet, with substantive content: REQ/AC and optional PAGE mappings in PRD or Scope, TASK/B in plan, TC/RUN in testing, REV in review, CHG in change log. Other documents may cite those numbers in prose or tables; these citations do not redefine them. Q records may be defined where the question is resolved. For example:
+Define each ID once in its owning document, in a table's first column, a heading or a bullet, with substantive content: REQ/AC and optional PAGE mappings in PRD or Scope, TASK/B in plan, TC/RUN in testing, REV in review, CHG in change log. Put requirements, acceptance, batches, tasks and cases in their existing corresponding sections. The same document's coverage, summaries and execution records, as well as other documents, may cite those numbers in prose or tables without redefining them. Q records may be defined where the question is resolved. For example:
 
 ```markdown
 | ID | Requirement | Acceptance |

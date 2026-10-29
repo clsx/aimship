@@ -43,7 +43,7 @@ Confirm npm's package installation prompt. `@preview` selects the published prev
 To install an exact published version, for example:
 
 ```sh
-npx aimship@0.1.0-preview.7 install --host codex
+npx aimship@0.1.0-preview.13 install --host codex
 ```
 
 If you already have an Aimship `.tgz` package, replace `VERSION` with its actual version and run from the directory containing it:

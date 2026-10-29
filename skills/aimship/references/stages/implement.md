@@ -22,4 +22,4 @@ Use [the shared core](../core.md) for state, evidence and continuation rules. Re
 
 Use plan.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
 
-Update TASK/B status and actual execution in the existing plan.md, preserving planned versus actual and code versions. Do not generate implementation.md.
+Update TASK/B status and actual execution in plan.md's execution section, citing the existing task/batch numbers. Keep approved task definitions unchanged unless the plan itself changes; preserve planned versus actual and code versions. Do not generate implementation.md.

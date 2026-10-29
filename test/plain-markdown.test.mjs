@@ -34,7 +34,10 @@ test('plain numbers: cross-document references, duplicate/missing references and
  const c=await setup(t);await fs.writeFile(path.join(c.dir,'testing.md'),await documentFixture('testing'));
  const state=await updateState(c.dir,{documents:[...c.state.documents,reg('testing')]},0,version,runtime);assert.deepEqual((await inspectDocuments(c.dir,state)).issues,[]);
  const file=path.join(c.dir,'testing.md'),original=await fs.readFile(file,'utf8');
- for(const [text,expected] of [[original+'\n| TC-001 | Duplicate case for AC-001. |','Duplicate definition'],[original.replace('AC-001','AC-999'),'undefined reference'],[original.replace(/\| TC-001[^\n]*/,'| TC-001 | TBD |'),'placeholder']]) {
+ // A second case definition belongs in the case section. A later coverage or
+ // execution row containing the same number is a citation, not a duplicate.
+ const duplicate=original.replace('## Coverage and verification arrangement','| TC-001 | Conflicting second case for AC-001. |\n\n## Coverage and verification arrangement');
+ for(const [text,expected] of [[duplicate,'Duplicate definition'],[original.replace('AC-001','AC-999'),'undefined reference'],[original.replace(/\| TC-001[^\n]*/,'| TC-001 | TBD |'),'placeholder']]) {
   await fs.writeFile(file,text);await assert.rejects(updateState(c.dir,{},state.revision,version,runtime),e=>e.code==='DOCUMENT_CHECK' && JSON.stringify(e.details).includes(expected));
  }
  await fs.writeFile(file,original);assert.equal((await readState(c.dir)).state.revision,1);

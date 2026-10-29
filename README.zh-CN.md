@@ -43,7 +43,7 @@ npx aimship@preview install --host codex --host claude-code
 安装指定的已发布版本，例如：
 
 ```sh
-npx aimship@0.1.0-preview.7 install --host codex
+npx aimship@0.1.0-preview.13 install --host codex
 ```
 
 如果已有 Aimship 的 `.tgz` 安装包，将 `VERSION` 替换为实际版本号，在包所在目录执行：
