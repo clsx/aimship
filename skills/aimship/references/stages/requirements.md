@@ -6,7 +6,7 @@ Read the preserved original input, problem findings, adopted material and curren
 
 ## Work and result
 
-Write the current requirements, important rules, normal/error/boundary behavior, constraints and observable acceptance criteria. Include context and scope, not just a checklist. Link sources; a complete applicable existing PRD is adopted directly without rewriting or renumbering. For partial adoption, write this iteration’s PRD with source, inclusions, exclusions and acceptance. Reuse an evidenced approval of the current content; otherwise ask for requirement confirmation.
+Write the current requirements, important rules, normal/error/boundary behavior, constraints and observable acceptance criteria. Include context and scope, not just a checklist. Link sources; a complete applicable existing PRD is adopted directly without rewriting or renumbering. For partial adoption, write this iteration’s PRD with source, inclusions, exclusions and acceptance. For unchanged supplied input, use the actual delivery request as the adoption basis; no repeated source approval is required. Review AI-authored or substantively revised requirements, reusing evidenced current-content approval when available. Ask only concrete unresolved questions.
 
 ## Continue when
 
@@ -24,4 +24,6 @@ Use the selected PRD requirement entry. For a new PRD preserve the ordinary temp
 
 ## Human document review
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: stop at this stage boundary and suggest a new session; continue here when requested. Approval and continuation may be expressed together. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+Apply [document review](../document-review.md). For unchanged user-supplied requirements with clear adoption intent, register mode input with the real request basis and self-check; report the retained input and newly created records, save and stop for continuation. Do not call it a newly authored PRD, ask for source approval or ask whether to use the standard flow. If a specific uncertainty affects progress, name the question, options and impact, retain a blocked stage and next.questionRef, and stop for clarification.
+
+AI-authored, partially adopted or substantively revised PRDs follow self-check and human review. Present what changed and wait for explicit approval; reuse actual current-content approval where applicable. Approval and continuation may be expressed together. Questions or edit requests retain the review stop. Production done, input adoption, self-check, human approval and final acceptance are distinct.

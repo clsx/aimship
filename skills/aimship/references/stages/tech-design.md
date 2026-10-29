@@ -8,6 +8,12 @@ Read current requirements, relevant engineering instructions, architecture, sche
 
 Choose an approach with concrete components, dependencies, errors/recovery, compatibility and tradeoffs. Link authoritative contracts instead of duplicating them. For database changes design the data change and the subsequent independent SQL deliverable; explain dialect/version, existing schema basis, conditions and sequence. Do not edit migration files or execute SQL without that commission.
 
+For applicable concurrency and state changes, explain when the business constraint is checked, what enforces it and any remaining window. Keep that guarantee distinct from excluded product interactions; if the requirements leave its meaning unresolved, ask the concrete question. For example, a stock reservation may check and decrement within one transaction; an earlier availability display alone does not guarantee stock at commit.
+
+For a material new database/RPC call on the critical path, describe its location, repeat calls within a request, timeout/failure behavior, cost basis and how feasibility will be checked. Distinguish observed facts, estimates and unknowns; verification should match the actual risk, without invented capacity targets.
+
+Use an ordered explanation for simple flows. Where cross-system calls are hard to follow, a concise architecture or sequence diagram can show transaction boundaries and cache/response order. Explain affected frontend component reuse and state/data flow. Detail the actual tradeoffs; API schemas, executable SQL and full test cases remain in their later deliverables.
+
 ## Continue when
 
 The design can guide the agreed next work and correctness-affecting issues have a clear disposition. Explain the approach and outstanding choices to the user.

@@ -76,7 +76,7 @@ Materials develop gradually and are kept as needed. Search readable REQ, AC and 
 
 Follow sign-up and login from requirements to acceptance. **This is fictional practice; wording and business choices need not be copied.** The example later supplies a project and isolated test database, with prototype review after requirements and before technical design. Actual prototype placement follows the delivery's needs.
 
-Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended, not required. Reviewable documents await explicit approval; other stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
+Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended, not required. AI-authored or substantively revised reviewable documents await approval; concrete unresolved questions await clarification; other completed stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
 
 <a id="11-prepare-a-workspace"></a>
 <a id="12-activate-aimship-and-describe-the-request"></a>
@@ -124,7 +124,7 @@ For existing prototypes, PRDs or other documents, supply their original location
 - No PRD/prototype: describe features and expected behavior, such as “Usernames must be unique; after logout, the home page must require login again.”
 - Existing materials: provide the PRD/prototype location, version and adopted scope. Say what is available even if it is incomplete.
 
-Open the current requirements and any selected prototype. Check scope, acceptance criteria and page behavior; approve or give feedback. An evidenced existing approval of the current content is reused without asking again.
+When you provide a complete applicable PRD/prototype and ask to deliver from it, the AI adopts it unchanged without asking you to review the source again. Source copies and management records do not require individual review. Clarification is needed only for specific questions affecting progress. Review requirements or prototypes the AI writes, narrows or substantively changes: check scope, acceptance criteria and page behavior, then approve or give feedback. Valid approval of the current output content is reused.
 
 **AI processing:** Adopts a complete applicable PRD without rewriting or renumbering. For partial adoption, it writes this iteration’s PRD with sources, inclusions, exclusions and acceptance, retaining source IDs where possible. Without a PRD, discussion produces one. Prototypes are optional; adequate existing ones are reused. It self-checks, confirms and saves each selected document, preserving originals.
 
@@ -289,7 +289,7 @@ Manual progress-page edits are preserved first; conflicts need coordination. Do 
 
 ### 3.1 Existing materials or discussion
 
-Provide the PRD, prototype or screenshot locations, versions and scope to use. The AI checks them as described in [Confirm requirements](#guide-requirements). A complete applicable PRD is adopted directly; partial adoption produces an iteration PRD without changing the original. Explicitly request edits to the original if needed. Existing files are not approval; evidenced current approvals are reused.
+Provide the PRD, prototype or screenshot locations, versions and scope to use. The AI checks them as described in [Confirm requirements](#guide-requirements). A complete applicable PRD is adopted directly; partial adoption produces an iteration PRD without changing the original. Explicitly request edits to the original if needed. File presence alone does not establish intent to use it. A clear request to deliver from unchanged supplied material establishes adoption, without a repeated source review; review AI-written changes instead.
 
 For prior discussion, say “Use Aimship to continue the requirements we just discussed.” The AI organizes visible requests, decisions and open questions. Supply history it cannot see; suggestions are not approvals.
 
@@ -304,7 +304,7 @@ For prior discussion, say “Use Aimship to continue the requirements we just di
 
 ### 3.2 Change approved content
 
-Explain what changes, why, and what stays the same; identify any documents you edited yourself. The AI records important changes in `change-log.md`, resubmits affected documents and holds dependent work until confirmed. Unaffected work, earlier approvals and test history remain.
+Explain what changes, why, and what stays the same; identify any documents you edited yourself. The AI records important changes in `change-log.md`. Newly supplied unchanged inputs are checked and adopted; affected AI outputs are resubmitted for review before dependent work continues. Unaffected work, earlier approvals and test history remain.
 
 Record new requests in requirements and the change log, without overwriting `source/request.md`. Restore accidental edits from a reliable original; if none exists, pause to resolve the gap. Typos and formatting need no full re-review. Small fixes can continue the same delivery; a new goal or major redesign gets a separate delivery linked to the original.
 

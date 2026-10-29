@@ -1,6 +1,6 @@
 {
   "name": "aimship",
-  "version": "0.1.0-preview.15",
+  "version": "0.1.0-preview.16",
   "description": "Explicit, goal-driven delivery workflow for coding agents",
   "license": "MIT",
   "type": "module",

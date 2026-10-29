@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {initState,updateState,readState,STAGES} from '../lib/state.mjs';
+import {initState,updateState,readState,renderState,STAGES} from '../lib/state.mjs';
+import {renderText} from '../lib/view.mjs';
 import {artifactMap,inspectDocuments} from '../lib/documents.mjs';
 import {documentFixture} from '../scripts/testing/documents.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
@@ -25,7 +26,7 @@ async function fixture(t) {
  let state;
  return {dir,doc,req,input,get state(){return state},init:async extra=>state=await initState(dir,{...input,...extra},version,runtime),save:async patch=>state=await updateState(dir,patch,state.revision,version,runtime)};
 }
-test('complete supplied PRD is the direct authority: no rewrite, renumbering, Scope or prototype requirement',async t=>{
+test('a reused reviewable PRD is the direct authority: no rewrite, renumbering, Scope or prototype requirement',async t=>{
  const c=await fixture(t);await c.init();
  assert.equal(STAGES.includes('scope'),false);assert.equal((await artifactMap()).documents.scope,undefined);
  assert.equal(await fs.readFile(path.join(c.dir,c.doc.path),'utf8'),supplied);
@@ -114,4 +115,61 @@ test('adopting a revised PRD preserves the prior source and approval while requi
  await c.save({reviewHistory:await approveFixture(c.dir,c.state,[nextDoc.path])});
  await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:'current'})),openChanges:[{id:'CHG-001',ref:'source/change.md',status:'closed'}]});
  assert.equal((await readState(c.dir)).review.documents[0].status,'approved');assert.deepEqual(c.state.reviewHistory.slice(0,oldHistory.length),oldHistory);
+});
+
+
+test('supplied input needs no repeated review while authored PRD does in both languages',async t=>{
+ for(const language of ['zh-CN','en']) {
+  const c=await fixture(t);await c.init({language,documents:[{...c.doc,mode:'input'}]});
+  await c.save({reviewHistory:(await approveFixture(c.dir,c.state,[c.doc.path])).slice(0,1)});
+  const adopted=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
+  assert.match(adopted,language==='zh-CN'?/已采用现有材料/:/Provided material adopted/);
+  assert.match(adopted,language==='zh-CN'?/准备好后可说“继续”/:/Say “continue” when ready/);
+  assert.doesNotMatch(adopted,/文档已完成，待审核|Document prepared; awaiting review/);
+  assert.equal((await readState(c.dir)).review.canProceed,true);
+  assert.equal((await readState(c.dir)).review.documents[0].approval,null);
+  assert.equal(await fs.readFile(path.join(c.dir,c.doc.path),'utf8'),supplied);
+  const authored=await fixture(t);await fs.writeFile(path.join(authored.dir,'prd.md'),await documentFixture('prd'));
+  await authored.init({language,goalRef:'prd.md',documentPolicy:{...policy,authority:'authored'},documents:[{kind:'prd',path:'prd.md',mode:'new',version:'1'}],stageRuns:[{...authored.req,outputRefs:['prd.md'],resultRef:'prd.md#requirements'}]});
+  await authored.save({reviewHistory:(await approveFixture(authored.dir,authored.state,['prd.md'])).slice(0,1)});
+  const created=await fs.readFile(path.join(authored.dir,'status.md'),'utf8');
+  assert.match(created,language==='zh-CN'?/文档已完成，待审核/:/Document prepared; awaiting review/);
+  assert.doesNotMatch(created,/待确认采用|Awaiting adoption confirmation/);
+ }
+});
+test('approved adopted content is not presented as awaiting adoption again',async t=>{
+ const c=await fixture(t);await c.init({reviewHistory:await approveFixture(c.dir,c.input,[c.doc.path])});
+ const history=structuredClone(c.state.reviewHistory),saved=await fs.readFile(path.join(c.dir,'.aimship/state.json'));
+ await run(['render',c.dir,'--revision',String(c.state.revision),'--rules-version',version],{sourceRoot:root});
+ const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
+ assert.match(view,/已批准/);assert.doesNotMatch(view,/待确认采用|请确认采用/);
+ const read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.deepEqual(read.state.reviewHistory,history);
+ assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),saved);
+});
+test('adoption wording does not conceal requested changes, failed checks or changed content',async t=>{
+ const c=await fixture(t);await c.init();const history=await approveFixture(c.dir,c.state,[c.doc.path]);
+ await c.save({reviewHistory:[history[0]]});
+ await fs.appendFile(path.join(c.dir,c.doc.path),'\nNew business requirement.');
+ let view=await renderText(c.dir,c.state);assert.doesNotMatch(view,/待确认采用/);assert.match(view,/材料已变化或缺失/);
+ await fs.writeFile(path.join(c.dir,c.doc.path),supplied);
+ await c.save({reviewHistory:[...c.state.reviewHistory,{...history[0],id:'failed-check',result:'failed'}]});
+ view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/自检失败/);assert.doesNotMatch(view,/待确认采用/);
+ await c.save({reviewHistory:[...c.state.reviewHistory,{...history[0],id:'requested-change',kind:'changes-requested',summary:'Synthetic user feedback; amend requirement.'}]});
+ view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/需修改/);assert.doesNotMatch(view,/待确认采用/);
+ assert.equal((await readState(c.dir)).review.canProceed,false);
+});
+test('normal render preserves identity and stored next action; wording correction is a normal update, not reinitialization',async t=>{
+ const c=await fixture(t);await c.init({next:{action:'是否按标准流程继续？'}});
+ await c.save({reviewHistory:(await approveFixture(c.dir,c.state,[c.doc.path])).slice(0,1)});
+ const before=await fs.readFile(path.join(c.dir,'.aimship/state.json')),id=c.state.deliveryId,history=structuredClone(c.state.reviewHistory);
+ await run(['render',c.dir,'--revision',String(c.state.revision),'--rules-version',version],{sourceRoot:root});
+ assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),before);
+ assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/是否按标准流程继续/);
+ await c.save({next:{action:'请确认采用现有 PRD 的范围、业务规则与验收标准作为本次交付依据。'}});
+ assert.equal(c.state.deliveryId,id);assert.deepEqual(c.state.reviewHistory,history);
+ assert.doesNotMatch(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/是否按标准流程继续/);
+ assert.equal((await readState(c.dir)).review.canProceed,false);
+ const saved=await fs.readFile(path.join(c.dir,'.aimship/state.json'));
+ await assert.rejects(renderState(c.dir,c.state.revision,'different-version',{...runtime,version:'different-version',activeVersion:'different-version'}),{code:'VERSION_MISMATCH'});
+ assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),saved);
 });
