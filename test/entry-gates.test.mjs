@@ -14,9 +14,9 @@ async function fixture(t,{partial=false,partialRef='source/limited.md',selected=
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-entry-gate-')));
  t.after(()=>fs.rm(dir,{recursive:true,force:true}));
  await fs.mkdir(path.join(dir,'source'));
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic commission and explicit choice of this temporary delivery location.');
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission and explicit choice of this temporary delivery location.');
  await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicit commission: only the listed independent work and limited handoff. Not a real user approval.');
- const documents=[...new Set(['prd',...selected.map(x=>x[2])])].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'fixture-1',basisRef:'source/request.md'}));
+ const documents=[...new Set(['prd',...selected.map(x=>x[2])])].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'fixture-1',basisRef:'.aimship/init.md'}));
  for(const doc of documents) await fs.writeFile(path.join(dir,doc.path),`# Synthetic ${doc.kind}\n## repair\nEvidence for a synthetic repair.\n`);
  const stageRuns=selected.map(([id,stage,kind])=>({id,stage,scope:`Synthetic ${id}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],dependsOn:[],...(stage==='review' && id==='overall' && selected.some(r=>r[0]==='impl')?{reviewOf:['impl'],overall:true}:{})}));
  let state;
@@ -27,7 +27,7 @@ async function fixture(t,{partial=false,partialRef='source/limited.md',selected=
   if(result.status===0 && ['init','update'].includes(command))state=response.data;
   return {status:result.status,...response};
  };
- const start=invoke('init',{language:'en',goal:{summary:'Synthetic entry gate test',endpoint:'Recorded synthetic endpoint'},goalRef:'prd.md',storage:{mode:'explicit',decisionRef:'source/request.md'},deliveryPolicy:{version:1,...(partial?{partialRef}:{})},documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents,stageRuns,currentRun:stageRuns[0]?.id??null});
+ const start=invoke('init',{language:'en',goal:{summary:'Synthetic entry gate test',endpoint:'Recorded synthetic endpoint'},goalRef:'prd.md',storage:{mode:'explicit',decisionRef:'.aimship/init.md'},deliveryPolicy:{version:1,...(partial?{partialRef}:{})},documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents,stageRuns,currentRun:stageRuns[0]?.id??null});
  assert.equal(start.status,0,JSON.stringify(start));
  const save=patch=>invoke('update',patch);
  const finish=async(id,result='passed')=>{

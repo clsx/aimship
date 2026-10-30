@@ -18,10 +18,10 @@ const supplied='# Provided requirements V1\n\n## Features\n| FR-001 | Register a
 async function fixture(t) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-prd-handoff-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
  await fs.mkdir(path.join(dir,'source'));
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic commission: use the supplied account requirements for this delivery. Standard local delivery, no deployment.');
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission: use the supplied account requirements for this delivery. Standard local delivery, no deployment.');
  await fs.writeFile(path.join(dir,'source/provided.md'),supplied);
- const doc={kind:'prd',path:'source/provided.md',mode:'reused',version:'V1',basisRef:'source/request.md'};
- const req={id:'requirements',stage:'requirements',scope:'Adopt account requirements',progress:'done',inputRefs:['source/request.md'],outputRefs:[doc.path],resultRef:doc.path};
+ const doc={kind:'prd',path:'source/provided.md',mode:'reused',version:'V1',basisRef:'.aimship/init.md'};
+ const req={id:'requirements',stage:'requirements',scope:'Adopt account requirements',progress:'done',inputRefs:['.aimship/init.md'],outputRefs:[doc.path],resultRef:doc.path};
  const input={language:'zh-CN',goal:{summary:'合成账号需求',endpoint:'实现、审查、验证与交接；不部署'},goalRef:doc.path,documentPolicy:policy,documents:[doc],stageRuns:[req],currentRun:req.id,next:{action:'请确认当前 PRD 的范围与验收，或指出修改。'}};
  let state;
  return {dir,doc,req,input,get state(){return state},init:async extra=>state=await initState(dir,{...input,...extra},version,runtime),save:async patch=>state=await updateState(dir,patch,state.revision,version,runtime)};
@@ -70,7 +70,7 @@ test('partial adoption uses one iteration PRD with original IDs and source links
  await assert.rejects(c.save({}),{code:'DOCUMENT_CHECK'});
 });
 test('early intake without PRD/prototype/code shows current work and future progress without missing-stage alarms',async t=>{
- const c=await fixture(t);await c.init({goalRef:'source/request.md',documents:[],stageRuns:[],currentRun:null,documentPolicy:{authority:null,interaction:null,prototypeCovered:null,interface:null,databases:null},next:{action:'澄清注册规则与验收标准'}});
+ const c=await fixture(t);await c.init({goalRef:'.aimship/init.md',documents:[],stageRuns:[],currentRun:null,documentPolicy:{authority:null,interaction:null,prototypeCovered:null,interface:null,databases:null},next:{action:'澄清注册规则与验收标准'}});
  const read=await readState(c.dir),view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
  assert.deepEqual(read.state.repositories,[]);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.completion.standardComplete,false);
  assert.ok(read.completion.gaps.length>0);assert.ok(!read.completion.gaps.some(x=>x.includes('契约')));

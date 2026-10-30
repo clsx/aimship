@@ -16,7 +16,7 @@ async function fixture(t,language='en') {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-readable-')));
  t.after(()=>fs.rm(dir,{recursive:true,force:true}));
  await fs.mkdir(path.join(dir,'source'));
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic review: explicitly use this isolated directory for selected-order export.');
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic review: explicitly use this isolated directory for selected-order export.');
  for(const kind of ['prd','testing','plan'])await fs.writeFile(path.join(dir,kind+'.md'),await documentFixture(kind,language));
  let state;
  const call=async(command,input)=>{
@@ -24,7 +24,7 @@ async function fixture(t,language='en') {
   if(input!==undefined){const file=path.join(dir,'input.json');await fs.writeFile(file,JSON.stringify(input));args.push('--input',file);if(command==='update')args.push('--revision',String(state.revision));}
   const result=await run(args,{sourceRoot});if(['init','update'].includes(command))state=result.data;return result.data;
  };
- const input={language,storage:{mode:'explicit',decisionRef:'source/request.md'},goal:{summary:'Selected-order export',endpoint:'Reviewed local design'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:['prd','testing','plan'].map(reg)};
+ const input={language,storage:{mode:'explicit',decisionRef:'.aimship/init.md'},goal:{summary:'Selected-order export',endpoint:'Reviewed local design'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:['prd','testing','plan'].map(reg)};
  return {dir,call,input,get state(){return state;},put:(file,body)=>fs.writeFile(path.join(dir,file),body)};
 }
 test('ordinary references in summaries, coverage and execution keep one definition in both languages',async t=>{

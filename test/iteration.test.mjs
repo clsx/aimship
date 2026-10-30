@@ -18,7 +18,7 @@ const policy={authority:'authored',interaction:false,prototypeCovered:false,inte
 const def=(id,refs=[],more={})=>`| ${id} | Synthetic substantive record ${refs.join(', ')}. |`;
 async function setup(t,name='delivery') {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-iteration-'))); t.after(()=>fs.rm(root,{recursive:true,force:true}));
- const dir=path.join(root,name); await fs.mkdir(path.join(dir,'source'),{recursive:true}); await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic commission.');
+ const dir=path.join(root,name); await fs.mkdir(path.join(dir,'source'),{recursive:true}); await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission.');
  await document(dir,'prd',`${def('REQ-001',['AC-001'])}\n${def('AC-001')}\nSynthetic requirement basis: export selected orders within the agreed scope.`);
  return {root,dir,input:{language:'en',goal:{summary:'Synthetic controlled delivery',endpoint:'Design'},goalRef:'prd.md',documentPolicy:policy,documents:[reg('prd')]}};
 }
@@ -103,8 +103,8 @@ test('ITER completion section and repository status links remain unambiguous',as
 
 
 test('review: every completed review remains locatable after later document edits',async t=>{
- const {dir,input}=await setup(t);await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic explicit independent review-only commission, not standard development.');
- const state=await initState(dir,{...input,deliveryPolicy:{version:1,partialRef:'source/request.md'}},version,runtime);await document(dir,'review',`${def('REV-001',[],{run:'r1'})}`);
+ const {dir,input}=await setup(t);await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic explicit independent review-only commission, not standard development.');
+ const state=await initState(dir,{...input,deliveryPolicy:{version:1,partialRef:'.aimship/init.md'}},version,runtime);await document(dir,'review',`${def('REV-001',[],{run:'r1'})}`);
  await updateState(dir,{documents:[...state.documents,reg('review')],stageRuns:[{id:'r1',stage:'review',scope:'whole',progress:'done',inputRefs:['prd.md'],outputRefs:['review.md'],resultRef:'review.md#REV-001'}]},0,version,runtime);
  const file=path.join(dir,'review.md');await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace(def('REV-001',[],{run:'r1'}),''));
  await assert.rejects(updateState(dir,{},1,version,runtime),{code:'DOCUMENT_CHECK'});

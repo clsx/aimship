@@ -14,7 +14,7 @@ const runtime={version,activeVersion:version,dataRoot:await fs.realpath(os.tmpdi
 const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
 async function setup(t,language='en') {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-plain-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
- await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic request: export two selected orders, with exact totals.');
+ await fs.mkdir(path.join(dir,'source'));await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic request: export two selected orders, with exact totals.');
  await fs.writeFile(path.join(dir,'prd.md'),await documentFixture('prd',language));
  const input={language,goal:{summary:'Export selected orders',endpoint:'Local verified implementation'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd')]};
  const state=await initState(dir,input,version,runtime);return {dir,state,input};
@@ -22,12 +22,12 @@ async function setup(t,language='en') {
 test('plain Markdown: both languages complete requirements without HTML, metadata or sidecar',async t=>{
  for(const language of ['en','zh-CN']) {
   const c=await setup(t,language);const body=await fs.readFile(path.join(c.dir,'prd.md'),'utf8');assert.doesNotMatch(body,/<a |aimship:def/);
-  const stageRuns=[{id:'requirements',stage:'requirements',scope:'Selected orders',progress:'done',inputRefs:['source/request.md'],outputRefs:['prd.md'],resultRef:'prd.md#requirements'}];
+  const stageRuns=[{id:'requirements',stage:'requirements',scope:'Selected orders',progress:'done',inputRefs:['.aimship/init.md'],outputRefs:['prd.md'],resultRef:'prd.md#requirements'}];
   const state=await updateState(c.dir,{stageRuns,currentRun:'requirements'},0,version,runtime);
   assert.equal(state.schemaVersion,4);
   assert.equal((await checkReferences(c.dir,state,true)).find(r=>r.ref==='prd.md#requirements').status,'exists');
   assert.ok((await readState(c.dir)).review.pending.length);assert.deepEqual((await inspectDocuments(c.dir,state)).issues,[]);
-  assert.deepEqual((await fs.readdir(path.join(c.dir,'.aimship'))).sort(),['state.json','state.previous.json','view.json']);
+  assert.deepEqual((await fs.readdir(path.join(c.dir,'.aimship'))).sort(),['init.md','state.json','state.previous.json','view.json']);
  }
 });
 test('plain numbers: cross-document references, duplicate/missing references and blank obligations',async t=>{

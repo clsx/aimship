@@ -2,7 +2,7 @@
 
 ## Adopt without rewriting the source
 
-Preserve the original request once. If source/request.md changes after initialization, restore its original bytes before continuing state writes; an unrelated update must not adopt a new source digest. Record subsequent intent in the editable PRD and a CHG when meaning changes. If the original cannot be recovered reliably, preserve the conflicting material and report the blocker instead of replacing the recorded basis. Preserve external PRD, prototype, handover-note and image originals at their supplied locations. Retain the adopted versions as described under [location and version discipline](#location-and-version-discipline); neither storing files nor extracting text establishes visual or interaction validation.
+Keep the original commission and stable initialization context in `.aimship/init.md`, separating quoted user input from your summary. Correct initialization details as needed without turning the file into a progress log or rewriting the original commission. Substantive requirement changes belong in the current PRD and the existing change flow. Preserve external PRD, prototype, handover-note and image originals at their supplied locations. Retain the adopted versions as described under [location and version discipline](#location-and-version-discipline); neither storing files nor extracting text establishes visual or interaction validation.
 
 Use existing requirement IDs. If none exist, assign local IDs mapped to source sections, pages, prototype screens or short excerpts. A partial-iteration PRD records the current goal, inclusion/exclusion, sources, acceptance, constraints and decisions. A complete applicable supplied PRD is adopted directly as mode input when the user’s delivery intent is clear; basisRef preserves that actual request. Source snapshots and adoption/self-check records are not AI deliverable documents to ask the user to review. Do not transcribe an entire adequate PRD or create a second one merely to fit a template.
 
@@ -29,7 +29,7 @@ Formatting/typo corrections do not require semantic re-review. Implementation bu
 
 ## Location and version discipline
 
-The agent preserves the necessary formally adopted versions under `source/`, alongside `source/request.md`; the user need not move or manually copy originals. This is source evidence retention, not a second editable delivery or automatic synchronization.
+The agent preserves the necessary formally adopted versions under `source/`; the user need not move or manually copy originals. This is source evidence retention, not a second editable delivery or automatic synchronization.
 
 - Retain the adopted PRD, prototype, handover notes or images, plus HTML/Markdown images, styles, scripts and other resources needed to read or operate that adopted version. Do not copy unrelated workspace files. Background material that is only consulted need not be imported as a whole.
 - In the existing adoption evidence referenced by basisRef, or the current PRD when authoring it, identify the original location, retained version/path and version or digest, adopted scope, and any missing resources or reading limits. An unpinned mutable URL is insufficient evidence. If access or tools prevent retention, report the precise gap and hold conclusions that require it; never claim the adopted set is complete.

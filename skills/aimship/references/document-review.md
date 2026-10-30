@@ -15,6 +15,10 @@ For reviewable AI outputs (mode new, or mode reused for an existing reviewable o
 
 Do not ask human approval for every execution log, batch review or test result. Once the plan and required documents are approved, authorized implementation, Agent review, defect repairs within those requirements and retests can continue, showing results. New material decisions and production actions still need their own authorization. Final `outcome.acceptance` is a separate user decision; document approval does not accept the delivery, merge, deploy or execute SQL.
 
+## Questions within a document
+
+Review the document together with its open questions. Describe each question's impact, recommendation and when an answer is needed. Keep nonblocking questions open as work continues; approving a document does not answer every question or select every alternative. Stop only the work that depends on an unresolved answer. Use `next.questionRef` for a question blocking the current work, not as a list of all document questions; do not turn each question into a separate prompt.
+
 ## State and evidence
 
 New state has `reviewPolicy: 1` and append-only `reviewHistory`. Use the [CLI review protocol](../../../docs/cli.md#document-review-protocol) for exact fields. `read`, `check` and `resume` return current fingerprints and review status; state tools check records and dependencies, not user identity or authenticity. Preserve a concise, faithful decision excerpt with original conversation/message locator and date in a local evidence file or existing formal record. Do not label a synthetic test decision as a real user's approval. Keep decision evidence files immutable and add new decisions in new files. The source hash records submitted evidence bytes, not an authenticated signature; changed/missing evidence blocks release until reconciled.

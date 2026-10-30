@@ -16,10 +16,10 @@ const supplied='# Supplied PRD\n\n| REQ-001 | Normalize duplicate lines. |\n| AC
 async function fixture(t) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-input-review-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
  await fs.mkdir(path.join(dir,'source'));
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic user request: use my supplied PRD and prototype unchanged to deliver this feature, with local implementation and tests, no deployment.');
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic user request: use my supplied PRD and prototype unchanged to deliver this feature, with local implementation and tests, no deployment.');
  await fs.writeFile(path.join(dir,'source/prd.md'),supplied);
- const doc={kind:'prd',path:'source/prd.md',mode:'input',version:'1',basisRef:'source/request.md'};
- const req={id:'req',stage:'requirements',scope:'Use supplied requirements',progress:'done',result:'passed',inputRefs:['source/request.md'],outputRefs:[doc.path],resultRef:doc.path};
+ const doc={kind:'prd',path:'source/prd.md',mode:'input',version:'1',basisRef:'.aimship/init.md'};
+ const req={id:'req',stage:'requirements',scope:'Use supplied requirements',progress:'done',result:'passed',inputRefs:['.aimship/init.md'],outputRefs:[doc.path],resultRef:doc.path};
  const input={language:'zh-CN',goal:{summary:'Synthetic supplied input',endpoint:'Local implementation and verification'},goalRef:doc.path,documentPolicy:{authority:'adopted',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[doc],stageRuns:[req],currentRun:'req',next:{action:'需求输入已接纳；等待继续技术设计。'}};
  let state;return {dir,doc,req,input,get state(){return state},init:async extra=>state=await initState(dir,{...input,...extra},version,runtime),save:async patch=>state=await updateState(dir,patch,state.revision,version,runtime)};
 }
@@ -33,7 +33,7 @@ async function checks(c,files,prospective=c.state) {
 test('clear supplied PRD/prototype inputs and internal records finish intake without human approvals',async t=>{
  const c=await fixture(t);await fs.writeFile(path.join(c.dir,'source/prototype.html'),'<h1>Synthetic supplied prototype</h1>');
  await fs.writeFile(path.join(c.dir,'source/adoption-note.md'),'Synthetic material inventory; no business decisions.');
- const prototype={kind:'prototype',path:'source/prototype.html',mode:'input',version:'1',basisRef:'source/request.md'};
+ const prototype={kind:'prototype',path:'source/prototype.html',mode:'input',version:'1',basisRef:'.aimship/init.md'};
  await c.init({documents:[c.doc,prototype,{kind:'source',path:'source/adoption-note.md',mode:'new',version:'1'}],stageRuns:[c.req,{id:'proto',stage:'prototype',scope:'Check supplied interaction input',progress:'planned',inputRefs:[c.doc.path],outputRefs:[prototype.path]}]});
  await c.save({reviewHistory:await checks(c,[c.doc.path,prototype.path])});
  assert.ok(c.state.reviewHistory.every(r=>r.kind==='self-check'));
@@ -47,10 +47,10 @@ test('clear supplied PRD/prototype inputs and internal records finish intake wit
  await assert.rejects(c.save({reviewHistory:await approveFixture(c.dir,c.state,[c.doc.path])}),{code:'REVIEW_CHECK'});
 });
 test('files alone do not establish intent; a concrete question restores as clarification, then resolves without approval',async t=>{
- const c=await fixture(t);await fs.writeFile(path.join(c.dir,'source/request.md'),'Synthetic user asks to inspect the workspace; which requirements apply is not yet specified.');
+ const c=await fixture(t);await fs.mkdir(path.join(c.dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(c.dir,'.aimship/init.md'),'Synthetic user asks to inspect the workspace; which requirements apply is not yet specified.');
  await fs.writeFile(path.join(c.dir,'source/question.md'),'Which supplied PRD applies to this iteration: A or B? This changes the feature scope and design inputs.');
- const blocked={...c.req,progress:'blocked',inputRefs:['source/request.md'],outputRefs:[]};delete blocked.resultRef;delete blocked.result;
- await c.init({goalRef:'source/request.md',documentPolicy:{...c.input.documentPolicy,authority:null},documents:[{...c.doc,kind:'source',mode:'reused'}],stageRuns:[blocked],next:{action:'请确认采用A还是B：影响本次范围和设计输入。',questionRef:'source/question.md'}});
+ const blocked={...c.req,progress:'blocked',inputRefs:['.aimship/init.md'],outputRefs:[]};delete blocked.resultRef;delete blocked.result;
+ await c.init({goalRef:'.aimship/init.md',documentPolicy:{...c.input.documentPolicy,authority:null},documents:[{...c.doc,kind:'source',mode:'reused'}],stageRuns:[blocked],next:{action:'请确认采用A还是B：影响本次范围和设计输入。',questionRef:'source/question.md'}});
  for(let i=0;i<2;i++){const resumed=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data;assert.equal(resumed.session.action,'await-clarification');assert.equal(resumed.canProceed,false);assert.equal(resumed.review.documents.length,0);}
  let view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.match(view,/待确认具体问题|请确认下一步所列的具体问题/);assert.doesNotMatch(view,/请审核/);
  await fs.writeFile(path.join(c.dir,'source/answer.md'),'Synthetic explicit user answer: use the supplied PRD A for this delivery.');
@@ -68,7 +68,7 @@ test('authored/partial outputs still need review and supplied inputs cannot waiv
  assert.equal((await readState(c.dir)).session.action,'await-review');
  const cases={id:'cases',stage:'test-design',scope:'AI cases',progress:'active',dependsOn:[],inputRefs:[],outputRefs:[testing.path]};
  await assert.rejects(c.save({stageRuns:[...c.state.stageRuns,cases],currentRun:'cases'}),{code:'REVIEW_CHECK'});
- await assert.rejects(c.save({documents:[c.doc,{...design,mode:'input',basisRef:'source/request.md'},testing]}),{code:'INVALID_STATE'});
+ await assert.rejects(c.save({documents:[c.doc,{...design,mode:'input',basisRef:'.aimship/init.md'},testing]}),{code:'INVALID_STATE'});
  await c.save({reviewHistory:await approveFixture(c.dir,c.state,[design.path])});
  await c.save({stageRuns:[...c.state.stageRuns,cases],currentRun:'cases'});
  assert.equal((await readState(c.dir)).session.action,'continue-current');
@@ -118,4 +118,14 @@ test('saved, read and resumed user guidance stays concrete in both languages wit
   view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');assert.ok(view.includes('](source/question.md)'));
   assert.doesNotMatch(question.session.instruction,/not a request|不是要求|Skill|protocol/);
  }
+});
+
+test('maintaining initialization context does not request a second review of unchanged adopted input',async t=>{
+ const c=await fixture(t);await c.init();await c.save({reviewHistory:await checks(c,[c.doc.path])});
+ const history=structuredClone(c.state.reviewHistory);
+ await fs.appendFile(path.join(c.dir,'.aimship/init.md'),'\nMaterial location corrected for later continuation.\n');
+ await c.save({});
+ const read=await readState(c.dir);
+ assert.equal(read.review.documents[0].status,'adopted');assert.equal(read.review.documents[0].approval,null);
+ assert.equal(read.session.action,'await-continue');assert.deepEqual(c.state.reviewHistory,history);
 });

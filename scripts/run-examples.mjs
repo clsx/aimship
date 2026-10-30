@@ -22,14 +22,16 @@ async function makeDoc(dir,kind,parts) {
 }
 async function begin(name,authority,requirements,prdParts) {
  const dir=path.join(output,name),code=path.join(output,`${name}-code`);await fs.mkdir(path.join(dir,'source'),{recursive:true});await fs.mkdir(code);
- await fs.writeFile(path.join(dir,'source/request.md'),requirements);
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),requirements);
  if(authority==='adopted'){await fs.writeFile(path.join(dir,'source/catalog-v1.md'),'# Catalog PRD v1\nREQ-001: Sum safe nonnegative integer prices in cents. No discount in v1.\n');await fs.writeFile(path.join(dir,'source/prototype-v1.html'),'<html><body><p>Catalog total (adopted reference, outside UI implementation scope).</p></body></html>');}
 
  const kind='prd';await makeDoc(dir,kind,prdParts);
  const input={language:'en',goal:{summary:name==='single-batch'?'Normalize duplicate input lines':'Validate prices and quote discounted totals',endpoint:'Local implementation, review, independent verification and handoff'},goalRef:`${kind}.md`,documentPolicy:{authority,interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[{kind,path:`${kind}.md`,mode:'new',version:'1'}],repositories:[{id:'app',path:code,role:'Authorized synthetic implementation; no Git, exact file hashes recorded'}],stageRuns:[],next:{action:'Create technical design; no UI, HTTP or database changes'}};
+ const initNotes=`# Initialization\n\n## Original commission\n\n${requirements}\n\n## Working context\n\nLanguage: en.\nMaterials: ${authority==='adopted'?'adopted PRD/prototype copies in source/.':'the original commission above.'}\nEndpoint: ${input.goal.endpoint}.\n`;
+ await fs.writeFile(path.join(dir,'.aimship/init.md'),initNotes);
  let state=await initState(dir,input,version,runtime);
  const body=await fs.readFile(path.join(dir,`${kind}.md`),'utf8');await fs.writeFile(path.join(dir,`${kind}.md`),body.replace('pending init',state.deliveryId));
- const c={dir,code,kind,state};
+ const c={dir,code,kind,state,initNotes};
  c.save=async patch=>{c.state=await updateState(dir,patch,c.state.revision,version,runtime);assert.equal(c.state.writeResult.view.status,'current');};
  c.addDoc=async(kind,parts)=>{await makeDoc(dir,kind,parts);const file=path.join(dir,`${kind}.md`);await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace('pending init',c.state.deliveryId));await c.save({documents:[...c.state.documents,{kind,path:`${kind}.md`,mode:'new',version:'1'}]});};
  c.run=async(id,stage,result,scope,extra={})=>{
@@ -92,12 +94,12 @@ async function finish(c) {
  await c.run('handoff','handoff','handoff.md#outcomes','current goal handoff');await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md#goals',handoffRef:'handoff.md#outcomes'},currentRun:null,next:{action:'Synthetic local goal complete; preserve results'}});
  for(const doc of c.state.documents.filter(d=>d.mode==='new' && d.path.endsWith('.md'))) assert.doesNotMatch(await fs.readFile(path.join(c.dir,doc.path),'utf8'),/<a\s+id=|aimship:def|(?:REQ|AC|TC|TASK|B|REV|RUN)-[0-9]+@[0-9]+/,`Plain Markdown output: ${doc.path}`);
  const check=await inspectDocuments(c.dir,c.state);assert.deepEqual(check.issues,[]);const refs=await checkReferences(c.dir,c.state,true);assert.ok(refs.every(r=>['exists','not-checked'].includes(r.status)),JSON.stringify(refs));
- assert.equal(await fs.readFile(path.join(c.dir,'source/request.md'),'utf8'),c.request);
+ assert.equal(await fs.readFile(path.join(c.dir,'.aimship/init.md'),'utf8'),c.initNotes);assert.ok(c.initNotes.includes(c.request));
  for(const forbidden of ['implementation.md','test-plan.md','verification.md','results.md','INDEX.md','docs','sql'])assert.equal(await fs.stat(path.join(c.dir,forbidden)).then(()=>true,()=>false),false);
  return {directory:path.basename(c.dir),revision:c.state.revision,goal:c.state.outcome.goal,documents:check,referenceCount:refs.length};
 }
 const request1='Build a pure line normalizer: trim each line, omit blanks, preserve first occurrence order. Reject non-string input. Local implementation through verification only.';
-const one=await begin('single-batch','authored',request1,{info:'Original [request](source/request.md), revision 1; synthetic user instruction.',goals:'Normalize pasted line lists without I/O. Non-goals: UI, persistence, networking.',scope:'app/normalize.mjs only; one batch, then review/verify/handoff; no release.',requirements:definition('REQ-001',['AC-001'])+'REQ-001 | functional | string input | trim, omit blanks, stable distinct lines | output array | invalid type throws TypeError | source/request.md | AC-001',states:'Pure function; invalid input throws with no side effects, retry with a string.',acceptance:definition('AC-001')+'AC-001 | REQ-001 | duplicates, blanks, empty string, invalid type | normalize | expected stable list/empty list/TypeError.',arrangement:'requirements → tech-design → test-design → plan → implement one batch → combined batch+overall review → verify → handoff. No prototype/API/SQL needed.'});one.request=request1;
+const one=await begin('single-batch','authored',request1,{info:'Original [request](.aimship/init.md), revision 1; synthetic user instruction.',goals:'Normalize pasted line lists without I/O. Non-goals: UI, persistence, networking.',scope:'app/normalize.mjs only; one batch, then review/verify/handoff; no release.',requirements:definition('REQ-001',['AC-001'])+'REQ-001 | functional | string input | trim, omit blanks, stable distinct lines | output array | invalid type throws TypeError | .aimship/init.md | AC-001',states:'Pure function; invalid input throws with no side effects, retry with a string.',acceptance:definition('AC-001')+'AC-001 | REQ-001 | duplicates, blanks, empty string, invalid type | normalize | expected stable list/empty list/TypeError.',arrangement:'requirements → tech-design → test-design → plan → implement one batch → combined batch+overall review → verify → handoff. No prototype/API/SQL needed.'});one.request=request1;
 await design(one,'Split on LF; trim, drop empty, Set preserves insertion order. Reject non-string before splitting.');
 await testing(one,definition('TC-001',['AC-001'])+'TC-001 | functional/unit | import module | normalize whitespace/duplicates, empty input, invalid number | [a,b], [], TypeError | Node assertions in harness.');
 await plan(one,definition('TASK-001',['REQ-001'])+'TASK-001 | B-001 | REQ-001/AC-001 | app | normalize.mjs | pure normalization | explicit errors and stable output | planned',definition('B-001')+'Batch: no dependencies; one module.');

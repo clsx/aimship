@@ -11,7 +11,7 @@ test('scan reports linked state, internal paths and directory aliases without cl
   const scanRoot = path.join(root, 'scan'); await fs.mkdir(scanRoot);
   const modern = path.join(scanRoot, 'actual-modern');
   await fs.mkdir(path.join(modern, '.aimship'), { recursive: true });
-  const modernState = { revision:0,deliveryId:'modern-id',rulesVersion:version,goal:{summary:'Synthetic scan',endpoint:null},goalRef:'source/request.md',cycle:1,closureRefs:[],stageRuns:[],currentRun:null,openChanges:[],repositories:[],outcome:{goal:'in-progress',acceptance:'not-recorded'},next:{action:'Clarify'}, schemaVersion: 4, language:'en', reviewPolicy:1, reviewHistory:[], deliveryPolicy:{version:1}, documentPolicy:{authority:null,interaction:null,prototypeCovered:null,interface:null,databases:null}, documents: [] };
+  const modernState = { revision:0,deliveryId:'modern-id',rulesVersion:version,goal:{summary:'Synthetic scan',endpoint:null},goalRef:'.aimship/init.md',cycle:1,closureRefs:[],stageRuns:[],currentRun:null,openChanges:[],repositories:[],outcome:{goal:'in-progress',acceptance:'not-recorded'},next:{action:'Clarify'}, schemaVersion: 4, language:'en', reviewPolicy:1, reviewHistory:[], deliveryPolicy:{version:1}, documentPolicy:{authority:null,interaction:null,prototypeCovered:null,interface:null,databases:null}, documents: [] };
   await fs.writeFile(path.join(modern, '.aimship/state.json'), json(modernState));
   for (const name of ['linked-state', 'linked-internal', 'broken-state']) await fs.mkdir(path.join(scanRoot, name));
   for (const name of ['linked-state', 'broken-state']) await fs.mkdir(path.join(scanRoot, name, '.aimship'));

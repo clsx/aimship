@@ -8,22 +8,24 @@ Commands emit JSON. Errors include code/message/recovery and use a nonzero exit.
 
 Default initialization must use a distinct delivery directory under the bound dataRoot; the root itself is not a delivery. The current project or supplied-material directory is not an explicit location choice. A different user-selected directory requires init input `storage: {"mode":"explicit","decisionRef":"source/location-decision.md"}` with a nonempty readable local record of that choice. The tool validates evidence access, not the truth of the decision. Do not supply dataRoot in input. No access means report the intended location and stop saving, without falling back elsewhere. Existing deliveries outside the root remain readable and recoverable.
 
-Before init, save the nonempty original input in `source/request.md`. A concrete request needs no PRD, code or known technical conditions yet. No templates are automatically created. Minimal input:
+The first successful init receipt includes a neutral directory reminder; updates and resumes do not repeat it.
+
+Before init, save nonempty initialization notes including the original commission in `.aimship/init.md`. A concrete request needs no PRD, code or known technical conditions yet. No templates are automatically created. Minimal input:
 
 ```json
 {
   "language":"en",
-  "goal": {"summary":"Export the currently filtered orders", "endpoint":null},
-  "goalRef":"source/request.md",
+  "goal": {"summary":"Export the currently filtered orders"},
+  "goalRef":".aimship/init.md",
   "documentPolicy":{"authority":null,"interaction":null,"prototypeCovered":null,"interface":null,"databases":null},
   "documents":[],
-  "stageRuns":[{"id":"requirements-1","stage":"requirements","scope":"Order export","progress":"active","inputRefs":["source/request.md"],"outputRefs":[]}],
+  "stageRuns":[{"id":"requirements-1","stage":"requirements","scope":"Order export","progress":"active","inputRefs":[".aimship/init.md"],"outputRefs":[]}],
   "currentRun":"requirements-1",
-  "next":{"action":"Clarify export fields and acceptance criteria","inputRefs":["source/request.md"]}
+  "next":{"action":"Clarify export fields and acceptance criteria","inputRefs":[".aimship/init.md"]}
 }
 ```
 
-language and goal.summary are required in new input; absent endpoint defaults to null, goalRef to source/request.md, documents to [], and documentPolicy fields to null. Known facts may be supplied. Use `language: "zh-CN"` or `"en"`: explicit language preference takes precedence, otherwise use the delivery conversation language. This setting persists through update/render/resume and guides new formal documents; preserve original input, existing documents, filenames and machine identifiers. An explicit language update changes subsequent generated display, not existing document text. Null means unknown, while false/none/[] mean explicitly not applicable. The CLI validates saved structure, not whether the user's request is concrete or authorized; the Agent must establish that before creating records.
+language and goal.summary are required in new input; an absent or null endpoint defaults to implementation, review, independent verification and delivery acceptance in the saved language, goalRef to .aimship/init.md, documents to [], and documentPolicy fields to null. Known facts may be supplied. Use `language: "zh-CN"` or `"en"`: explicit language preference takes precedence, otherwise use the delivery conversation language. This setting persists through update/render/resume and guides new formal documents; preserve original input, existing documents, filenames and machine identifiers. An explicit language update changes subsequent generated display, not existing document text. For artifact conditions, null means unknown, while false/none/[] mean explicitly not applicable. The CLI validates saved structure, not whether the user's request is concrete or authorized; the Agent must establish that before creating records.
 
 ```sh
 node '<stable-launcher>' bind
@@ -59,7 +61,7 @@ Read/check/resume are read-only. They return view diagnostics and changed regist
 
 ## State and view recovery
 
-State writes are atomic per file and keep `.aimship/state.previous.json`. Across formal documents/state/status there is no transaction. First persist unfinished intent, edit and inspect documents, then save state. Managed document digests detect some external changes, never semantic equivalence. A changed source/request.md cannot be rebaselined by an unrelated update. Restore the preserved original before continuing; record actual requirement changes in the editable authority/change log, retaining the original input.
+State writes are atomic per file and keep `.aimship/state.previous.json`. Across formal documents/state/status there is no transaction. First persist unfinished intent, edit and inspect documents, then save state. Managed document digests detect some external changes, never semantic equivalence. Initialization notes can be maintained and saved normally; changes to business requirements still belong in the formal authority/change log and follow its review rules. Preserve the original commission within the notes.
 
 A write returns the actual state revision and `writeResult: {stateSaved:true,revision,view}`. If view status is protected/error, the JSON is already saved. Do not replay the business patch; explicitly repair:
 
@@ -87,6 +89,8 @@ Each record has `{id, kind, document, version, digest, sourceRef, summary}`. Kin
 
 `read`, `check`, and `resume` return `review.documents` with current `path`, `version`, `digest`, `selfCheck`, `approval` and status. First append a self-check of those exact bytes; after presenting the document and receiving explicit approval, append an approved record binding the same version/digest and the actual user message. Questions, silence, and “show the result” cannot be recorded as approval. A hash/source reference validates the record's content basis, **not user identity or authenticity**. Never synthesize a real approval to make an update pass.
 
+Nonblocking questions remain in their formal document with impact and resolution timing. Use `next.questionRef` only for a current blocker; approving a document does not resolve every question.
+
 Production `progress: done` may be saved while approval is pending. Starting/completing dependent runs is blocked until prerequisite completion and document approval are current. Runs default to depending on their predecessor; explicit `dependsOn: [preceding-run-ids]` supports recorded independent branches, while input/output producers and earlier selected development prerequisites also apply. The initial applicable development order is requirements, technical design, interface/SQL, test-design, plan, implement. Unselected stages are not created. Contract can produce only SQL when no interface change applies; technical design no longer requires SQL files before completion.
 
 For new `plan.md` and `testing.md`, fingerprints cover the content before the ordinary headings mapped to `execution` and `runs` respectively. Append implementation and RUN/conclusion evidence after those boundaries. Reused formats and other documents use whole-file content; remote/binary or linked-asset semantic inspection still belongs to the host/Agent. `done`, matching hashes and structural checks do not prove semantic quality.
@@ -107,7 +111,7 @@ Independent review, verify-only work or limited handoff can omit standard upstre
 
 Reviews identify their actual implementation coverage with `reviewOf: [implementationRunId, ...]`; overall review has `overall: true`. For a single batch one review may explicitly cover both. An unresolved failed review prevents standard completion even if an earlier overall review passed. A passing repair review or retest may list the superseded review/RUN result references in its existing `historyResultRefs`, preserving old failures; the Agent must verify that it actually resolves or covers them on current objects. Verification must follow the applicable overall review. Merely setting a link is not semantic evidence.
 
-`run.sessionGroup` remains advisory context, not permission to cross stages. Each stage finishes its work/self-check, saves artifacts and stops: `session.action` is await-review for required approval or await-continue for a completed stage awaiting continuation; `stop` and `suggestNewSession` make that advice explicit. A new session is recommended, not mandatory. Approval and continuation may be expressed together. This is agent interaction guidance, not interception of general-purpose tools or a new approval for non-review stages. `read/check/resume` and `writeResult.session` use the same rule. Unconfirmed saves return reconcile-save with no continuation; repair the view at the saved revision without replaying approval. Pending review never becomes approval through resume or “continue”.
+`run.sessionGroup` remains advisory context, not permission to cross stages. Each stage finishes its work/self-check, saves artifacts and stops: `session.action` is await-review for required approval or await-continue for a completed stage awaiting continuation; `stop` and `suggestNewSession` make that advice explicit. `suggestNewSession` is true only at major work boundaries: requirements to design, design/applicable contracts to test design, plan to implementation, batch review to the next batch/overall review, and overall review to independent verification. Pending review remains the current task; a suggestion never skips it. Approval and continuation may be expressed together. This is agent interaction guidance, not interception of general-purpose tools or a new approval for non-review stages. `read/check/resume` and `writeResult.session` use the same rule. Unconfirmed saves return reconcile-save with no continuation; repair the view at the saved revision without replaying approval. Pending review never becomes approval through resume or “continue”.
 
 `read` and `resume` accept optional `--delivery-id <known-id>` to reject a wrong directory binding. A directory remains required; no implicit latest-delivery lookup exists. Resume is read-only and inspects actual state, approval/content versions, references and view diagnostics; old prompts grant no approval. The Agent must additionally inspect relevant complete formal documents, actual artifacts and unfinished effects before acting.
 

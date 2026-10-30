@@ -26,8 +26,8 @@ Current deliveries require the document approval and delivery policies. Their re
 
 ## Early initialization and schema 4
 
-New initialization saves the selected language and location basis and may have only source/request.md, .aimship/state.json and status.md; technical conditions and endpoint may be null. Missing PRD at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
+New initialization saves the selected language and location basis and may have only .aimship/init.md, .aimship/state.json and status.md; technical conditions may be unknown, while the endpoint defaults to standard delivery unless explicitly limited. Missing PRD at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
 
-If source exists but state does not, inspect the original input and ownership before completing init at that location. If state exists, resume its ID instead; init deliberately rejects duplicates. A failed view or interrupted receipt never requires a second init. Inspect state then repair only the view at the saved revision, preserving manual status edits. Do not remove locks without checking that the writer stopped.
+If initialization notes or source materials exist but state does not, inspect the original input and ownership before completing init at that location. If state exists, resume its ID instead; init deliberately rejects duplicates. A failed view or interrupted receipt never requires a second init. Inspect state then repair only the view at the saved revision, preserving manual status edits. Do not remove locks without checking that the writer stopped.
 
-On resume, keep the saved language and original source/request.md. Record new intent through the formal requirements/change flow; never automatically translate or overwrite original materials.
+On resume, read the existing .aimship/init.md and saved language without creating another initialization record. Record new intent through the formal requirements/change flow; never automatically translate or overwrite original materials.

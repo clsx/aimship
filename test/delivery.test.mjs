@@ -14,8 +14,8 @@ const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).vers
 const stages=[['requirements','prd'],['tech-design','tech-design'],['test-design','testing'],['plan','plan'],['implement','plan'],['review','review'],['review','review'],['verify','testing'],['handoff','handoff']];
 async function setup(t,{partial=false,omitTests=false}={}) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-delivery-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));await fs.mkdir(path.join(dir,'source'));
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic commission only.');await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit choice: development and review only, no cases or execution; untested partial handoff.');
- const docs=[...new Set(stages.map(x=>x[1]))].filter(k=>!omitTests || k!=='testing').map(kind=>({kind,path:`${kind}.md`,version:'adopted-1',mode:'reused',basisRef:'source/request.md'}));
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission only.');await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit choice: development and review only, no cases or execution; untested partial handoff.');
+ const docs=[...new Set(stages.map(x=>x[1]))].filter(k=>!omitTests || k!=='testing').map(kind=>({kind,path:`${kind}.md`,version:'adopted-1',mode:'reused',basisRef:'.aimship/init.md'}));
  for(const d of docs)await fs.writeFile(path.join(dir,d.path),`# Synthetic adopted ${d.kind}\nFixed source and scope; inspect before reuse.\n`);
  const runs=stages.map(([stage,kind],i)=>({id:`r${i}`,stage,scope:`synthetic ${stage}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='review'?{reviewOf:['r4'],overall:i===6}:{})})).filter(r=>!omitTests || !['test-design','verify'].includes(r.stage));
  let state=await initState(dir,{language:'en',deliveryPolicy:{version:1,...(partial?{partialRef:'source/decision.md'}:{})},goal:{summary:'Synthetic delivery',endpoint:partial?'Untested development and review handoff':'Standard complete delivery'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs,stageRuns:runs,currentRun:runs[0].id},version,runtime);
@@ -77,7 +77,7 @@ test('restoring standard scope retains the partial decision and cannot hide omit
  const c=await setup(t,{partial:true,omitTests:true});
  for(const r of c.state.stageRuns)await c.finish(r.id);
  await assert.rejects(c.save({deliveryPolicy:{version:1,partialRef:null}}),{code:'INVALID_STATE'});
- await c.save({deliveryPolicy:{version:1,partialRef:null},goal:{endpoint:'Standard complete delivery',decisionRef:'source/request.md'}});
+ await c.save({deliveryPolicy:{version:1,partialRef:null},goal:{endpoint:'Standard complete delivery',decisionRef:'.aimship/init.md'}});
  assert.equal(c.state.goalHistory.at(-1).deliveryPolicy.partialRef,'source/decision.md');
  assert.ok((await checkReferences(c.dir,c.state,true)).every(r=>['exists','not-checked'].includes(r.status)));
  assert.equal((await readState(c.dir)).completion.standardComplete,false);
@@ -124,7 +124,7 @@ test('interaction delivery may complete without a selected prototype; non-review
   const count=c.state.reviewHistory.length;await c.finish(r.id);
   if(['implement','review','verify'].includes(r.stage)){
    assert.equal(c.state.reviewHistory.length,count);
-   const read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.equal(read.session.stop,true);assert.equal(read.session.suggestNewSession,true);
+   const read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.equal(read.session.stop,true);assert.equal(read.session.suggestNewSession,r.stage==='review');
   }
  }
  assert.equal((await readState(c.dir)).completion.readyForAcceptance,true);
@@ -134,7 +134,7 @@ test('a selected prototype still needs completion and its existing approval befo
  const c=await setup(t);
  await fs.writeFile(path.join(c.dir,'prototype.md'),'# Prototype\nSelected account interaction and error states.');
  const prototype={id:'prototype',stage:'prototype',scope:'Selected interaction design',progress:'planned',inputRefs:['prd.md'],outputRefs:['prototype.md']};
- await c.save({documentPolicy:{interaction:true,prototypeCovered:false},documents:[...c.state.documents,{kind:'prototype',path:'prototype.md',mode:'reused',version:'1',basisRef:'source/request.md'}],stageRuns:[c.state.stageRuns[0],prototype,...c.state.stageRuns.slice(1)]});
+ await c.save({documentPolicy:{interaction:true,prototypeCovered:false},documents:[...c.state.documents,{kind:'prototype',path:'prototype.md',mode:'reused',version:'1',basisRef:'.aimship/init.md'}],stageRuns:[c.state.stageRuns[0],prototype,...c.state.stageRuns.slice(1)]});
  await c.finish('r0');await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
  await c.save({stageRuns:c.state.stageRuns.map(r=>r.id===prototype.id?{...r,progress:'done',resultRef:'prototype.md'}:r),currentRun:prototype.id});
  await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});

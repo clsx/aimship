@@ -36,14 +36,14 @@ Choose `codex`, `cursor` or `claude-code`. To connect several tools, repeat the 
 npx aimship@preview install --host codex --host claude-code
 ```
 
-The npx package prompt confirms downloading and running the package; `install` performs the Aimship installation or upgrade. `@preview` selects the published preview channel; an exact published version, such as `@0.1.0-preview.16`, can be used instead. The preview channel is experimental and does not imply a stable release.
+The npx package prompt confirms downloading and running the package; `install` performs the Aimship installation or upgrade. `@preview` selects the published preview channel; an exact published version, such as `@0.1.0-preview.17`, can be used instead. The preview channel is experimental and does not imply a stable release.
 
 ### A specific version or local package
 
 To install an exact published version, for example:
 
 ```sh
-npx aimship@0.1.0-preview.16 install --host codex
+npx aimship@0.1.0-preview.17 install --host codex
 ```
 
 If you already have an Aimship `.tgz` package, replace `VERSION` with its actual version and run from the directory containing it:
@@ -82,7 +82,7 @@ npx aimship@preview install
 
 After upgrading, we recommend restarting your AI tool and opening a new session, then activating Aimship to reload the updated rules. Existing sessions may still retain older rules.
 
-Installation and upgrades use the same `install` command. Existing tool registrations, configuration, custom content and deliveries are retained. The installer reports previous/target versions, results and conflicts; no background updater or resident process runs. To upgrade to a specific version, for example, run `npx aimship@0.1.0-preview.16 install`. Existing installations do not need `--host` or `--data-root` repeated.
+Installation and upgrades use the same `install` command. Existing tool registrations, configuration, custom content and deliveries are retained. The installer reports previous/target versions, results and conflicts; no background updater or resident process runs. To upgrade to a specific version, for example, run `npx aimship@0.1.0-preview.17 install`. Existing installations do not need `--host` or `--data-root` repeated.
 
 <a id="add-a-host"></a>
 <a id="add-an-ai-development-tool"></a>

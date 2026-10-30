@@ -11,12 +11,12 @@ import {reviewFingerprint} from '../lib/approvals.mjs';
 import {validateState} from '../lib/state.mjs';
 const sourceRoot=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const version=JSON.parse(await fs.readFile(path.join(sourceRoot,'package.json'))).version;
-const reg=(kind,mode='new')=>({kind,path:kind+'.md',mode,version:'1',...(mode==='reused'?{basisRef:'source/request.md'}:{})});
+const reg=(kind,mode='new')=>({kind,path:kind+'.md',mode,version:'1',...(mode==='reused'?{basisRef:'.aimship/init.md'}:{})});
 async function fixture(t,docs=[reg('prd')],authority='authored') {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-consistency-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
- await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic commission explicitly selects this isolated directory. Export selected orders.');
+ await fs.mkdir(path.join(dir,'source'));await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission explicitly selects this isolated directory. Export selected orders.');
  for(const doc of docs) await fs.writeFile(path.join(dir,doc.path),await documentFixture(doc.kind));
- const input={language:'en',storage:{mode:'explicit',decisionRef:'source/request.md'},goal:{summary:'Export orders',endpoint:'Verified local changes'},goalRef:'prd.md',documentPolicy:{authority,interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs};
+ const input={language:'en',storage:{mode:'explicit',decisionRef:'.aimship/init.md'},goal:{summary:'Export orders',endpoint:'Verified local changes'},goalRef:'prd.md',documentPolicy:{authority,interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs};
  let state;
  const call=async(command,patch)=>{
   const args=[command,dir,'--rules-version',version];

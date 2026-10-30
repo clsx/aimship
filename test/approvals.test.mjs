@@ -16,7 +16,7 @@ const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
 const stage=(id,kind,progress='planned',extra={})=>({id,stage:kind,scope:'synthetic bounded work',progress,inputRefs:[],outputRefs:[],...extra});
 async function setup(t, extra={}, approvedInputs=[]) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-review-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));
- await fs.mkdir(path.join(dir,'source'));await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic review commission.');
+ await fs.mkdir(path.join(dir,'source'));await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic review commission.');
  await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit approve current document. Not a real user message.');
  await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicit commission for independent review or verification only; not a standard development delivery.');
  for(const kind of ['prd','tech-design','plan','testing','diagnosis','review']) await fs.writeFile(path.join(dir,`${kind}.md`),await documentFixture(kind));
@@ -111,7 +111,7 @@ test('approval: design-only, investigation, prototype and review-only retain the
   const c=await setup(t,{goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[reg('prd'),reg(kind)],stageRuns:[stage('only',name,'done',{resultRef:`${kind}.md#${section}`,outputRefs:[`${kind}.md`]})],currentRun:'only'},kind==='tech-design'?['prd']:[]);
   await c.approve([`${kind}.md`]);assert.equal((await readState(c.dir)).review.runs[0].ready,true);assert.equal(c.state.stageRuns.length,1);
  }
- const c=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'source/request.md'}]});
+ const c=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'.aimship/init.md'}]});
  await c.save({stageRuns:[{...c.state.stageRuns[0],progress:'done',outputRefs:['review.md'],resultRef:'review.md'}]});assert.equal((await readState(c.dir)).review.runs[0].ready,true);
 });
 test('approval: test cases must precede plan and final goal cannot bypass outstanding approval',async t=>{
@@ -124,7 +124,7 @@ test('approval: prototype assets are bound and verify-only does not invent upstr
  await c.save({documents:[...c.state.documents,{kind:'prototype',path:'prototype/index.html',mode:'new',version:'1',assetRefs:['prototype/screen.bin']}],stageRuns:[stage('prototype','prototype','done',{outputRefs:['prototype/index.html'],resultRef:'prototype/index.html'})],currentRun:'prototype'});
  await c.approve(['prototype/index.html']);assert.equal((await readState(c.dir)).review.runs[0].ready,true);
  await fs.writeFile(path.join(c.dir,'prototype/screen.bin'),Buffer.from([0xfe,0x00]));assert.equal((await readState(c.dir)).review.runs[0].ready,false);
- const v=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'source/request.md'}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
+ const v=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'.aimship/init.md'}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
  await v.save({stageRuns:[{...v.state.stageRuns[0],progress:'done',outputRefs:['testing.md'],resultRef:'testing.md'}]});assert.equal(v.state.stageRuns.length,1);assert.equal((await readState(v.dir)).review.runs[0].ready,true);
 });
 test('approval: fresh approval cannot hide a material revision without CHG/version and source evidence remains inspectable',async t=>{

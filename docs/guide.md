@@ -47,7 +47,7 @@ The delivery directory contains these materials:
 ~/Aimship/                         # Materials root
 └── 20261027-login-signup/          # Example delivery directory
     ├── status.md                  # Current work, pending reviews, next action
-    ├── source/request.md          # Original request
+    ├── .aimship/init.md           # Initialization context for the AI
     ├── prd.md                     # Requirements and acceptance criteria
     ├── prototype/index.html       # Page interaction prototype
     ├── tech-design.md             # Technical design
@@ -76,7 +76,7 @@ Materials develop gradually and are kept as needed. Search readable REQ, AC and 
 
 Follow sign-up and login from requirements to acceptance. **This is fictional practice; wording and business choices need not be copied.** The example later supplies a project and isolated test database, with prototype review after requirements and before technical design. Actual prototype placement follows the delivery's needs.
 
-Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended, not required. AI-authored or substantively revised reviewable documents await approval; concrete unresolved questions await clarification; other completed stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
+Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended at major work transitions, not after every stop. AI-authored or substantively revised reviewable documents await approval; questions affecting current work await clarification; other completed stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
 
 <a id="11-prepare-a-workspace"></a>
 <a id="12-activate-aimship-and-describe-the-request"></a>
@@ -96,13 +96,15 @@ Use one Aimship entry within a session; no invocation is needed at every stage. 
 
 **User actions:** Explicitly request Aimship and state the goal. For example:
 
-> Use Aimship for username/password sign-up, login, logout and a home page requiring login. Complete development and local verification, without deployment; I will supply code later.
+> Use Aimship for username/password sign-up, login, logout and a home page requiring login. Complete development and local verification; I will supply code later.
 
 For existing prototypes, PRDs or other documents, supply their original locations; originals stay in place and you need not copy them manually. Following the source rules, the AI retains copies of the formally adopted versions and necessary dependencies under this delivery's `source/` and records the adoption basis in the existing source record. Materials consulted only as background need not be copied in full. Before later revisions, identify the editable artifact; new versions do not overwrite earlier evidence.
 
 **AI processing:** Determines the delivery directory and checks access, preserves the request, creates or resumes the delivery, and reports the actual saved directory, current work and next action. It starts requirement intake on the standard sequence without a full-delivery/design-only/init-only choice; explicit limits or pauses are respected. If access is unavailable, it asks you to add that directory or grant access; it does not relocate the delivery into the workspace.
 
-**Outputs:** `source/request.md` preserves your words; `status.md` shows progress. For a new delivery, the AI saves your preferred language, or otherwise the language of the current conversation. Status and new documents use that language; filenames, IDs, original sources and existing documents remain unchanged.
+The standard endpoint is implementation, review, independent verification and delivery acceptance; no extra scope choice is needed. On initialization, the AI reminds you to add the actual delivery directory to your current project/workspace, ignoring the reminder if already added.
+
+**Outputs:** `.aimship/init.md` keeps the original commission, material locations and initialization context for the AI; `status.md` shows the full stage sequence and statuses, current position, pending documents, blocking questions and next action. For a new delivery, the AI saves your preferred language, or otherwise the language of the current conversation. Status and new documents use that language; filenames, IDs, original sources and existing documents remain unchanged.
 
 <a id="14-read-the-document-and-give-a-decision"></a>
 <a id="15-continue-after-approval"></a>
@@ -230,7 +232,7 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **AI processing:** Summarizes results and remaining work, and records your actual acceptance decision. Complete delivery needs evidence of required document approvals, batch/overall review, independent verification and final acceptance.
 
-**Outputs:** `handoff.md` provides result locations, usage, verification conclusions and merge/deployment status. Earlier document approvals do not replace acceptance, and completed development does not mean deployed.
+**Outputs:** `handoff.md` provides result locations, usage, verification conclusions and integration status. Earlier document approvals do not replace final acceptance.
 
 <a id="guide-sessions"></a>
 
@@ -254,7 +256,11 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 2.1 When to switch sessions
 
-At each completed stage, follow the stop in `status.md`: approve or give feedback on pending documents, or ask to continue completed work. A new session is recommended but optional; “continue” does not approve a pending document. The page prioritizes current actions and shows future stages as not started, not current defects.
+Consider a new session after requirements before technical design, after design and applicable contracts before test design, after the plan before implementation, after each batch and its review, and after overall review before independent verification. Combine coinciding boundaries. Resume pending review before advancing; directory creation and small steps within a stage need no session change.
+
+Review open questions with their document, including impact, recommendation and when an answer is needed. Nonblocking questions can remain open; document approval does not answer every question.
+
+At each completed stage, follow the stop in `status.md`: approve or give feedback on pending documents, or ask to continue completed work. Changing sessions is optional; “continue” does not approve a pending document. The page prioritizes current actions and shows future stages as not started, not current defects.
 
 See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. The saved delivery language carries over. If switching before the first save, carry the unsaved request, intended location and pending operations.
 
@@ -306,7 +312,7 @@ For prior discussion, say “Use Aimship to continue the requirements we just di
 
 Explain what changes, why, and what stays the same; identify any documents you edited yourself. The AI records important changes in `change-log.md`. Newly supplied unchanged inputs are checked and adopted; affected AI outputs are resubmitted for review before dependent work continues. Unaffected work, earlier approvals and test history remain.
 
-Record new requests in requirements and the change log, without overwriting `source/request.md`. Restore accidental edits from a reliable original; if none exists, pause to resolve the gap. Typos and formatting need no full re-review. Small fixes can continue the same delivery; a new goal or major redesign gets a separate delivery linked to the original.
+Maintain initialization details normally, preserving the original commission in `.aimship/init.md`; record new requirements in the PRD and change log. Typos and formatting need no full re-review. Small fixes can continue the same delivery; a new goal or major redesign gets a separate delivery linked to the original.
 
 <a id="guide-limits"></a>
 <a id="27-stop-at-a-limited-goal"></a>

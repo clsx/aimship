@@ -28,6 +28,6 @@ Reasons, meaningful alternatives, compatibility and remaining risks. Keep busine
 
 ## Requirement coverage and questions
 
-REQ/AC to module/operation/SQL section and unresolved Q. Replace guidance with actual content; explain inapplicability, never prefill a result.
+REQ/AC to module/operation/SQL section. For unresolved business or technical questions, state the impact, recommendation and latest point needing an answer. Review these with the document; carry forward questions that do not affect the next work. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 <!-- Review guidance: retain the fixed outline. Technical design precedes interface/SQL production; test cases precede planning. Self-check and explicit document approval are separate from stage done. For plan/testing, keep execution records after execution/runs respectively. -->

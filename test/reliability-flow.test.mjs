@@ -13,9 +13,9 @@ const definitions=[['req','requirements','prd'],['design','tech-design','tech-de
 async function setup(t,{selected=definitions,partial=false}={}) {
  const dataRoot=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-reliability-flow-'))),dir=path.join(dataRoot,'delivery');
  t.after(()=>fs.rm(dataRoot,{recursive:true,force:true}));await fs.mkdir(path.join(dir,'source'),{recursive:true});
- await fs.writeFile(path.join(dir,'source/request.md'),'Synthetic fixture request only; no actual business work or approval.');
+ await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic fixture request only; no actual business work or approval.');
  await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicitly limited commission, not standard complete delivery.');
- const docs=[...new Set(selected.map(x=>x[2]))].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'synthetic-1',basisRef:'source/request.md'}));
+ const docs=[...new Set(selected.map(x=>x[2]))].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'synthetic-1',basisRef:'.aimship/init.md'}));
  for(const doc of docs)await fs.writeFile(path.join(dir,doc.path),`# Synthetic adopted ${doc.kind}\n`+['rev1','rev2','overall','repair','independent'].map(id=>`## ${id}\nSynthetic evidence for ${id}.\n`).join(''));
  const stageRuns=selected.map(([id,stage,kind])=>({id,stage,scope:`Synthetic ${id}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='review' && ['rev1','rev2','overall'].includes(id)?{reviewOf:id==='overall'?['imp1','imp2']:[id==='rev1'?'imp1':'imp2'],overall:id==='overall'}:{})}));
  const runtime={version,activeVersion:version,dataRoot};
