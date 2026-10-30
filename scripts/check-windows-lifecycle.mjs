@@ -144,10 +144,11 @@ try {
     await healthy(upgrade, '0.1.0-preview.16');
     upgradeRetained = await retainedFiles(upgrade, dataRoot);
     const delivery = path.join(dataRoot, 'order export');
-    await fs.mkdir(path.join(delivery, '.aimship'), { recursive: true });
-    const request = path.join(delivery, '.aimship/init.md');
+    // .16 predates .17's .aimship/init.md initialization record.
+    await fs.mkdir(path.join(delivery, 'source'), { recursive: true });
+    const request = path.join(delivery, 'source/request.md');
     await fs.writeFile(request, 'Synthetic request: export filtered orders.');
-    const state = launcher('CLI init .16', upgrade, ['init', delivery, '--rules-version', '0.1.0-preview.16', '--input', '-'], { language: 'en', goal: { summary: 'Export filtered orders' }, stageRuns: [{ id: 'requirements', stage: 'requirements', scope: 'Clarify export columns', progress: 'active', inputRefs: ['.aimship/init.md'], outputRefs: [] }], currentRun: 'requirements' });
+    const state = launcher('CLI init .16', upgrade, ['init', delivery, '--rules-version', '0.1.0-preview.16', '--input', '-'], { language: 'en', goal: { summary: 'Export filtered orders' }, stageRuns: [{ id: 'requirements', stage: 'requirements', scope: 'Clarify export columns', progress: 'active', inputRefs: ['source/request.md'], outputRefs: [] }], currentRun: 'requirements' });
     const updated = launcher('CLI state update .16', upgrade, ['update', delivery, '--revision', String(state.revision), '--rules-version', '0.1.0-preview.16', '--input', '-'], { next: { action: 'Clarify export columns' } });
     assert.equal(updated.revision, state.revision + 1);
     const resumed = launcher('CLI separate-process resume .16', upgrade, ['resume', delivery, '--rules-version', '0.1.0-preview.16']);

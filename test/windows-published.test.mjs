@@ -18,7 +18,10 @@ test('Windows official published-package lifecycle', { timeout: 600_000 }, async
     const result = spawnSync(process.execPath, [path.join(root, 'scripts/check-windows-lifecycle.mjs'), output, process.env.npm_execpath], { cwd: root, encoding: 'utf8', timeout: 570_000, maxBuffer: 16 * 1024 * 1024 });
     console.log(result.stdout); console.log(result.stderr);
     const report = await fs.readFile(path.join(output, 'report.json'), 'utf8');
-    console.log('WINDOWS_LIFECYCLE_REPORT_JSON ' + JSON.stringify(JSON.parse(report)));
+    // TAP escapes backslashes in console messages. Base64 chunks preserve the
+    // exact JSON bytes and avoid oversized single log lines on Actions.
+    const encoded = Buffer.from(report).toString('base64');
+    for (let offset = 0; offset < encoded.length; offset += 4000) console.log('WINDOWS_LIFECYCLE_REPORT_BASE64 ' + encoded.slice(offset, offset + 4000));
     assert.equal(result.error, undefined, result.error?.message);
     assert.equal(result.status, 0, result.stderr);
   } finally { await fs.rm(temporary, { recursive: true, force: true }); }
@@ -33,6 +36,7 @@ test('Windows complete synthetic delivery examples', { timeout: 180_000 }, async
     console.log(result.stdout); console.log(result.stderr);
     assert.equal(result.error, undefined, result.error?.message);
     assert.equal(result.status, 0, result.stderr);
-    console.log('WINDOWS_EXAMPLES_REPORT_JSON ' + JSON.stringify(JSON.parse(await fs.readFile(path.join(output, 'summary.json'), 'utf8'))));
+    const encoded = (await fs.readFile(path.join(output, 'summary.json'))).toString('base64');
+    for (let offset = 0; offset < encoded.length; offset += 4000) console.log('WINDOWS_EXAMPLES_REPORT_BASE64 ' + encoded.slice(offset, offset + 4000));
   } finally { await fs.rm(temporary, { recursive: true, force: true }); }
 });

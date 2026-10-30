@@ -83,7 +83,11 @@ test('independent review work is not blocked by an unrelated failed review',asyn
 
 test('last registered approved requirements remain resumable until a scope conclusion is recorded',async t=>{
  const c=await setup(t,{selected:definitions.slice(0,1),partial:true});await c.finish('req',null);
- let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'await-continue');assert.match(read.session.instruction,/Say “continue” when ready/);assert.ok(read.session.continuation.includes(c.dir));
+ let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'await-continue');assert.match(read.session.instruction,/Say “continue” when ready/);
+ // English continuation quotes the directory as a JSON string. Decode it so
+ // Windows backslashes are compared as a path, not as escaped display bytes.
+ const quotedDirectory=read.session.continuation.match(/delivery ("(?:[^"\\]|\\.)*")/);
+ assert.ok(quotedDirectory,'Continuation must identify the delivery directory');assert.equal(JSON.parse(quotedDirectory[1]),c.dir);
  for(const command of ['read','check','resume']) {
   const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version],{encoding:'utf8',timeout:10000});assert.equal(result.status,0,result.stderr);
   const data=JSON.parse(result.stdout).data;assert.equal(data.session.action,'await-continue');assert.notEqual(data.session.continuation,null);
