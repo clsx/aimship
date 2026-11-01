@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { releaseFiles } from '../lib/install.mjs';
-import { assertForwardTags, syncTags } from './release-tags.mjs';
+import { assertForwardTags, assertSynchronizedTags, publicationTag, releaseKind, syncTags } from './release-tags.mjs';
 
 export const registry = 'https://registry.npmjs.org';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -14,13 +14,14 @@ const requireThat = (condition, message) => { if (!condition) throw new Error(me
 
 export function validateContext(env, pkg, head) {
   const tag = env.RELEASE_TAG;
-  requireThat(/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)-preview\.(?:0|[1-9]\d*)$/.test(tag ?? ''), 'Only exact vX.Y.Z-preview.N tags are allowed.');
+  requireThat(typeof tag === 'string' && tag.startsWith('v'), 'An exact vX.Y.Z or vX.Y.Z-preview.N tag is required.');
+  const kind = releaseKind(tag.slice(1));
   requireThat(env.GITHUB_EVENT_NAME === 'workflow_dispatch' && env.GITHUB_REPOSITORY === 'clsx/aimship', 'Only manual dispatch in clsx/aimship is allowed.');
   requireThat(env.GITHUB_REF === `refs/tags/${tag}`, 'Dispatch ref must be the input tag, not main or another tag.');
   requireThat(/^[a-f0-9]{40}$/.test(head) && head === env.GITHUB_SHA, 'Checkout must match the dispatched commit.');
   requireThat(pkg.name === 'aimship' && pkg.version === tag.slice(1), 'Package name/version must match the release tag.');
-  requireThat(pkg.publishConfig?.registry === registry && pkg.publishConfig?.tag === 'preview' && pkg.publishConfig?.access === 'public', 'Unexpected publication configuration.');
-  return { tag, version: pkg.version, commit: head };
+  requireThat(pkg.publishConfig?.registry === registry && pkg.publishConfig?.tag === (kind === 'stable' ? 'latest' : 'preview') && pkg.publishConfig?.access === 'public', 'Unexpected publication configuration.');
+  return { tag, version: pkg.version, kind, commit: head };
 }
 
 export function publicationDecision(packument, manifest) {
@@ -102,7 +103,7 @@ async function publish(directory, verifyOnly = false) {
   if (verifyOnly) requireThat(decision === 'already-published', 'Version has not been published.');
   else if (decision === 'publish') {
     // No retry here: an uncertain npm outcome must be checked against the registry first.
-    command('npm', ['publish', file, '--registry', registry, '--tag', 'latest', '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
+    command('npm', ['publish', file, '--registry', registry, '--tag', publicationTag(release.version), '--access', 'public', '--provenance', '--ignore-scripts'], { stdio: 'inherit' });
   }
   // npm accepts a publication before asynchronous processing makes it visible.
   let after = await waitForRegistry(manifest);
@@ -114,7 +115,7 @@ async function publish(directory, verifyOnly = false) {
   const attestations = await get(dist.attestations.url);
   requireThat(Array.isArray(attestations.attestations) && attestations.attestations.some(item => item.predicateType === 'https://slsa.dev/provenance/v1'), 'SLSA provenance was not returned.');
   if (!verifyOnly) after = await synchronize(release.version, manifest.integrity);
-  requireThat(after['dist-tags'].latest === release.version && after['dist-tags'].preview === release.version, 'Release tags have not both been synchronized.');
+  assertSynchronizedTags(after, release.version);
   const result = { ...manifest, registryStatus: 'verified', distTags: after['dist-tags'], tarball: dist.tarball, attestations: dist.attestations.url };
   await fs.writeFile(path.join(directory, 'published.json'), JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result, null, 2));
@@ -134,7 +135,8 @@ export function validateSyncContext(env, pkg, head, commit) {
 
 async function synchronizeExisting(directory, checkOnly) {
   const tag = process.env.RELEASE_TAG;
-  requireThat(/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)-preview\.(?:0|[1-9]\d*)$/.test(tag ?? ''), 'An exact preview tag is required.');
+  requireThat(typeof tag === 'string' && tag.startsWith('v'), 'An exact release tag is required.');
+  releaseKind(tag.slice(1));
   const head = command('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const commit = command('git', ['rev-parse', `refs/tags/${tag}^{commit}`], { encoding: 'utf8' }).trim();
   const pkg = JSON.parse(command('git', ['show', `${commit}:package.json`], { encoding: 'utf8' }));

@@ -402,7 +402,7 @@ For duplicate entries, check their sources and versions while preserving custom 
 
 Save current work before [upgrading through the README](../README.md#update). Activate Aimship again afterward and check the actual bound version and delivery state; installation itself does not update delivery records.
 
-Use ordinary Markdown and searchable numbers to record delivery. Check the impact of rule changes and preserve actual approvals and test records without inventing results.
+Compatible protocol updates preserve existing documents and approvals of unchanged content; the next normal save records the current software version. Preview 17/18 states have a verified mapping. Unknown protocols remain blocked. If installation reports a breaking or unverified switch, finish ongoing deliveries before upgrading; accepting that risk never bypasses delivery-state protection. Use ordinary Markdown and searchable numbers, preserve actual test records and inspect the impact of substantive changes.
 
 <a id="45-installation-and-maintenance-references"></a>
 <a id="installation-and-maintenance-references"></a>

@@ -1,6 +1,6 @@
 {
   "name": "aimship",
-  "version": "0.1.0-preview.18",
+  "version": "0.1.0-preview.19",
   "description": "Explicit, goal-driven delivery workflow for coding agents",
   "license": "MIT",
   "type": "module",
@@ -41,5 +41,8 @@
   "bugs": {
     "url": "https://github.com/clsx/aimship/issues"
   },
-  "homepage": "https://github.com/clsx/aimship#readme"
+  "homepage": "https://github.com/clsx/aimship#readme",
+  "aimship": {
+    "protocolVersion": 1
+  }
 }

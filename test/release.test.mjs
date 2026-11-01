@@ -12,9 +12,9 @@ const head = 'a'.repeat(40);
 const env = { RELEASE_TAG: 'v0.1.0-preview.9', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_REPOSITORY: 'clsx/aimship', GITHUB_REF: 'refs/tags/v0.1.0-preview.9', GITHUB_SHA: head };
 const pkg = { name: 'aimship', version: '0.1.0-preview.9', publishConfig: { registry, tag: 'preview', access: 'public' } };
 
-test('release context requires manual exact preview tag, repository, commit and package configuration', () => {
+test('release context requires manual exact preview/formal tag, repository, commit and package configuration', () => {
   assert.equal(validateContext(env, pkg, head).version, pkg.version);
-  for (const tag of ['v0.1.0', 'v0.1.0-beta.1', 'v0.1.0-preview.01', 'v0.1.0-preview.9;echo bad', '', undefined]) assert.throws(() => validateContext({ ...env, RELEASE_TAG: tag }, pkg, head));
+  for (const tag of ['v0.1.0-rc.1', 'v0.1.0-beta.1', 'v0.1.0-preview.01', 'v0.1.0-preview.9;echo bad', '', undefined]) assert.throws(() => validateContext({ ...env, RELEASE_TAG: tag }, pkg, head));
   for (const patch of [{ GITHUB_REF: 'refs/heads/main' }, { GITHUB_REF: 'refs/tags/v0.1.0-preview.8' }, { GITHUB_REPOSITORY: 'other/aimship' }, { GITHUB_EVENT_NAME: 'push' }, { GITHUB_SHA: 'b'.repeat(40) }]) assert.throws(() => validateContext({ ...env, ...patch }, pkg, head));
   for (const patch of [{ name: 'other' }, { version: '0.1.0-preview.8' }, { publishConfig: { ...pkg.publishConfig, tag: 'latest' } }, { publishConfig: { ...pkg.publishConfig, registry: 'https://example.com' } }, { publishConfig: { ...pkg.publishConfig, access: 'restricted' } }]) assert.throws(() => validateContext(env, { ...pkg, ...patch }, head));
 });
@@ -49,7 +49,9 @@ test('post-publication verification tolerates asynchronous registry visibility w
   const conflicting = structuredClone(complete); conflicting.versions[manifest.version].dist.integrity = 'sha512-other';
   await assert.rejects(waitForRegistry(manifest, { read: async () => conflicting, pause: async () => assert.fail('must not retry conflicting bytes') }), /different package bytes/);
   const changedLatest = structuredClone(complete); changedLatest['dist-tags'].latest = '0.1.0';
-  await assert.rejects(waitForRegistry(manifest, { read: async () => changedLatest }), /roll back latest/);
+  assert.equal(await waitForRegistry(manifest, {read:async()=>changedLatest}),changedLatest,'a formal latest is preserved, not treated as a preview rollback');
+  changedLatest['dist-tags'].preview='0.1.0-preview.10';
+  await assert.rejects(waitForRegistry(manifest,{read:async()=>changedLatest}),/roll back preview/);
 });
 
 test('release package compares actual tar members and bytes with source and rejects tampering', async t => {
@@ -87,4 +89,12 @@ test('preview workflow keeps publication manual, separately permissioned, and us
   assert.doesNotMatch(workflow, /contents: write|NODE_AUTH_TOKEN|NPM_TOKEN|secrets\./);
   assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, 3);
   for (const line of workflow.split('\n').filter(line => line.includes('uses:'))) assert.match(line, /@[a-f0-9]{40} # v\d/);
+});
+
+
+test('formal context accepts unsuffixed versions with latest publication configuration only',()=>{
+ const stable={...pkg,version:'0.1.0',publishConfig:{...pkg.publishConfig,tag:'latest'}},input={...env,RELEASE_TAG:'v0.1.0',GITHUB_REF:'refs/tags/v0.1.0'};
+ assert.equal(validateContext(input,stable,head).kind,'stable');
+ assert.throws(()=>validateContext(input,{...stable,publishConfig:pkg.publishConfig},head),/configuration/);
+ assert.throws(()=>validateContext({...input,RELEASE_TAG:'v0.1.0-rc.1',GITHUB_REF:'refs/tags/v0.1.0-rc.1'},{...stable,version:'0.1.0-rc.1'},head),/Unsupported/);
 });

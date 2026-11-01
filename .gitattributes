@@ -1,0 +1,2 @@
+# Approval and view fixtures contain byte digests; preserve their original LF bytes.
+/test/fixtures/** text eol=lf

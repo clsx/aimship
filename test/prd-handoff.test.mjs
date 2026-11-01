@@ -170,6 +170,6 @@ test('normal render preserves identity and stored next action; wording correctio
  assert.doesNotMatch(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/是否按标准流程继续/);
  assert.equal((await readState(c.dir)).review.canProceed,false);
  const saved=await fs.readFile(path.join(c.dir,'.aimship/state.json'));
- await assert.rejects(renderState(c.dir,c.state.revision,'different-version',{...runtime,version:'different-version',activeVersion:'different-version'}),{code:'VERSION_MISMATCH'});
+ await assert.rejects(renderState(c.dir,c.state.revision,'different-version',{...runtime,activeVersion:'different-version'}),{code:'VERSION_MISMATCH'});
  assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),saved);
 });

@@ -23,7 +23,7 @@ async function fixture(t) {
   await fs.writeFile(path.join(skill, 'SKILL.md'), '---\nname: aimship\ndisable-model-invocation: true\n---\nRun "{{AIMSHIP_NODE}}" "{{AIMSHIP_LAUNCHER}}" bind.\nRead [core](references/core.md).\n');
   await fs.writeFile(path.join(skill, 'references/core.md'), '# Synthetic lifecycle rules\n');
   await fs.writeFile(path.join(skill, 'agents/openai.yaml'), 'policy:\n  allow_implicit_invocation: false\n');
-  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version: VERSION, private: true, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
+  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version: VERSION, private: true, aimship:{protocolVersion:1}, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
   return { root, source, home, p: installPaths(home) };
 }
 function cli(file, args) {

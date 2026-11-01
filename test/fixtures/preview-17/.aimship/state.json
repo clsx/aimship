@@ -1,0 +1,329 @@
+{
+  "goalRef": "prd.md",
+  "documentPolicy": {
+    "authority": "authored",
+    "interaction": false,
+    "prototypeCovered": false,
+    "interface": "none",
+    "databases": []
+  },
+  "documents": [
+    {
+      "kind": "prd",
+      "path": "prd.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "tech-design",
+      "path": "tech-design.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "testing",
+      "path": "testing.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "plan",
+      "path": "plan.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "review",
+      "path": "review.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "handoff",
+      "path": "handoff.md",
+      "mode": "new",
+      "version": "1"
+    }
+  ],
+  "deliveryPolicy": {
+    "version": 1
+  },
+  "reviewPolicy": 1,
+  "reviewHistory": [
+    {
+      "document": "prd.md",
+      "version": "1",
+      "digest": "ca3040fa92a2dc74b3b8383fd32e37aa325aaaaaac36ea2c22a228d0bc4fce4d",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-1",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "prd.md",
+      "version": "1",
+      "digest": "ca3040fa92a2dc74b3b8383fd32e37aa325aaaaaac36ea2c22a228d0bc4fce4d",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-2",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "tech-design.md",
+      "version": "1",
+      "digest": "bd39d88f423ae20d8544caa4bf0ca6c429978255a217ad0f78731d1e0e623a51",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-3",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "tech-design.md",
+      "version": "1",
+      "digest": "bd39d88f423ae20d8544caa4bf0ca6c429978255a217ad0f78731d1e0e623a51",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-4",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "testing.md",
+      "version": "1",
+      "digest": "b66af650e2776f61f22dd6642ed979c57b6f507a81862eb2d6c5dbb9bfd83f2d",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-5",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "testing.md",
+      "version": "1",
+      "digest": "b66af650e2776f61f22dd6642ed979c57b6f507a81862eb2d6c5dbb9bfd83f2d",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-6",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "plan.md",
+      "version": "1",
+      "digest": "a957311b54678863acd4358c74d695c31500c2d59f2eeea32d7cfea946438aa9",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-7",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "plan.md",
+      "version": "1",
+      "digest": "a957311b54678863acd4358c74d695c31500c2d59f2eeea32d7cfea946438aa9",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-8",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    }
+  ],
+  "cycle": 1,
+  "closureRefs": [],
+  "stageRuns": [
+    {
+      "id": "req",
+      "stage": "requirements",
+      "scope": "Synthetic req",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "prd.md"
+      ],
+      "sessionGroup": "requirements",
+      "result": "passed",
+      "resultRef": "prd.md#requirements"
+    },
+    {
+      "id": "design",
+      "stage": "tech-design",
+      "scope": "Synthetic design",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "tech-design.md"
+      ],
+      "sessionGroup": "technical",
+      "result": "passed",
+      "resultRef": "tech-design.md#coverage"
+    },
+    {
+      "id": "cases",
+      "stage": "test-design",
+      "scope": "Synthetic cases",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "testing.md"
+      ],
+      "sessionGroup": "test-design",
+      "result": "passed",
+      "resultRef": "testing.md#cases"
+    },
+    {
+      "id": "plan",
+      "stage": "plan",
+      "scope": "Synthetic plan",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "plan.md"
+      ],
+      "sessionGroup": "plan",
+      "result": "passed",
+      "resultRef": "plan.md#tasks"
+    },
+    {
+      "id": "imp1",
+      "stage": "implement",
+      "scope": "Synthetic imp1",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "plan.md"
+      ],
+      "sessionGroup": "implement:imp1",
+      "result": "passed",
+      "resultRef": "plan.md#execution"
+    },
+    {
+      "id": "rev1",
+      "stage": "review",
+      "scope": "Synthetic rev1",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "review.md"
+      ],
+      "reviewOf": [
+        "imp1"
+      ],
+      "overall": false,
+      "sessionGroup": "implement:imp1",
+      "result": "passed",
+      "resultRef": "review.md#REV-001"
+    },
+    {
+      "id": "imp2",
+      "stage": "implement",
+      "scope": "Synthetic imp2",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "plan.md"
+      ],
+      "sessionGroup": "implement:imp2",
+      "result": "passed",
+      "resultRef": "plan.md#execution"
+    },
+    {
+      "id": "rev2",
+      "stage": "review",
+      "scope": "Synthetic rev2",
+      "progress": "done",
+      "inputRefs": [],
+      "outputRefs": [
+        "review.md"
+      ],
+      "reviewOf": [
+        "imp2"
+      ],
+      "overall": false,
+      "sessionGroup": "implement:imp2",
+      "result": "passed",
+      "resultRef": "review.md#REV-002"
+    },
+    {
+      "id": "overall",
+      "stage": "review",
+      "scope": "Synthetic overall",
+      "progress": "planned",
+      "inputRefs": [],
+      "outputRefs": [
+        "review.md"
+      ],
+      "reviewOf": [
+        "imp1",
+        "imp2"
+      ],
+      "overall": true,
+      "sessionGroup": "review:overall"
+    },
+    {
+      "id": "verify",
+      "stage": "verify",
+      "scope": "Synthetic verify",
+      "progress": "planned",
+      "inputRefs": [],
+      "outputRefs": [
+        "testing.md"
+      ],
+      "sessionGroup": "verify:verify"
+    },
+    {
+      "id": "handoff",
+      "stage": "handoff",
+      "scope": "Synthetic handoff",
+      "progress": "planned",
+      "inputRefs": [],
+      "outputRefs": [
+        "handoff.md"
+      ],
+      "sessionGroup": "handoff:handoff"
+    }
+  ],
+  "currentRun": "rev2",
+  "openChanges": [],
+  "repositories": [],
+  "outcome": {
+    "goal": "in-progress",
+    "acceptance": "not-recorded"
+  },
+  "next": {
+    "action": "Clarify the request and prepare requirements for review.",
+    "inputRefs": [
+      ".aimship/init.md"
+    ]
+  },
+  "language": "en",
+  "goal": {
+    "summary": "Synthetic selected-order export",
+    "endpoint": "Implementation, review, independent verification and delivery acceptance."
+  },
+  "schemaVersion": 4,
+  "revision": 12,
+  "deliveryId": "feeeb499-af09-4f73-8cc7-03837cc48874",
+  "rulesVersion": "0.1.0-preview.17",
+  "createdAt": "2026-11-01T09:28:00.837Z",
+  "updatedAt": "2026-11-01T09:28:01.174Z",
+  "documentDigests": {
+    ".aimship/init.md": "5f06618803f2e5bd2157fd4e73d581cd7d74a5821101b62c9de43349a8795809",
+    "prd.md": "ca3040fa92a2dc74b3b8383fd32e37aa325aaaaaac36ea2c22a228d0bc4fce4d",
+    "tech-design.md": "bd39d88f423ae20d8544caa4bf0ca6c429978255a217ad0f78731d1e0e623a51",
+    "testing.md": "30537c2677c43b2e2bb09c59ca760794c8a7cc28661f8b7d75e9259a4522996c",
+    "plan.md": "e5ea7172beb395ff7b2cb8ff66e657e6ea12302f8e8c45d1ee2a8d030899da19",
+    "review.md": "e64e689f5db85688765e23baf16da40ac376c02d92bc39c46eaab066b17385b1",
+    "handoff.md": "33eb5115b44275e96ec7e1afea1e51900b34842fc3ce1576a299a3abb18b7914"
+  }
+}

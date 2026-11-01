@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { assertForwardTags, syncTags } from '../scripts/release-tags.mjs';
+import { assertForwardTags, assertSynchronizedTags, publicationTag, releaseKind, syncTags } from '../scripts/release-tags.mjs';
 import { validateSyncContext, registry } from '../scripts/release-preview.mjs';
 
 const version = '0.1.0-preview.9', integrity = 'sha512-example';
@@ -11,7 +11,7 @@ test('release ordering prevents either tag rollback including stable and numeric
   assert.doesNotThrow(() => assertForwardTags(metadata(), version));
   assert.doesNotThrow(() => assertForwardTags(metadata(), '0.1.0-preview.10'));
   for (const tag of ['latest', 'preview']) {
-    for (const newer of ['0.1.0-preview.10', '0.1.0', '0.2.0-preview.1', '1.0.0']) {
+    for (const newer of (tag === 'latest' ? ['0.1.0-preview.10', '0.2.0-preview.1'] : ['0.1.0-preview.10', '0.1.0', '0.2.0-preview.1', '1.0.0'])) {
       const current = metadata(); current['dist-tags'][tag] = newer;
       assert.throws(() => assertForwardTags(current, version), /roll back/);
     }
@@ -21,7 +21,8 @@ test('release ordering prevents either tag rollback including stable and numeric
     assert.throws(() => assertForwardTags(current, version), /Unsupported/);
   }
   assert.throws(() => assertForwardTags({}, version), /Incomplete/);
-  assert.throws(() => assertForwardTags(metadata(), '0.1.0'), /Only preview/);
+  assert.doesNotThrow(() => assertForwardTags(metadata(), '0.1.0'));
+  assert.throws(() => releaseKind('0.1.0-rc.1'), /Unsupported/);
 });
 
 test('tag synchronization writes only missing tags and repeat runs perform no writes', async () => {
@@ -80,4 +81,27 @@ test('sync workflow separates read-only validation from OIDC and never invokes p
   assert.match(sync, /npm@11\.21\.0/); assert.match(sync, /fetch-depth: 0/);
   assert.match(sync, /release-preview\.mjs sync-tags/);
   assert.doesNotMatch(sync, /npm publish|release-preview\.mjs publish|contents: write|secrets\./);
+});
+
+
+test('first and later formal releases advance only latest and preserve the opt-in preview',async()=>{
+ for(const [prior,target] of [['0.1.0-preview.18','0.1.0'],['0.1.0','0.1.1']]) {
+  const current={name:'aimship',versions:{[target]:{dist:{integrity}}},'dist-tags':{latest:prior,preview:'0.2.0-preview.1'}},writes=[];
+  const after=await syncTags(target,integrity,{read:async()=>structuredClone(current),add:async(v,tag)=>{writes.push(tag);current['dist-tags'][tag]=v;}});
+  assert.deepEqual(writes,['latest']);assert.equal(after['dist-tags'].preview,'0.2.0-preview.1');assert.equal(after['dist-tags'].latest,target);assertSynchronizedTags(after,target);
+ }
+ assert.equal(publicationTag('0.1.0'),'latest');assert.equal(publicationTag(version),'preview');
+});
+test('after first formal publication previews never change latest, including verify and retries',async()=>{
+ const current={name:'aimship',versions:{'0.1.0':{},[version]:{dist:{integrity}}},'dist-tags':{latest:'0.1.0',preview:'0.1.0-preview.8'}},writes=[];
+ const options={read:async()=>structuredClone(current),add:async(v,tag)=>{writes.push(tag);current['dist-tags'][tag]=v;}};
+ assert.doesNotThrow(()=>assertForwardTags(current,version));await syncTags(version,integrity,options);await syncTags(version,integrity,options);
+ assert.deepEqual(writes,['preview']);assert.equal(current['dist-tags'].latest,'0.1.0');assertSynchronizedTags(current,version);
+ // The formal-release history is authoritative even if latest was moved elsewhere.
+ current['dist-tags'].latest='0.1.0-preview.4';await syncTags(version,integrity,options);assert.deepEqual(writes,['preview']);
+});
+test('a concurrent first formal publication prevents the remaining pre-formal latest update',async()=>{
+ const current=metadata();current['dist-tags'].preview='0.1.0-preview.8';const writes=[];
+ await syncTags(version,integrity,{read:async()=>structuredClone(current),add:async(v,tag)=>{writes.push(tag);current['dist-tags'][tag]=v;current.versions['0.1.0']={};current['dist-tags'].latest='0.1.0';}});
+ assert.deepEqual(writes,['preview']);assert.equal(current['dist-tags'].latest,'0.1.0');
 });

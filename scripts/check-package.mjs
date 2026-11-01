@@ -2,11 +2,13 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { releaseFiles } from '../lib/install.mjs';
+import { PROTOCOL_VERSION, packageProtocol } from '../lib/protocol.mjs';
 import { STAGES } from '../lib/state.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 try {
   const { pkg, files } = await releaseFiles(root);
+  if (packageProtocol(pkg) !== PROTOCOL_VERSION || pkg.aimship?.protocolVersion !== PROTOCOL_VERSION) throw new Error('Package must explicitly declare the supported delivery protocol.');
   if (pkg.license !== 'MIT' || !files.LICENSE) throw new Error('MIT license metadata and file are required.');
   for (const stage of STAGES) if (!files[`skills/aimship/references/stages/${stage}.md`]) throw new Error(`Missing stage: ${stage}`);
   for (const required of ['README.md', 'README.zh-CN.md', 'LICENSE', 'skills/aimship/agents/openai.yaml']) if (!files[required]) throw new Error(`Missing public file: ${required}`);
