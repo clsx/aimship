@@ -93,6 +93,10 @@ test('progress links registered formal contracts without flattening internal evi
  await c.save({documents:[...c.state.documents,{kind:'contract',path:'rpc-contract.md',mode:'new',version:'1'}],next:{action:'Prepare requirements',inputRefs:['rpc-contract.md','.aimship/evidence/check.json']},stageRuns:c.state.stageRuns.map(r=>r.id==='req'?{...r,outputRefs:[...r.outputRefs,'.aimship/evidence/check.json']}:r)});
  const view=await renderText(c.dir,c.state);
  assert.equal(view.split('](rpc-contract.md)').length-1,1);assert.doesNotMatch(view,/Work material|check\.json/);
+ await fs.writeFile(path.join(c.dir,'message.proto'),'syntax = "proto3";');
+ const contract={id:'contract-extra',stage:'contract',scope:'Supplementary RPC/message formats',progress:'planned',inputRefs:[],outputRefs:['rpc-contract.md','message.proto','.aimship/evidence/check.json']};
+ const extraView=await renderText(c.dir,{...c.state,documents:c.state.documents.filter(d=>d.path!=='rpc-contract.md'),stageRuns:[...c.state.stageRuns,contract]});
+ assert.equal(extraView.split('](rpc-contract.md)').length-1,1);assert.match(extraView,/Additional contract: \[message\.proto\]/);assert.doesNotMatch(extraView,/check\.json/);
 });
 
 test('a question with an unknown result is shown as clarification without reporting failure',async t=>{
