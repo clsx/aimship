@@ -82,12 +82,14 @@ test('progress page separates preparation, self-check and approval, deduplicates
  const c=await fixture(t);await c.init({repositories:[{id:'synthetic',path:c.dir,role:'Read-only existing work; unrelated dirty changes retained'}]});
  const history=await approveFixture(c.dir,c.state,[c.doc.path]);await c.save({reviewHistory:history.slice(0,1)});
  const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
- assert.match(view,/文档已完成，待审核/);assert.match(view,/自检记录通过 · 待审核/);assert.match(view,/技术设计（批准后）/);
+ assert.match(view,/文档已完成，待审核/);assert.match(view,/自检记录通过 · 待审核/);assert.match(view,/\| 技术设计 \| 尚未记录 \| 尚未开始 \|/);
  assert.doesNotMatch(view,/已批准|结果: 未记录|审核协议|缺少/);
- const materials=view.split('## 目标与采用材料')[1].split('## 接续本次交付')[0];
- assert.equal(materials.split('](source/provided.md)').length-1,1);
+ const materials=view.split('## 目标与采用材料')[1].split('## 关联工程')[0];
+ assert.equal(materials.split('](source/provided.md)').length-1,0);
+ assert.match(view,/\| 需求 \| \[source\/provided.md\]/);
  assert.ok(view.indexOf('## 当前阶段')<view.indexOf('## 关联工程'));
- assert.ok(view.indexOf('## 接续本次交付')<view.indexOf('## 关联工程'));
+ assert.ok(view.indexOf('## 整体进度')<view.indexOf('## 关联工程'));
+ assert.doesNotMatch(view,/## 接续本次交付/);
 });
 
 test('one explicit approval-and-continue update releases design, while a plain continue message does not',async t=>{
@@ -124,7 +126,8 @@ test('supplied input needs no repeated review while authored PRD does in both la
   await c.save({reviewHistory:(await approveFixture(c.dir,c.state,[c.doc.path])).slice(0,1)});
   const adopted=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
   assert.match(adopted,language==='zh-CN'?/已采用现有材料/:/Provided material adopted/);
-  assert.match(adopted,language==='zh-CN'?/准备好后可说“继续”/:/Say “continue” when ready/);
+  assert.doesNotMatch(adopted,/准备好后可说|Say “continue” when ready/);
+  assert.match(adopted,language==='zh-CN'?/下一步:/:/Next action:/);
   assert.doesNotMatch(adopted,/文档已完成，待审核|Document prepared; awaiting review/);
   assert.equal((await readState(c.dir)).review.canProceed,true);
   assert.equal((await readState(c.dir)).review.documents[0].approval,null);

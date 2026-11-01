@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { listFiles } from '../lib/io.mjs';
 import { STAGES } from '../lib/state.mjs';
-import { artifactMap, sections } from '../lib/documents.mjs';
+import { artifactMap, sections, headings } from '../lib/documents.mjs';
 const anchors = text => [...text.matchAll(/<a\s+id=["']([^"']+)["']\s*><\/a>/g)].map(m => m[1]);
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url))),map=await artifactMap();
 assert.deepEqual(Object.keys(map.stages).sort(),[...STAGES].sort());
@@ -12,6 +12,8 @@ for(const [kind,spec] of Object.entries(map.documents)) {
  const text=await fs.readFile(path.join(root,`skills/aimship/references/templates/${kind}.md`),'utf8');assert.deepEqual(sections(text,spec).map(s=>s.count),spec.sections.map(()=>1),kind); assert.ok(!/<a\s+id=|aimship:def/.test(text),kind);
 }
 const files=[...await listFiles(path.join(root,'docs'))].map(f=>'docs/'+f).concat((await listFiles(path.join(root,'skills'))).filter(f=>f.endsWith('.md')).map(f=>'skills/'+f),['README.md','README.zh-CN.md','CONTRIBUTING.md']);
+const contracts=[...STAGES.map(stage=>`skills/aimship/references/stages/${stage}.md`),...['batch','overall','recheck'].map(scope=>`skills/aimship/references/reviews/${scope}.md`)];
+for(const file of contracts){const body=await fs.readFile(path.join(root,file),'utf8'),titles=headings(body).filter(h=>h.level===2).map(h=>h.key);assert.deepEqual(titles,['inputs','goal and scope','actions','outputs and result','completion and stop'],file);}
 let checked=0;
 for(const file of files.filter(f=>f.endsWith('.md'))) {
  const text=await fs.readFile(path.join(root,file),'utf8');

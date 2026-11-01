@@ -1,27 +1,25 @@
-# Review actual changes
+# Select the review responsibility
 
-## Basis
+## Inputs
 
-Read the applicable requirements, design/contract, batch or overall scope and exact change objects.
+The saved current scope, reviewed object and relevant requirements/design/plan; read reviewOf, overall and any prior REV/repair relationship.
 
-## Work and result
+## Goal and scope
 
-Fix the object basis before review: commit plus relevant working differences/untracked paths, or document sections and digests/old excerpts. Check consistency, defects, omissions and scope. Record findings, dispositions and reviewer source. Batch review precedes next batch; overall review checks integration after all batches. Single-batch review may cover both explicitly.
+Choose one clear review contract. Stage remains review; these are internal execution modules, not separate user commands or registered Skills.
 
-## Continue when
+## Actions
 
-The agreed scope has actually been examined and issues blocking progression are resolved or handled by an explicit change. Keep old conclusions for their old objects.
+- Current implementation batch: use [batch review](../reviews/batch.md).
+- Explicit overall review after all batches: use [overall review](../reviews/overall.md).
+- Repaired prior findings: use [recheck](../reviews/recheck.md), retaining the original batch/overall scope.
 
-## Decisions and blockers
+If the scope is not recorded, inspect the existing plan/review and actual request before acting. Do not infer permission for a full test suite from a review request.
 
-Do not replace an agreed human review with agent review. Review cannot be reported as a running test; unrelated work need not be re-reviewed.
+## Outputs and result
 
-Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+The selected module's actual REV and state references in review.md. Common assessment/finding rules live in the [shared method](../review-method.md).
 
-## Artifact contract
+## Completion and stop
 
-Use review.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
-
-Record reviewOf with the actual implementation-run IDs; mark overall: true only for an overall review. Batch review and overall review each save their own stage stop, even when their context group is shared. Resolve findings before continuation; a suggestion never substitutes for a passing review.
-
-After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.
+Follow that module's work-unit boundary: batch review/authorized repair closes the batch; overall/recheck conclusions stop before formal verify. Document approvals remain governed by [document review](../document-review.md).

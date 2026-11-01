@@ -59,7 +59,7 @@ test('adopted materials are not approval; waiting, editing, stage continuation a
 });
 test('session suggestions are saved and displayed; overall review and test batches have separate groups; failure does not advance',async t=>{
  const c=await setup(t);assert.equal(c.state.stageRuns[4].sessionGroup,c.state.stageRuns[5].sessionGroup);assert.notEqual(c.state.stageRuns[5].sessionGroup,c.state.stageRuns[6].sessionGroup);
- assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/Continue this delivery/);
+ assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/Delivery directory:/);
  for(const r of c.state.stageRuns)await c.finish(r.id);
  assert.equal((await readState(c.dir)).session.continuation,null);
  const s=structuredClone(c.state);s.currentRun='r7';s.stageRuns[7].result='failed';assert.equal(sessionAdvice(c.dir,s,(await readState(c.dir)).review).action,'resolve-current');
@@ -124,7 +124,7 @@ test('interaction delivery may complete without a selected prototype; non-review
   const count=c.state.reviewHistory.length;await c.finish(r.id);
   if(['implement','review','verify'].includes(r.stage)){
    assert.equal(c.state.reviewHistory.length,count);
-   const read=await readState(c.dir);assert.equal(read.session.action,'await-continue');assert.equal(read.session.stop,true);assert.equal(read.session.suggestNewSession,r.stage==='review');
+   const read=await readState(c.dir);assert.equal(read.session.action,r.stage==='implement'?'continue-implementation-review':'await-continue');assert.equal(read.session.stop,r.stage!=='implement');assert.equal(read.session.suggestNewSession,r.stage==='review');
   }
  }
  assert.equal((await readState(c.dir)).completion.readyForAcceptance,true);

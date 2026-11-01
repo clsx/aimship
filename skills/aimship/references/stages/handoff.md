@@ -1,27 +1,27 @@
 # Deliver against the goal
 
-## Basis
+## Inputs
 
 Read the current goal/PRD, explicit goal revisions, deliverables, applicable review/verification and unresolved work.
 
-## Work and result
+## Goal and scope
+
+Compare actual delivered and verified results to the agreed goal and obtain the real acceptance decision.
+
+## Actions
 
 Provide deliverable links, use/check instructions, actual validation scope and limits, goal changes and unfinished items. Identify each actual code checkout/worktree, branch and commit when available, relevant uncommitted changes, and whether integration/merge is still pending (including target/dependencies if known). A completed branch is not a merged change. Independently record goal achievement, user acceptance, merge and deployment. Save next-step context when incomplete.
 
-## Continue when
-
-The report honestly matches the current commissioned endpoint. Complete the delivery only when its actual completion criteria are satisfied. A user-authorized partial endpoint preserves the old goal and remaining work.
-
-## Decisions and blockers
-
 Showing results does not revise the endpoint. Required blocked verification means incomplete acceptance, even when code is ready. Small later corrections reopen with preserved closure; independent goals create related deliveries.
 
-Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+## Outputs and result
 
-## Artifact contract
-
-Use handoff.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use handoff.md.
 
 Use the derived completion assessment alongside goal and acceptance. A user-authorized scope without cases/verification may be finished as an explicitly untested partial handoff, never standard complete delivery. No next-session prompt is needed at the final endpoint.
 
-After completing and self-checking this stage, save its result and current stop. Report the artifacts and next action, then stop. Wait for continuation without adding a document approval; final handoff instead awaits the actual acceptance decision. Failures remain unresolved until repaired and checked.
+## Completion and stop
+
+The report honestly matches the current commissioned endpoint. Complete the delivery only when its actual completion criteria are satisfied. A user-authorized partial endpoint preserves the old goal and remaining work.
+
+Save the actual goal comparison and stop for the acceptance decision; a handoff document alone is not acceptance.

@@ -1,10 +1,14 @@
 # Design the implementation
 
-## Basis
+## Inputs
 
 Read current requirements, relevant engineering instructions, architecture, schema and diagnosis.
 
-## Work and result
+## Goal and scope
+
+Explain an implementation-ready engineering approach for the approved requirement scope, with readable decisions and dependencies.
+
+## Actions
 
 Choose an approach with concrete components, dependencies, errors/recovery, compatibility and tradeoffs. Link authoritative contracts instead of duplicating them. For database changes design the data change and the subsequent independent SQL deliverable; explain dialect/version, existing schema basis, conditions and sequence. Do not edit migration files or execute SQL without that commission.
 
@@ -14,22 +18,16 @@ For a material new database/RPC call on the critical path, describe its location
 
 Use an ordered explanation for simple flows. Where cross-system calls are hard to follow, a concise architecture or sequence diagram can show transaction boundaries and cache/response order. Organize affected components into readable subsections; full-stack work benefits from backend responsibilities and frontend pages/routes, reuse, interaction states and data flow. Other work uses its actual components. Explain the design and real tradeoffs in the document, using source evidence where it helps judgment; routine investigation/self-check logs are not review prerequisites. API schemas, executable SQL and full test cases remain in their later deliverables.
 
-## Continue when
-
-The design can guide the agreed next work and correctness-affecting issues have a clear disposition. Explain the approach and outstanding choices to the user.
-
-## Decisions and blockers
-
 Missing schema/dialect or material compatibility/data decisions block dependent design claims. An explicitly revised conceptual-design endpoint must retain these limitations.
 
-Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+## Outputs and result
 
-## Artifact contract
-
-Use tech-design.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use tech-design.md.
 
 Technical design does not require finished SQL before its review. After its approval, contract produces and presents database.sql for one target, or database-<id>.sql per independent target. No SQL for no database change.
 
-## Human document review
+## Completion and stop
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: stop at this stage boundary; suggest a new session only at a major work boundary, and continue here when requested. Approval and continuation may be expressed together. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+The design can guide the agreed next work and correctness-affecting issues have a clear disposition. Explain the approach and outstanding choices to the user.
+
+Self-check the selected outputs and stop for their [current-content review](../document-review.md); unchanged supplied inputs follow the shared adoption rules. Production done is separate from approval.

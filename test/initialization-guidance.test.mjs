@@ -42,7 +42,7 @@ test('new initialization saves standard endpoint, full progress and one neutral 
   const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
   for(const label of language==='en'?['requirements','tech-design','test-design','plan','implement','review','verify','handoff']:['需求','技术设计','测试设计','实施计划','实施','审查','验证','交付验收'])assert.ok(view.includes(label),label);
   assert.doesNotMatch(view,/Missing current|\.aimship\/init.md/);
-  assert.match(view,language==='en'?/\| Overall review \| Not started \|/:/\| 整体审查 \| 尚未开始 \|/);
+  assert.match(view,language==='en'?/\| Overall review \| Not yet recorded \| Not started \|/:/\| 整体审查 \| 尚未记录 \| 尚未开始 \|/);
   const init=await fs.readFile(path.join(c.dir,'.aimship/init.md'));
   for(const command of ['read','check','resume']) {
    const out=(await run([command,c.dir,'--rules-version',version],{sourceRoot:root})).data;
@@ -103,7 +103,7 @@ test('new-session advice follows major work transitions, independently from ever
   const state={language:'en',goal:{endpoint:'Standard'},stageRuns:[current,next],currentRun:'current',documentPolicy:{interface:'none',databases:[]},deliveryPolicy:{version:1},outcome:{goal:'in-progress'},next:{action:'Review or continue'}};
   const review={documents:[{path:'doc.md',input:false}],pending:pending?[{run:'current',document:'doc.md',status:'pending'}]:[],runs:[{id:'current',ready:!pending,releaseReady:!pending,blockedBy:[]},{id:'next',ready:false,blockedBy:[]}]};
   const advice=sessionAdvice('/synthetic',state,review);
-  assert.equal(advice.stop,true,kind);assert.equal(advice.suggestNewSession,expected,kind+' → '+nextKind);
+  assert.equal(advice.stop,kind!=='implement' || pending,kind);assert.equal(advice.suggestNewSession,expected,kind+' → '+nextKind);
   if(pending){assert.equal(advice.continuation,null);if(expected)assert.match(advice.instruction,/review this document/);}
   else if(!expected)assert.doesNotMatch(advice.instruction,/new session/);
  }

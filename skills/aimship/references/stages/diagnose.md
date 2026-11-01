@@ -1,29 +1,27 @@
 # Investigate cause or feasibility
 
-## Basis
+## Inputs
 
 Read reported symptoms, expected behavior, relevant code/material and reproducible evidence.
 
-## Work and result
+## Goal and scope
+
+Investigate the commissioned uncertainty and distinguish confirmed causes, hypotheses and missing evidence.
+
+## Actions
 
 Investigate within authorized objects. Record observations, reproduction or supporting evidence, probable/established causes and remaining uncertainty. Keep incidental behavior changes out of a refactor.
 
-## Continue when
-
-The investigation goal is met, or the inability to determine a cause and a concrete next step are accurately stated. A hypothesis is not a confirmed root cause.
-
-## Decisions and blockers
-
 If the apparent small fix expands into behavior or scope changes, explain the impact before dependent implementation.
 
-Use [the shared core](../core.md) for state, evidence and continuation rules. Record meaningful results in an artifact or referenced section; a file alone is not completion.
+## Outputs and result
 
-## Artifact contract
-
-Use diagnosis.md. Preserve the ordinary template headings and section order. Follow [document patterns](../document-patterns.md) and the single [artifact map](../artifact-map.json). Keep this run independent even when its document is shared. New runs need a precise result location; adopted work is not a newly executed stage.
+Use diagnosis.md.
 
 Only a commissioned independent investigation produces diagnosis.md. Known-cause bugs and normal development debugging stay within their current stage. Record an arrangement change before adding a mid-delivery investigation.
 
-## Human document review
+## Completion and stop
 
-Apply [document review](../document-review.md): generate → self-check → present the concrete document entry, current review status and focus → wait. Record explicit user approval of this version/content, then follow the core session interaction: stop at this stage boundary; suggest a new session only at a major work boundary, and continue here when requested. Approval and continuation may be expressed together. Questions or edit requests retain the stop; edits require self-check and re-review. Production `done` is separate from approval and final acceptance.
+The investigation goal is met, or the inability to determine a cause and a concrete next step are accurately stated. A hypothesis is not a confirmed root cause.
+
+Self-check the selected outputs and stop for their [current-content review](../document-review.md); unchanged supplied inputs follow the shared adoption rules. Production done is separate from approval.

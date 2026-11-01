@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { initState, updateState, readState, checkReferences } from '../lib/state.mjs';
-import { inspectDocuments, sections as documentSections } from '../lib/documents.mjs';
+import { inspectDocuments, sections as documentSections, definitions } from '../lib/documents.mjs';
 import { json, hash } from '../lib/io.mjs';
 const source=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const version=JSON.parse(await fs.readFile(path.join(source,'package.json'))).version;
@@ -15,10 +15,11 @@ const requestedOutput=path.resolve(process.argv[2]??'synthetic-output');
 await fs.mkdir(requestedOutput,{recursive:false});
 const output=await fs.realpath(requestedOutput);
 const runtime={version,activeVersion:version,dataRoot:output};
+const numberedBody=body=>{const counters=[];return body.replace(/^(#{2,6}) (.+)$/gm,(_,marks,title)=>{const level=marks.length-2;counters.length=level+1;counters[level]=(counters[level]??0)+1;return marks+' '+counters.join('.')+'. '+title.replace(/^\d+(?:\.\d+)*[.)、]?\s+/, '');});};
 const definition=(id,refs=[])=>`### ${id} — ${refs.length?'References: '+refs.join(', '):'Record'}\n\n`;
 async function makeDoc(dir,kind,parts) {
  const sections=map.documents[kind].sections;
- await fs.writeFile(path.join(dir,`${kind}.md`),`# ${kind}\n\nSynthetic commission; document revision 1. Delivery identity: pending init.\n\n`+sections.map((id,i)=>`## ${map.documents[kind].headings.en[i]}\n\n${parts[id]??'Not applicable to this bounded commission; no additional work authorized.'}\n`).join('\n'));
+ await fs.writeFile(path.join(dir,`${kind}.md`),numberedBody(`# ${kind}\n\nSynthetic commission; document revision 1. Delivery identity: pending init.\n\n`+sections.map((id,i)=>`## ${i+1}. ${map.documents[kind].headings.en[i]}\n\n${parts[id]??'Not applicable to this bounded commission; no additional work authorized.'}\n`).join('\n')));
 }
 async function begin(name,authority,requirements,prdParts) {
  const dir=path.join(output,name),code=path.join(output,`${name}-code`);await fs.mkdir(path.join(dir,'source'),{recursive:true});await fs.mkdir(code);
@@ -37,7 +38,7 @@ async function begin(name,authority,requirements,prdParts) {
  c.run=async(id,stage,result,scope,extra={})=>{
   const refs=stage==='implement'?['plan.md#tasks',`${kind}.md`]:[`${kind}.md`]; const artifact=result.split('#')[0];
   const old=c.state.stageRuns.find(r=>r.id===id);
-  const record={id,stage,scope,progress:'done',inputRefs:refs,outputRefs:[artifact],resultRef:result,result:'passed',applicability:'current',...extra,...(old?{historyResultRefs:[...new Set([...(old.historyResultRefs??[]),old.resultRef])]}:{})};
+  const record={id,stage,scope,progress:'done',inputRefs:refs,outputRefs:[artifact],resultRef:result,result:'passed',applicability:'current',...(stage==='implement'?{workType:'batch'}:{}),...extra,...(old?{historyResultRefs:[...new Set([...(old.historyResultRefs??[]),old.resultRef])]}:{})};
   await c.save({stageRuns:old?c.state.stageRuns.map(r=>r.id===id?record:r):[...c.state.stageRuns,record],currentRun:id,next:{action:`Saved ${id}; follow the selected review stop`}});
   if(map.stages[stage].humanReview) {
    const status=await reviewStatus(dir,c.state);assert.ok(status.runs.find(r=>r.id===id).waiting.includes(artifact));
@@ -56,13 +57,13 @@ async function begin(name,authority,requirements,prdParts) {
   const section={'plan.md':text.startsWith('CHG-001 changes TASK-')?'tasks':'execution','review.md':'reviews','testing.md':text.startsWith('### TC-')?'cases':'runs','prd.md':'requirements','tech-design.md':'architecture','change-log.md':'changes'}[file];
   const kind=file.slice(0,-3), record=documentSections(body,map.documents[kind]).find(r=>r.id===section);
   const end=record?.end??-1;
-  await fs.writeFile(target,end<0?body+`\n${text}\n`:body.slice(0,end)+`\n${text}\n\n`+body.slice(end));
+  await fs.writeFile(target,numberedBody(end<0?body+`\n${text}\n`:body.slice(0,end)+`\n${text}\n\n`+body.slice(end)));
  };
  c.setSection=async(file,id,text)=>{
   const target=path.join(dir,file),body=await fs.readFile(target,'utf8'),spec=map.documents[file.slice(0,-3)];
   const section=documentSections(body,spec).find(r=>r.id===id);assert.equal(section.count,1);
   const heading=body.slice(section.start,body.indexOf('\n',section.start));
-  await fs.writeFile(target,body.slice(0,section.start)+heading+`\n\n${text}\n\n`+body.slice(section.end));
+  await fs.writeFile(target,numberedBody(body.slice(0,section.start)+heading+`\n\n${text}\n\n`+body.slice(section.end)));
  };
  c.object=async()=>Object.fromEntries(await Promise.all((await fs.readdir(code)).map(async f=>[f,hash(await fs.readFile(path.join(code,f)))])));
  await c.run('requirements','requirements',`${kind}.md#requirements`,'current requirement authority');
@@ -103,9 +104,9 @@ async function finish(c) {
  const planDoc=c.state.documents.find(d=>d.kind==='plan'),casesDoc=c.state.documents.find(d=>d.kind==='testing');
  const fingerprints=await Promise.all([planDoc,casesDoc].map(d=>reviewFingerprint(c.dir,c.state,d)));
  const planBody=await fs.readFile(path.join(c.dir,'plan.md'),'utf8'),areas=documentSections(planBody,map.documents.plan);
- const tasks=[...areas.find(a=>a.id==='tasks').body.matchAll(/^### (TASK-\d+)/gm)].map(m=>m[1]);
- const taskRows=tasks.map((id,i)=>`| ${id} / B-${String(i+1).padStart(3,'0')} | Code and review complete | No remaining implementation in this scope | [Review](review.md), exact objects in dated records below |`).join('\n');
- await c.setSection('plan.md','execution',`Current task status:\n\n| Task / batch | Status | Actual result / remaining | Review / object |\n| --- | --- | --- | --- |\n${taskRows}\n\n${areas.find(a=>a.id==='execution').body}`);
+ const tasks=definitions(areas.find(a=>a.id==='tasks').body,'plan.md').filter(d=>d.id.startsWith('TASK-')).map(d=>d.id);
+ const taskRows=tasks.map((id,i)=>`| ${id} / B-${String(i+1).padStart(3,'0')} | Code complete | Passed; repairs rechecked | [Review](review.md), exact objects in dated records below | None |`).join('\n');
+ await c.setSection('plan.md','execution',`Current task status:\n\n| Batch / TASK scope | Implementation | Batch review / repair | Result references | Remaining |\n| --- | --- | --- | --- | --- |\n${taskRows}\n\n${areas.find(a=>a.id==='execution').body}`);
  await c.setSection('plan.md','remaining','Implementation, batch/overall review and local independent verification are complete for the current synthetic object. No merge, release or deployment is commissioned.');
  assert.deepEqual(await Promise.all([planDoc,casesDoc].map(d=>reviewFingerprint(c.dir,c.state,d))),fingerprints,'Execution status changes preserve the approved design surface');
  await c.addDoc('handoff',{goals:`[Requirements/AC](${c.kind}.md) (search: acceptance): all current assertions passed in the latest RUN; earlier failures retained.`,artifacts:`[Plan](plan.md), [testing](testing.md), [review](review.md), [design](tech-design.md). app actual path is in status. No Git; source hashes ${JSON.stringify(await c.object())}. No pre-existing changes.`,usage:'Import the exported function from the app module; source and runnable assertions accompany the example harness.',results:'See testing for actual Node assertions, versions, evidence and retained failures. No UI, HTTP or real host acceptance claimed.',limits:'Synthetic local case only. Host discovery, cross-host continuation and original HTTP/UI acceptance remain unverified.',outcomes:'Goal met for this synthetic commission. User acceptance, merge and deployment not recorded. No package release.'});

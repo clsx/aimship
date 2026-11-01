@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {run} from '../lib/cli.mjs';
-import {artifactMap, hasLocator} from '../lib/documents.mjs';
+import {artifactMap, hasLocator, definitions} from '../lib/documents.mjs';
 import {reviewFingerprint} from '../lib/approvals.mjs';
 import {documentFixture} from '../scripts/testing/documents.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
@@ -76,4 +76,17 @@ test('execution tables retain plan approval while a real task revision requires 
  await c.put('plan.md',raw.replace('Implement the selected-order export','Implement a changed selection and rounding rule'));
  assert.notEqual(await reviewFingerprint(c.dir,c.state,reg('plan')),digest);
  await assert.rejects(c.call('update',{}),{code:'REVIEW_CHECK'});
+});
+
+test('numbered record headings preserve IDs, references and duplicate checks',async()=>{
+ const map=await artifactMap();
+ for(const [kind,id,section] of [['plan','B-001','batches'],['plan','TASK-001','tasks'],['review','REV-001','reviews'],['testing','RUN-001','runs']]){
+  const spec=map.documents[kind],index=spec.sections.indexOf(section);
+  assert.ok(index>=0);
+  const body=`## ${index+1}. ${spec.headings.en[index]}\n\n### ${index+1}.1 ${id} — Current object\n\nObserved outcome references TC-001.\n`;
+  const records=definitions(body,kind+'.md',spec);
+  assert.deepEqual(records.map(r=>r.id),[id]);assert.ok(records[0].refs.includes('TC-001'));
+  assert.equal(hasLocator(body,id,spec),true);
+  assert.equal(definitions(body+`\n### ${index+1}.2 ${id} — Conflicting object\n\nAnother outcome.\n`,kind+'.md',spec).filter(r=>r.id===id).length,2);
+ }
 });

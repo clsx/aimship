@@ -41,7 +41,7 @@ test('failed or inconclusive batch review is saved but cannot release the next b
  for(const result of ['failed','mixed','unknown','not-run',null]) {
   const c=await setup(t);await readyToReview(c);await c.finish('rev1',result);
   let read=await readState(c.dir),review=read.review.runs.find(r=>r.id==='rev1');
-  assert.equal(review.ready,true,'execution record remains completed');assert.equal(review.releaseReady,false);assert.equal(read.review.canProceed,false);assert.equal(read.session.action,'resolve-current');
+  assert.equal(review.ready,true,'execution record remains completed');assert.equal(review.releaseReady,false);assert.equal(read.review.canProceed,false);assert.equal(read.session.action,['failed','mixed'].includes(result)?'continue-batch-repair':'resolve-current');assert.equal(read.session.stop,!['failed','mixed'].includes(result));
   assert.ok(read.review.runs.find(r=>r.id==='imp2').blockedBy.includes('rev1'));
   const view=await renderText(c.dir,c.state);
   if(['failed','mixed'].includes(result))assert.match(view,/recorded unsuccessful result/);
@@ -67,23 +67,23 @@ test('progress keeps main stages stable across batches and distinguishes the ove
  for(const id of ['req','design','cases','plan','imp1','rev1','imp2','rev2'])await c.finish(id);
  let view=await renderText(c.dir,c.state);
  assert.deepEqual(rows(view),expected);assert.match(view,/Current stage: implement · Batch review · Completed/);
- assert.match(table(view),/\| implement \| Recorded batches completed: 2; batch reviews passed \|/);
- assert.match(table(view),/\| Overall review \| Not started \|/);
- assert.doesNotMatch(table(view),/Synthetic|rev1|rev2|imp1|imp2/);
+ assert.match(table(view),/\| implement \| [^\n]* \| Recorded batches completed: 2; batch reviews passed \|/);
+ assert.match(table(view),/\| Overall review \| [^\n]* \| Not started \|/);
+ assert.doesNotMatch(table(view),/Synthetic/);
  // Absence of a future run does not erase its standard main stage.
  await c.save({stageRuns:c.state.stageRuns.filter(r=>r.progress!=='planned')});
- view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(view,/After this stop: Overall review/);
+ view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/Overall review.*Not started/);assert.doesNotMatch(view,/After this stop|Say .continue|Continue this delivery/);
  const overall={id:'overall',stage:'review',scope:'Actual combined review',reviewOf:['imp1','imp2'],overall:true,progress:'planned',inputRefs:[],outputRefs:['review.md']};
  await c.save({stageRuns:[...c.state.stageRuns,overall]});await c.finish('overall','failed');
- assert.match(table(await renderText(c.dir,c.state)),/\| Overall review \| Result needs resolution \|/);
+ assert.match(table(await renderText(c.dir,c.state)),/\| Overall review \| [^\n]* \| Result needs resolution \|/);
  const repair=correction(c,'overall');await c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id});
- view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/\| Overall review \| Completed \|/);
- assert.match(table(view),/\| verify \| Not started \|/);
+ view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/\| Overall review \| [^\n]* \| Completed \|/);
+ assert.match(table(view),/\| verify \| [^\n]* \| Not started \|/);
  assert.equal((await readState(c.dir)).completion.standardComplete,false);
  const later={id:'imp3',stage:'implement',scope:'Later authorized batch',progress:'done',result:'passed',resultRef:'plan.md',inputRefs:[],outputRefs:['plan.md']};
  const laterView=await renderText(c.dir,{...c.state,stageRuns:[...c.state.stageRuns,later],currentRun:'imp3'});
- assert.deepEqual(rows(laterView),expected);assert.match(table(laterView),/\| Overall review \| Review required for current batches \|/);
- assert.match(table(laterView),/batch review pending/);
+ assert.deepEqual(rows(laterView),expected);assert.match(table(laterView),/\| Overall review \| [^\n]* \| Review required for current batches \|/);
+ assert.match(table(laterView),/work with unclassified purpose: 1/);assert.doesNotMatch(table(laterView),/Recorded batches completed: 3/);
 });
 
 test('progress links registered formal contracts without flattening internal evidence',async t=>{
@@ -96,7 +96,7 @@ test('progress links registered formal contracts without flattening internal evi
  await fs.writeFile(path.join(c.dir,'message.proto'),'syntax = "proto3";');
  const contract={id:'contract-extra',stage:'contract',scope:'Supplementary RPC/message formats',progress:'planned',inputRefs:[],outputRefs:['rpc-contract.md','message.proto','.aimship/evidence/check.json']};
  const extraView=await renderText(c.dir,{...c.state,documents:c.state.documents.filter(d=>d.path!=='rpc-contract.md'),stageRuns:[...c.state.stageRuns,contract]});
- assert.equal(extraView.split('](rpc-contract.md)').length-1,1);assert.match(extraView,/Additional contract: \[message\.proto\]/);assert.doesNotMatch(extraView,/check\.json/);
+ assert.equal(extraView.split('](rpc-contract.md)').length-1,1);assert.match(extraView,/\[message\.proto\]\(message\.proto\)/);assert.doesNotMatch(extraView,/check\.json/);
 });
 
 test('a question with an unknown result is shown as clarification without reporting failure',async t=>{
@@ -111,7 +111,7 @@ test('limited standalone review does not invent implementation or standard futur
  const c=await setup(t,{selected:[['req','requirements','prd'],['independent','review','review']],partial:true});
  await c.finish('req');await c.finish('independent');
  const view=await renderText(c.dir,c.state),table=view.split('## Delivery progress')[1].split('Delivery conclusion:')[0];
- assert.match(table,/\| review \| Completed \|/);assert.doesNotMatch(table,/implement|Overall review|verify|handoff/);
+ assert.match(table,/\| review \| [^\n]* \| Completed \|/);assert.doesNotMatch(table,/implement|Overall review|verify|handoff/);
 });
 
 test('corrective review must preserve failure evidence and matching coverage before continuation',async t=>{

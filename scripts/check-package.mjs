@@ -11,7 +11,7 @@ try {
   if (packageProtocol(pkg) !== PROTOCOL_VERSION || pkg.aimship?.protocolVersion !== PROTOCOL_VERSION) throw new Error('Package must explicitly declare the supported delivery protocol.');
   if (pkg.license !== 'MIT' || !files.LICENSE) throw new Error('MIT license metadata and file are required.');
   for (const stage of STAGES) if (!files[`skills/aimship/references/stages/${stage}.md`]) throw new Error(`Missing stage: ${stage}`);
-  for (const required of ['README.md', 'README.zh-CN.md', 'LICENSE', 'skills/aimship/agents/openai.yaml']) if (!files[required]) throw new Error(`Missing public file: ${required}`);
+  for (const required of ['lib/execution.mjs', 'skills/aimship/references/routing.md', 'skills/aimship/references/review-method.md', ...['batch','overall','recheck'].map(scope=>`skills/aimship/references/reviews/${scope}.md`), 'README.md', 'README.zh-CN.md', 'LICENSE', 'skills/aimship/agents/openai.yaml']) if (!files[required]) throw new Error(`Missing public file: ${required}`);
   for (const file of Object.keys(files)) {
     if (/(^|[/\\])(planning|validation|\.git|\.env|node_modules)([/\\]|$)/.test(file)) throw new Error(`Private or unexpected package path: ${file}`);
     const content = await fs.readFile(path.join(root, file), 'utf8');

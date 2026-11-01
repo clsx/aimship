@@ -76,7 +76,7 @@ Materials develop gradually and are kept as needed. Search readable REQ, AC and 
 
 Follow sign-up and login from requirements to acceptance. **This is fictional practice; wording and business choices need not be copied.** The example later supplies a project and isolated test database, with prototype review after requirements and before technical design. Actual prototype placement follows the delivery's needs.
 
-Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a stage, the AI saves its results, reports the stop and pauses. A new session is recommended at major work transitions, not after every stop. AI-authored or substantively revised reviewable documents await approval; questions affecting current work await clarification; other completed stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
+Use one Aimship entry within a session; no invocation is needed at every stage. After completing and self-checking a user-visible work unit, the AI saves its results, reports the stop and pauses. One implementation batch includes its batch review and authorized repair/recheck, with separate internal saved records. A new session is recommended at major work transitions, not after every stop. AI-authored or substantively revised reviewable documents await approval; questions affecting current work await clarification; other completed stages await continuation. You may say “approved, continue” once. Work within a stage stays continuous.
 
 <a id="11-prepare-a-workspace"></a>
 <a id="12-activate-aimship-and-describe-the-request"></a>
@@ -191,9 +191,9 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **User actions:** Inspect changes and progress; point out deviations, such as “The post-sign-up redirect differs from the prototype.” No line-by-line approval of execution logs is needed; inspect the saved stage result and ask to continue.
 
-**AI processing:** Implements the plan and reviews each batch, saving and stopping after implementation and after review. Continuation advances only after blocking issues are resolved. All batches are followed by overall review, then verification. Requirement changes return to the relevant review.
+**AI processing:** Implements one batch, performs appropriate local checks, reviews it and repairs/rechecks within the authorized scope. Implementation and review are saved separately; the AI reports and stops at batch closure, not between those internal steps. Continuation advances only after blocking issues are resolved. All batches are followed by overall review, then verification. Requirement changes return to the relevant review.
 
-**Outputs:** Project code, execution progress appended to `plan.md`, and batch findings and repairs in `review.md`.
+**Outputs:** Project code, one maintained batch progress table (including review status) in the plan execution section, and findings/repairs in `review.md`. Development checks are brief notes and evidence references; formal test results belong to later verification.
 
 <a id="guide-overall"></a>
 <a id="19-review-the-complete-change"></a>
@@ -202,7 +202,7 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **User actions:** Read the overall findings and remaining issues, pointing out omissions if needed. Review records do not need a separate document approval; inspect the conclusion and ask to continue.
 
-**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access. It resolves issues blocking independent verification, saves the conclusion and stops before continuing to verification. A single-batch review can explicitly cover both batch and overall scope.
+**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access. It records findings and the reviewed object, saves the conclusion and stops before verification; an overall-review request alone does not run a full test suite. Authorized repairs return for recheck. A single-batch review can explicitly cover both batch and overall scope.
 
 **Outputs:** Overall conclusions appended to `review.md`. Code review does not replace running tests.
 
