@@ -6,7 +6,7 @@ Read current acceptance criteria, constraints, design/contracts, independent SQL
 
 ## Work and result
 
-Map each goal/risk to observable checks: normal behavior, relevant errors/boundaries and regression. Identify commands/tools, environment, accounts/data and authorization needs. Preserve checks whose conditions are absent; distinguish what must be verified from what can run now.
+Map requirements, acceptance and risks to observable normal, boundary/error and regression checks. Reuse the project's test tools and choose methods where useful: units for logic/state, interface/integration checks for service/data collaboration, component/browser/E2E for interaction paths, targeted performance or security checks for relevant requirements/risks. Explain the choices and execution conditions; no fixed category count or coverage target. Identify tools/commands, isolated data and authorization needs. Preserve checks whose conditions are absent; distinguish what must be verified from what can run now. Implementation checks, batch/overall code review and final independent verification have distinct scopes; a mock result is not real integration evidence.
 
 ## Continue when
 

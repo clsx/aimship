@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {initState,updateState,readState} from '../lib/state.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
+import {renderText} from '../lib/view.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const version=JSON.parse(await fs.readFile(path.join(root,'package.json'))).version;
 const definitions=[['req','requirements','prd'],['design','tech-design','tech-design'],['cases','test-design','testing'],['plan','plan','plan'],['imp1','implement','plan'],['rev1','review','review'],['imp2','implement','plan'],['rev2','review','review'],['overall','review','review'],['verify','verify','testing'],['handoff','handoff','handoff']];
@@ -42,11 +43,71 @@ test('failed or inconclusive batch review is saved but cannot release the next b
   let read=await readState(c.dir),review=read.review.runs.find(r=>r.id==='rev1');
   assert.equal(review.ready,true,'execution record remains completed');assert.equal(review.releaseReady,false);assert.equal(read.review.canProceed,false);assert.equal(read.session.action,'resolve-current');
   assert.ok(read.review.runs.find(r=>r.id==='imp2').blockedBy.includes('rev1'));
+  const view=await renderText(c.dir,c.state);
+  if(['failed','mixed'].includes(result))assert.match(view,/recorded unsuccessful result/);
+  else {
+   assert.doesNotMatch(view,/recorded unsuccessful result|Result needs resolution/);
+   assert.match(view,result==='unknown'?/Result not yet known/:result==='not-run'?/Not run/:/Review result not recorded/);
+   const chinese=await renderText(c.dir,{...c.state,language:'zh-CN'});
+   assert.doesNotMatch(chinese,/未通过|结果待处理/);assert.match(chinese,result==='unknown'?/结果尚未确定/:result==='not-run'?/未执行/:/审查结果未记录/);
+  }
   const before=await fs.readFile(path.join(c.dir,'.aimship/state.json'));
   await assert.rejects(c.start('imp2'),{code:'REVIEW_CHECK'});
   assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),before,'rejected advancement does not save state');
   await c.save({currentRun:null});assert.equal((await readState(c.dir)).review.canProceed,false);
  }
+});
+
+test('progress keeps main stages stable across batches and distinguishes the overall review',async t=>{
+ const c=await setup(t);
+ const table=view=>view.split('## Delivery progress')[1].split('Delivery conclusion:')[0];
+ const rows=view=>table(view).split('\n').filter(l=>/^\| [a-zA-Z]/.test(l)).map(l=>l.split('|')[1].trim());
+ const expected=['Stage','requirements','tech-design','test-design','plan','implement','Overall review','verify','handoff'];
+ assert.deepEqual(rows(await renderText(c.dir,c.state)),expected);
+ for(const id of ['req','design','cases','plan','imp1','rev1','imp2','rev2'])await c.finish(id);
+ let view=await renderText(c.dir,c.state);
+ assert.deepEqual(rows(view),expected);assert.match(view,/Current stage: implement · Batch review · Completed/);
+ assert.match(table(view),/\| implement \| Recorded batches completed: 2; batch reviews passed \|/);
+ assert.match(table(view),/\| Overall review \| Not started \|/);
+ assert.doesNotMatch(table(view),/Synthetic|rev1|rev2|imp1|imp2/);
+ // Absence of a future run does not erase its standard main stage.
+ await c.save({stageRuns:c.state.stageRuns.filter(r=>r.progress!=='planned')});
+ view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(view,/After this stop: Overall review/);
+ const overall={id:'overall',stage:'review',scope:'Actual combined review',reviewOf:['imp1','imp2'],overall:true,progress:'planned',inputRefs:[],outputRefs:['review.md']};
+ await c.save({stageRuns:[...c.state.stageRuns,overall]});await c.finish('overall','failed');
+ assert.match(table(await renderText(c.dir,c.state)),/\| Overall review \| Result needs resolution \|/);
+ const repair=correction(c,'overall');await c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id});
+ view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/\| Overall review \| Completed \|/);
+ assert.match(table(view),/\| verify \| Not started \|/);
+ assert.equal((await readState(c.dir)).completion.standardComplete,false);
+ const later={id:'imp3',stage:'implement',scope:'Later authorized batch',progress:'done',result:'passed',resultRef:'plan.md',inputRefs:[],outputRefs:['plan.md']};
+ const laterView=await renderText(c.dir,{...c.state,stageRuns:[...c.state.stageRuns,later],currentRun:'imp3'});
+ assert.deepEqual(rows(laterView),expected);assert.match(table(laterView),/\| Overall review \| Review required for current batches \|/);
+ assert.match(table(laterView),/batch review pending/);
+});
+
+test('progress links registered formal contracts without flattening internal evidence',async t=>{
+ const c=await setup(t);await fs.mkdir(path.join(c.dir,'.aimship/evidence'));
+ await fs.writeFile(path.join(c.dir,'rpc-contract.md'),'# RPC contract\nSynthetic methods and error behavior.');
+ await fs.writeFile(path.join(c.dir,'.aimship/evidence/check.json'),'{}');
+ await c.save({documents:[...c.state.documents,{kind:'contract',path:'rpc-contract.md',mode:'new',version:'1'}],next:{action:'Prepare requirements',inputRefs:['rpc-contract.md','.aimship/evidence/check.json']},stageRuns:c.state.stageRuns.map(r=>r.id==='req'?{...r,outputRefs:[...r.outputRefs,'.aimship/evidence/check.json']}:r)});
+ const view=await renderText(c.dir,c.state);
+ assert.equal(view.split('](rpc-contract.md)').length-1,1);assert.doesNotMatch(view,/Work material|check\.json/);
+});
+
+test('a question with an unknown result is shown as clarification without reporting failure',async t=>{
+ const c=await setup(t);await c.finish('req');
+ await fs.writeFile(path.join(c.dir,'source/question.md'),'# Scope question\nChoose the export columns before completing design.');
+ await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='design'?{...r,progress:'blocked',result:'unknown'}:r),currentRun:'design',next:{action:'Choose export columns',questionRef:'source/question.md'}});
+ const view=await renderText(c.dir,c.state);assert.match(view,/Awaiting clarification/);assert.doesNotMatch(view,/unsuccessful|failed|Result needs resolution/);
+ assert.equal((await readState(c.dir)).review.canProceed,false);
+});
+
+test('limited standalone review does not invent implementation or standard future phases',async t=>{
+ const c=await setup(t,{selected:[['req','requirements','prd'],['independent','review','review']],partial:true});
+ await c.finish('req');await c.finish('independent');
+ const view=await renderText(c.dir,c.state),table=view.split('## Delivery progress')[1].split('Delivery conclusion:')[0];
+ assert.match(table,/\| review \| Completed \|/);assert.doesNotMatch(table,/implement|Overall review|verify|handoff/);
 });
 
 test('corrective review must preserve failure evidence and matching coverage before continuation',async t=>{
@@ -83,7 +144,9 @@ test('independent review work is not blocked by an unrelated failed review',asyn
 
 test('last registered approved requirements remain resumable until a scope conclusion is recorded',async t=>{
  const c=await setup(t,{selected:definitions.slice(0,1),partial:true});await c.finish('req',null);
- let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'await-continue');assert.match(read.session.instruction,/Say “continue” when ready/);assert.ok(read.session.continuation.includes(c.dir));
+ let read=await readState(c.dir);assert.equal(read.state.outcome.goal,'in-progress');assert.equal(read.session.action,'await-continue');assert.match(read.session.instruction,/Say “continue” when ready/);
+ const quotedDirectory=read.session.continuation.match(/delivery ("(?:[^"\\]|\\.)*")/);
+ assert.ok(quotedDirectory,'Continuation identifies the delivery directory');assert.equal(JSON.parse(quotedDirectory[1]),c.dir,'Decode the quoted path on Windows as well as POSIX');
  for(const command of ['read','check','resume']) {
   const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version],{encoding:'utf8',timeout:10000});assert.equal(result.status,0,result.stderr);
   const data=JSON.parse(result.stdout).data;assert.equal(data.session.action,'await-continue');assert.notEqual(data.session.continuation,null);

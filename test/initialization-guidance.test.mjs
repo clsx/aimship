@@ -42,6 +42,7 @@ test('new initialization saves standard endpoint, full progress and one neutral 
   const view=await fs.readFile(path.join(c.dir,'status.md'),'utf8');
   for(const label of language==='en'?['requirements','tech-design','test-design','plan','implement','review','verify','handoff']:['需求','技术设计','测试设计','实施计划','实施','审查','验证','交付验收'])assert.ok(view.includes(label),label);
   assert.doesNotMatch(view,/Missing current|\.aimship\/init.md/);
+  assert.match(view,language==='en'?/\| Overall review \| Not started \|/:/\| 整体审查 \| 尚未开始 \|/);
   const init=await fs.readFile(path.join(c.dir,'.aimship/init.md'));
   for(const command of ['read','check','resume']) {
    const out=(await run([command,c.dir,'--rules-version',version],{sourceRoot:root})).data;

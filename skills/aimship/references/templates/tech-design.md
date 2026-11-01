@@ -12,7 +12,7 @@ Ordered explanation, with a concise diagram when useful to show cross-system cal
 
 ## Modules and interaction implementation
 
-Repository ID, responsibility, actual path, new/change, requirement refs; entry/state/data flow and component reuse for affected interaction. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Repository ID, responsibility, actual path, new/change and requirement refs. For a full-stack change use readable backend/frontend subsections: affected service/data responsibilities; client pages/routes, reused/new components, interaction states and data flow. For other tasks organize by the actual components; do not invent unused frontend/backend sections. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## Data, interfaces and SQL
 

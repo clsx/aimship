@@ -20,7 +20,7 @@ Each batch review, overall review then independent verification; no per-batch fu
 
 ## Task status and execution records
 
-Current status, actual changes, artifact references and object versions by existing TASK/B; preserve the approved tasks above and distinguish pre-existing changes. Record progress here, for example a table of Task | Status | Actual result. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Lead with the current batch/task status using existing B/TASK IDs: Batch/task | Status | Actual result or remaining work | Review/result reference. Distinguish code complete from batch review complete. Follow with necessary dated execution records, deviations and object versions; retain prior results for their objects. Preserve approved task definitions above and distinguish pre-existing changes. Update this summary as work proceeds; save main-stage facts in state for status.md. Replace guidance with actual content; never prefill a result.
 
 ## Deviations, blockers and remaining work
 

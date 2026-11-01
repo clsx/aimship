@@ -262,6 +262,8 @@ Review open questions with their document, including impact, recommendation and 
 
 At each completed stage, follow the stop in `status.md`: approve or give feedback on pending documents, or ask to continue completed work. Changing sessions is optional; “continue” does not approve a pending document. The page prioritizes current actions and shows future stages as not started, not current defects.
 
+`status.md` summarizes stable delivery stages; batch reviews belong to implementation, with overall review shown separately. Read `plan.md` for current batch/task status and remaining implementation, `review.md` for findings, repairs and rechecks, and `testing.md` for cases, execution records and the latest verification conclusion. Routine progress updates preserve approval of unchanged plans/cases. Formal artifacts are linked from status; detailed internal evidence is available where a document references it.
+
 See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. The saved delivery language carries over. If switching before the first save, carry the unsaved request, intended location and pending operations.
 
 <a id="22-continue-after-work-stops-unexpectedly"></a>

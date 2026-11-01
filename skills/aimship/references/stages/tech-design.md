@@ -12,7 +12,7 @@ For applicable concurrency and state changes, explain when the business constrai
 
 For a material new database/RPC call on the critical path, describe its location, repeat calls within a request, timeout/failure behavior, cost basis and how feasibility will be checked. Distinguish observed facts, estimates and unknowns; verification should match the actual risk, without invented capacity targets.
 
-Use an ordered explanation for simple flows. Where cross-system calls are hard to follow, a concise architecture or sequence diagram can show transaction boundaries and cache/response order. Explain affected frontend component reuse and state/data flow. Detail the actual tradeoffs; API schemas, executable SQL and full test cases remain in their later deliverables.
+Use an ordered explanation for simple flows. Where cross-system calls are hard to follow, a concise architecture or sequence diagram can show transaction boundaries and cache/response order. Organize affected components into readable subsections; full-stack work benefits from backend responsibilities and frontend pages/routes, reuse, interaction states and data flow. Other work uses its actual components. Explain the design and real tradeoffs in the document, using source evidence where it helps judgment; routine investigation/self-check logs are not review prerequisites. API schemas, executable SQL and full test cases remain in their later deliverables.
 
 ## Continue when
 

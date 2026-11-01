@@ -8,7 +8,7 @@ Current AC and risks; adopted cases location/version if verify-only. Replace gui
 
 ## Environment, data and execution conditions
 
-Tools, permissions, commands and unavailable conditions. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Planned tools/entry commands, isolated data, permissions and unavailable execution conditions. Actual versions/environment belong with each RUN. Replace guidance with actual content; explain inapplicability, never prefill a result.
 
 ## Test cases
 
@@ -16,14 +16,14 @@ TC, REQ/AC or risk, type/level, preconditions, operations, concrete expected res
 
 ## Coverage and verification arrangement
 
-AC, requirements, TC, gaps and execution group/order. Replace guidance with actual content; explain inapplicability, never prefill a result.
+AC, requirements, TC, gaps and execution group/order. Explain the selected test methods from requirements and risk, reusing project checks; do not require every test category. Replace guidance with actual content; never prefill a result.
 
 ## Execution and retest records
 
-RUN, TC, testing document version, exact code/build or document object, command/operation, assertions, actual results and evidence. Not executed until actually run; append failures/retests. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Keep every RUN and retest here, grouped by actual batch or verification round: TC, testing document version, exact code/build object, environment, command/operation, assertions, result and evidence. Retain failures and the later recheck; local implementation checks do not replace post-overall-review independent verification. Replace guidance with actual content; never prefill a result.
 
 ## Defects, current conclusion and remaining work
 
-Separate passed, failed, blocked and unexecuted; explain applicability after change. Replace guidance with actual content; explain inapplicability, never prefill a result.
+Maintain a latest-result summary for the current object: AC/TC or risk | Verified scope | Result | Evidence/RUN | Remaining coverage. Separate passed, failed, blocked and unexecuted; state defects, their disposition and the next necessary work. Keep historical RUNs in the execution section above, not underneath an old current conclusion. Replace guidance with actual content; never prefill a result.
 
 <!-- Review guidance: retain the fixed outline. Technical design precedes interface/SQL production; test cases precede planning. Self-check and explicit document approval are separate from stage done. For plan/testing, keep execution records after execution/runs respectively. -->
