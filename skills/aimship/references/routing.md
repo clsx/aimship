@@ -5,7 +5,7 @@ The user activates one Aimship entry. Read the bound core, this routing guide an
 | Intent/current stop | Route and scope |
 | --- | --- |
 | New concrete request | Preserve the commission and locate/create the intended delivery using core initialization; begin requirement work. |
-| Continue a known delivery | Read its identity/state/current materials. Resume pending approval, clarification or unfinished effects before selecting subsequent work. |
+| Continue a known delivery | Use the [shared start/continuation sequence](core.md#begin-or-resume-the-selected-work) with its identity/state/current materials. Continue the same active work; pending design discussion stays in design. Resolve actual approval, clarification or unfinished effects before entering subsequent work. |
 | A specified stage | Match the request to the saved arrangement and actual scope. Check prerequisites and current-content approvals; record a changed/limited commission where actually requested. A stage name is not permission to bypass its inputs. |
 | Implement the next authorized batch | Load [implement](stages/implement.md). Its work unit includes local checks, batch review and authorized repair/recheck; save separate internal runs, then stop at batch completion. |
 | Review | Load the [review dispatcher](stages/review.md) and its batch/overall/recheck module. The last batch stops with an overall-review handoff; recommend a new session, or continue overall review here only when explicitly authorized. Overall review alone does not commission full testing. |
