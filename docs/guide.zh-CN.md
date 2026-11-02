@@ -2,7 +2,7 @@
 
 [English](guide.md) · [README](../README.zh-CN.md)
 
-[交付目录](#delivery-structure) · [1. 使用示例](#start) · [2. 会话与续接](#guide-sessions) · [3. 需求输入与变更](#guide-inputs) · [4. 代码与多需求管理](#guide-projects) · [5. 问题处理与维护](#troubleshoot)
+[交付目录](#delivery-structure) · [1. 使用示例](#start) · [2. 会话与续接](#guide-sessions) · [3. 需求输入与变更](#guide-inputs) · [4. 代码与多需求管理](#guide-projects) · [5. 问题处理与维护](#troubleshoot) · [6. 安装与工具管理](#software-maintenance)
 
 <a id="24-查看当前工作"></a>
 <a id="44-交付目录与文档"></a>
@@ -94,7 +94,7 @@ AI 工具项目空间
 
 ### 1.1 启用并提出诉求
 
-**用户操作**：明确使用 Aimship，并说明目标。例如：
+**用户操作**：按[快速开始](../README.zh-CN.md#install)安装后，刷新工具的 Skill 发现或新建会话，明确使用 Aimship，并说明目标。例如：
 
 > 使用 Aimship，做用户名密码注册、登录、退出和登录后首页。完成开发与本地验证；代码稍后提供。
 
@@ -391,7 +391,7 @@ AI 只能核对已知且可访问的交付，不会自动锁定或调度其他�
 
 ### 5.2 找不到 Aimship 入口
 
-先按 README 检查安装状态，再尝试新开会话或刷新 AI 工具的 Skill 列表，明确选择 Aimship。具体入口以所用 AI 工具的版本和支持方式为准；安装检查通过不代表它已经加载 Skill。
+先[检查安装状态](#installation-status)，再尝试新开会话或刷新 AI 工具的 Skill 列表，明确选择 Aimship。具体入口以所用 AI 工具的版本和支持方式为准；安装检查通过不代表它已经加载 Skill。
 
 出现重复入口时，先核对来源和版本，保留已有定制内容。Codex 与 Cursor 共用安装入口，不要直接删除重复项。真实 AI 工具的发现、权限和跨工具续接尚未完整验证；可参考 [Cursor 文档](https://cursor.com/docs/skills)和 [Codex Skill 位置说明](https://learn.chatgpt.com/docs/build-skills)。
 
@@ -402,20 +402,95 @@ AI 只能核对已知且可访问的交付，不会自动锁定或调度其他�
 
 ### 5.3 升级后继续
 
-升级前保存当前工作，再按 README [升级](../README.zh-CN.md#update)。升级后重新启用 Aimship，核对实际绑定版本和交付状态；安装本身不会更新交付记录。
-
-本轮流程要求状态 schema 5／交付协议 2，不接续或迁移协议 1 的交付，包括 Preview 17–20 的状态。旧文档仍可阅读，安装会保留文件。请先用原支持版本完成进行中的交付，或按新流程新建交付，不手改版本字段强行接续。安装器会说明破坏性或未确认兼容的切换影响，默认在更改活动安装前停止；接受安装风险不代表允许写入不支持的交付状态。
+升级前保存当前工作，并查看[升级与兼容说明](#update)。兼容更新后刷新工具规则或新建会话，重新启用 Aimship，提供原交付目录，核对实际绑定版本和交付状态；安装本身不会更新交付记录。
 
 <a id="45-安装与维护参考"></a>
 <a id="安装与维护参考"></a>
-<a id="update"></a>
-<a id="update-or-stop-using-aimship"></a>
-<a id="uninstall"></a>
 <a id="guide-references"></a>
 <a id="35-安装维护与反馈"></a>
 
 ### 5.4 安装维护与反馈
 
-安装、升级、添加 AI 工具、版本与健康查询见 [README](../README.zh-CN.md#update)，移除见[卸载说明](../README.zh-CN.md#uninstall)。健康查询只检查安装文件和配置，不会修复交付文档；安装中断或文件缺失时，按 README 对应问题处理，不盲目重装。
+具体命令与恢复方法见下方[安装与工具管理](#software-maintenance)。健康查询只检查安装文件和配置，不会修复交付文档。
 
 反馈时提供版本、操作、预期与实际结果，以及最少的复现步骤。隐去凭据、个人路径和业务数据后提交 [Issue](https://github.com/clsx/aimship/issues)。开发见[贡献指南](../CONTRIBUTING.md)，工具协议见 [CLI 文档](cli.md)。
+
+<a id="software-maintenance"></a>
+
+## 6. 安装与工具管理
+
+首次安装按[快速开始](../README.zh-CN.md#install)操作。安装器支持 `codex`、`cursor` 和 `claude-code`；连接多个工具时重复 `--host`，例如 `--host codex --host claude-code`。无需全局 npm 安装、管理员权限或 npm 登录；npm 缓存需要可写。
+
+<a id="update"></a>
+<a id="update-or-stop-using-aimship"></a>
+<a id="升级与宿主管理"></a>
+<a id="升级与-ai-开发工具管理"></a>
+### 6.1 升级与工具管理
+
+保存当前工作后，使用同一个安装命令：
+
+```sh
+npx aimship@latest install
+```
+
+已有工具登记、配置、自定义内容和交付文件都会保留。普通更新无需重复 `--host` 或 `--data-root`，没有后台自动升级。兼容更新后的会话操作见[升级后继续](#guide-upgrade)。
+
+本轮流程使用 **状态 schema 5／交付协议 2**，不接续或迁移协议 1 的状态，包括 Preview 17–20 的交付。旧文档仍可阅读，安装也会保留文件；请先用原支持版本完成进行中的交付，或按新流程新建交付。破坏性或未确认兼容的切换会说明影响，并在修改活动安装前停止。明确接受风险是[高级选项](#installation-troubleshooting)，不代表允许写入不支持的状态。npx 的下载确认与此独立；不要手改状态版本字段强行接续。
+
+<a id="添加宿主"></a>
+<a id="添加-ai-开发工具"></a>
+接入另一个工具，保留已有登记：
+
+```sh
+npx aimship@latest install --host cursor
+```
+
+此操作也会安装当前推荐版本。找不到入口时查看 [AI 工具设置](#guide-tools)。
+
+<a id="installation-status"></a>
+
+不下载、不升级，直接查询本机安装：
+
+```sh
+node "$HOME/.aimship/bin/aimship.mjs" --version
+node "$HOME/.aimship/bin/aimship.mjs" status
+```
+
+`installedActiveVersion` 是实际生效的软件版本。健康检查涵盖受管理文件和配置，不能确认 AI 工具已加载 Skill。查看交付进度请打开该目录的 `status.md`。若使用自定义 `--home`，请使用该位置下的本机入口。
+
+### 6.2 可选资料位置
+
+首次安装可附加 `--data-root "./MyDeliveries"` 指定其他交付根目录。相对路径从执行目录解析。后续安装保留配置，不搬迁已有交付；这里是资料位置，不是代码仓库。
+
+<a id="uninstall"></a>
+### 6.3 卸载
+
+断开一个工具并保留核心，或移除全部受管理软件：
+
+```sh
+npx aimship@latest uninstall --host cursor
+npx aimship@latest uninstall
+```
+
+两条命令是不同操作，按需要选择。其他已登记工具需要的共享入口会保留；断开最后一个工具仍保留核心，完整卸载才移除稳定入口和受管理版本。两者都保留交付资料、用户代码、自定义文件与必要配置。修改过或不属于它管理的文件会保留并报告。之后刷新工具会话以清除缓存规则。
+
+<a id="installation-troubleshooting"></a>
+### 6.4 安装与升级问题
+
+| 现象 | 处理方式 |
+| --- | --- |
+| 入口缺失或重复 | 按 [AI 工具设置](#guide-tools)刷新发现；安装健康不代表已经加载。 |
+| 管理位置被修改或占用 | 保留内容，明确处理归属或定制冲突后再试。 |
+| 安装中断 | 查询 `status`，排除原因后在同一安装位置重跑完全相同的待恢复包，恢复途中不换版本。 |
+| 版本与预期不一致 | 查询 `installedActiveVersion`，通过 `install` 更新，再刷新会话规则。 |
+| 更新要求明确确认 | 先完成进行中的交付。如果明确接受所述风险，给相同目标包的 `install` 附加 `--accept-upgrade-risk`。不支持的交付状态仍不能写入。 |
+| 下载失败或包不存在 | 检查包、确切版本和 registry；下载失败不算安装成功。 |
+
+<details>
+<summary>高级：指定包与恢复</summary>
+
+将 `VERSION` 替换为实际已发布或待恢复的版本，例如 `npx aimship@VERSION install`。明确接受升级风险时，在这个确切命令后附加 `--accept-upgrade-risk`。`npx --yes` 只确认下载/运行包，不能代替该参数。
+
+已有本地安装包时，在其目录执行 `npx --offline file:./aimship-VERSION.tgz install --host codex`。源码与隔离安装检查见[贡献指南](../CONTRIBUTING.md#isolated-installation-check)。
+
+</details>

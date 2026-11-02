@@ -2,7 +2,7 @@
 
 [中文](guide.zh-CN.md) · [README](../README.md)
 
-[Delivery directory](#delivery-structure) · [1. Usage example](#start) · [2. Sessions and continuation](#guide-sessions) · [3. Requirements inputs and changes](#guide-inputs) · [4. Code and multiple deliveries](#guide-projects) · [5. Troubleshooting and maintenance](#troubleshoot)
+[Delivery directory](#delivery-structure) · [1. Usage example](#start) · [2. Sessions and continuation](#guide-sessions) · [3. Requirements inputs and changes](#guide-inputs) · [4. Code and multiple deliveries](#guide-projects) · [5. Troubleshooting and maintenance](#troubleshoot) · [6. Installation and tool management](#software-maintenance)
 
 <a id="24-check-current-work"></a>
 <a id="44-delivery-structure-and-documents"></a>
@@ -94,7 +94,7 @@ Use one Aimship entry within a session; no invocation is needed at every stage. 
 
 ### 1.1 Activate Aimship and state the request
 
-**User actions:** Explicitly request Aimship and state the goal. For example:
+**User actions:** After [installing Aimship](../README.md#install), refresh your tool’s Skill discovery or start a new session. Explicitly request Aimship and state the goal. For example:
 
 > Use Aimship for username/password sign-up, login, logout and a home page requiring login. Complete development and local verification; I will supply code later.
 
@@ -393,7 +393,7 @@ Reading a file does not prove it can be saved; the AI should report success from
 
 ### 5.2 The Aimship entry is missing
 
-Check installation status through the README, then try a new session or refresh your AI tool’s Skill list and explicitly select Aimship. The available entry depends on the tool’s version and supported controls; a healthy installation does not prove the Skill is loaded.
+Check [installation status](#installation-status), then try a new session or refresh your AI tool’s Skill list and explicitly select Aimship. The available entry depends on the tool’s version and supported controls; a healthy installation does not prove the Skill is loaded.
 
 For duplicate entries, check their sources and versions while preserving custom content. Codex and Cursor share an installed entry, so do not simply delete duplicates. Real discovery, permissions and cross-tool continuation are not fully verified. See [Cursor documentation](https://cursor.com/docs/skills) and [Codex Skill locations](https://learn.chatgpt.com/docs/build-skills).
 
@@ -404,20 +404,95 @@ For duplicate entries, check their sources and versions while preserving custom 
 
 ### 5.3 Continue after upgrading
 
-Save current work before [upgrading through the README](../README.md#update). Activate Aimship again afterward and check the actual bound version and delivery state; installation itself does not update delivery records.
-
-This workflow requires state schema 5 / delivery protocol 2. It does not continue or migrate protocol-1 deliveries, including Preview 17–20 states. Their documents remain readable and installation preserves them. Finish ongoing work with its supported version before upgrading, or start a new delivery under this workflow; do not edit version fields to force continuation. The installer reports a breaking or unverified switch and stops by default before changing the active installation. Accepting installation risk does not permit unsupported state writes.
+Save current work and check [upgrade compatibility](#update) before updating. After a compatible update, refresh the tool’s rules or start a new session, activate Aimship and provide the same delivery directory. Check the actual bound version and delivery state; installation itself does not update delivery records.
 
 <a id="45-installation-and-maintenance-references"></a>
 <a id="installation-and-maintenance-references"></a>
-<a id="update"></a>
-<a id="update-or-stop-using-aimship"></a>
-<a id="uninstall"></a>
 <a id="guide-references"></a>
 <a id="35-installation-maintenance-and-feedback"></a>
 
 ### 5.4 Maintenance and feedback
 
-See the [README](../README.md#update) for installation, upgrades, adding AI tools, version and health checks, or [uninstallation](../README.md#uninstall) for removal. Health checks inspect installation files and configuration; they do not repair delivery documents. For an interrupted installation or missing files, follow the corresponding README instructions rather than reinstalling blindly.
+Use the [installation and tool management instructions](#software-maintenance) below for commands and recovery. Health checks inspect installation files and configuration; they do not repair delivery documents.
 
 For feedback, provide versions, actions, expected and actual results, and minimal reproduction steps. Redact credentials, personal paths and business data before filing an [Issue](https://github.com/clsx/aimship/issues). See [Contributing](../CONTRIBUTING.md) for development and the [CLI document](cli.md) for tool protocols.
+
+<a id="software-maintenance"></a>
+
+## 6. Installation and tool management
+
+For a first installation, use the [quick start](../README.md#install). The installer supports `codex`, `cursor` and `claude-code`. To connect several tools, repeat `--host`, for example `--host codex --host claude-code`. No global npm installation, administrator privilege or npm login is required; npm needs a writable cache.
+
+<a id="update"></a>
+<a id="update-or-stop-using-aimship"></a>
+<a id="upgrades-and-host-management"></a>
+<a id="upgrades-and-ai-development-tools"></a>
+### 6.1 Upgrade and manage tools
+
+Save current work, then use the same installation command:
+
+```sh
+npx aimship@latest install
+```
+
+Existing tool registrations, configuration, custom content and delivery files are retained. Repeat neither `--host` nor `--data-root` for an ordinary update. There is no background updater. For session steps after a compatible update, see [Continue after upgrading](#guide-upgrade).
+
+This workflow uses **state schema 5 / delivery protocol 2**. It does not continue or migrate protocol-1 states, including Preview 17–20 deliveries. Their documents remain readable and installation preserves their files; finish ongoing deliveries with their supported version before upgrading, or start a new delivery under the new workflow. For a breaking or unverified protocol switch, the installer explains the impact and stops before changing the active installation. Explicit risk acceptance is an [advanced option](#installation-troubleshooting), not permission to write unsupported state. The npx download prompt is separate from that decision. Do not edit state version fields to force continuation.
+
+<a id="add-a-host"></a>
+<a id="add-an-ai-development-tool"></a>
+Connect another tool, retaining existing registrations:
+
+```sh
+npx aimship@latest install --host cursor
+```
+
+This also installs the currently recommended version. See [tool setup](#guide-tools) if the entry is not discovered.
+
+<a id="installation-status"></a>
+
+Check the local installation without downloading or upgrading:
+
+```sh
+node "$HOME/.aimship/bin/aimship.mjs" --version
+node "$HOME/.aimship/bin/aimship.mjs" status
+```
+
+`installedActiveVersion` identifies the active software. Health checks cover managed files and configuration; they cannot confirm the AI tool loaded the Skill. For delivery progress, open its `status.md`. With a custom `--home`, use the launcher beneath that location.
+
+### 6.2 Optional material location
+
+On the first installation, append `--data-root "./MyDeliveries"` to choose another delivery root. Relative paths resolve from the working directory. Later installs retain this configuration; existing deliveries are not moved. It is a material location, not a code repository.
+
+<a id="uninstall"></a>
+### 6.3 Uninstall
+
+Disconnect one tool while retaining the core, or remove all managed software:
+
+```sh
+npx aimship@latest uninstall --host cursor
+npx aimship@latest uninstall
+```
+
+These are alternative operations. Shared entries remain when another registered tool needs them. Disconnecting the last tool retains the core; full uninstall removes the launcher and managed releases. Both retain delivery materials, user code, custom files and necessary configuration. Modified or unowned files are preserved and reported. Refresh tool sessions afterward to discard cached rules.
+
+<a id="installation-troubleshooting"></a>
+### 6.4 Installation and upgrade problems
+
+| Symptom | What to do |
+| --- | --- |
+| Entry absent or duplicated | Refresh discovery using [tool setup](#guide-tools); installation health does not prove loading. |
+| Managed path modified or occupied | Preserve the contents and explicitly reconcile ownership/customizations before retrying. |
+| Interrupted installation | Inspect `status`, resolve the cause, then rerun the exact pending package against the same home. Do not switch versions during recovery. |
+| Unexpected version | Query `installedActiveVersion`, use `install` to update, then refresh the session's rules. |
+| Upgrade confirmation required | Finish ongoing deliveries first. If you explicitly accept the reported risk, rerun the same target package's `install` with `--accept-upgrade-risk`. Unsupported delivery writes remain blocked. |
+| Download failed or package unavailable | Check the package, exact version and registry; download failure is not installation success. |
+
+<details>
+<summary>Advanced: exact packages and recovery</summary>
+
+Replace `VERSION` with an actual published or pending version, for example `npx aimship@VERSION install`. If accepting an upgrade risk, append `--accept-upgrade-risk` to that exact command. `npx --yes` only accepts downloading/running the package and cannot substitute for this flag.
+
+For an existing local package, run `npx --offline file:./aimship-VERSION.tgz install --host codex` from its directory. Source and isolated installation checks are in [Contributing](../CONTRIBUTING.md#isolated-installation-check).
+
+</details>
