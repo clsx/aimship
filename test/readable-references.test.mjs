@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import {run} from '../lib/cli.mjs';
 import {artifactMap, hasLocator, definitions} from '../lib/documents.mjs';
 import {reviewFingerprint} from '../lib/approvals.mjs';
@@ -21,7 +22,7 @@ async function fixture(t,language='en') {
  let state;
  const call=async(command,input)=>{
   const args=[command,dir,'--rules-version',version];
-  if(input!==undefined){const file=path.join(dir,'input.json');await fs.writeFile(file,JSON.stringify(input));args.push('--input',file);if(command==='update')args.push('--revision',String(state.revision));}
+  if(input!==undefined){const file=path.join(dir,'input.json');await fs.writeFile(file,JSON.stringify(command==='update'?semanticPatch(state,input):input));args.push('--input',file);if(command==='update')args.push('--revision',String(state.revision));}
   const result=await run(args,{sourceRoot});if(['init','update'].includes(command))state=result.data;return result.data;
  };
  const input={language,storage:{mode:'explicit',decisionRef:'.aimship/init.md'},goal:{summary:'Selected-order export',endpoint:'Reviewed local design'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:['prd','testing','plan'].map(reg)};

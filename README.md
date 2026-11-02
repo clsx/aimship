@@ -7,7 +7,7 @@
 Aimship is for developers who own the result, from a small fix to a feature spanning several repositories. Bring a goal and whatever materials you already have. The agent clarifies requirements, prepares designs, plans implementation batches, reviews the changes and records independent verification. You review the key documents and decisions before dependent work proceeds.
 
 - **Understand the proposal before code changes:** requirements and acceptance criteria connect to the design, tasks and tests.
-- **See what is actually finished:** `status.md` summarizes delivery stages; the plan tracks batch/task progress, reviews track findings, and tests retain actual results.
+- **See what is actually finished:** saved state supplies the delivery stages and current batch, review and test summaries; the documents retain the work definitions, findings and evidence.
 - **Continue without reconstructing the conversation:** saved documents, decisions and state give the next session a starting point. Changes return to the affected design and review.
 
 Aimship manages the delivery process. The agent still needs to investigate, self-check and correct its work; you judge the content and acceptance. Model and AI-tool behavior can vary. **Currently in Preview**; installation or passing tool tests is not proof that every tool/model combination works.
@@ -45,7 +45,7 @@ The [first-use guide](docs/guide.md#start) covers tool activation, access and th
 | --- | --- |
 | `prd.md` | REQ-001: export only selected orders; AC-001: selecting two permitted orders yields exactly those two rows. |
 | `tech-design.md` / applicable contracts | Explain permission enforcement, export limits and error behavior before implementation. |
-| `plan.md` | TASK-001 implements selection and permission checks; its execution status is maintained as batches finish. |
+| `plan.md` | TASK-001 defines selection and permission work in B-001; a generated table shows the batch's implementation and review progress. |
 | `review.md` | Record the reviewed code baseline, findings, impact, fixes and recheck conclusion. |
 | `testing.md` | TC-001 checks AC-001. Execution remains “not run” until a RUN records actual assertions and evidence. |
 | `status.md` | Show the stable delivery stages, current review stop and next action; batch detail stays in the plan. |
@@ -55,6 +55,8 @@ The [first-use guide](docs/guide.md#start) covers tool activation, access and th
 <a id="delivery-artifacts"></a>
 <a id="delivery-workflow"></a>
 A normal delivery follows **requirements → design and applicable contracts/SQL → test design → plan → implementation with batch reviews → overall review → independent verification → acceptance**. Documents are produced as needed. An applicable supplied PRD can be adopted; original materials are retained. A prototype is optional. Key approvals apply to the current content, and completion, passing tests and your acceptance remain separate facts.
+
+Each batch includes its review and authorized repairs, then stops. After the last batch closes, Aimship recommends a new session for the existing overall-review stage; you can explicitly request it in the current session. Formal testing follows overall review, with the agreed test environment prepared by you. This adds no deployment stage or automatic deployment.
 
 See the [guided example](docs/guide.md#start) and [delivery directory reference](docs/guide.md#delivery-structure). Contributors can also [run synthetic deliveries](CONTRIBUTING.md#executable-examples) with actual local assertions; those checks do not establish AI-host behavior.
 
@@ -70,9 +72,9 @@ Save current work, then use the same installation command:
 npx aimship@latest install
 ```
 
-Existing tool registrations, configuration, custom content and delivery files are retained. Repeat neither `--host` nor `--data-root` for an ordinary update. There is no background updater. After upgrading, start a new session or refresh the tool's rules, activate Aimship and resume the same delivery directory.
+Existing tool registrations, configuration, custom content and delivery files are retained. Repeat neither `--host` nor `--data-root` for an ordinary update. There is no background updater. After a compatible update, start a new session or refresh the tool's rules, activate Aimship and resume the same delivery directory.
 
-Compatible delivery protocols can continue without rewriting old documents or invalidating unchanged approvals. Legacy Preview 17/18 states are supported by an exact protocol mapping; older unverified states are not assumed compatible. Software installation itself does not change delivery records. For a breaking or unverified protocol switch, the installer explains the impact and stops before changing the active installation. Strongly prefer finishing ongoing deliveries first; explicit risk acceptance is an [advanced recovery option](#installation-troubleshooting), not permission to write unsupported state. The npx download prompt is separate from that decision.
+This workflow uses **state schema 5 / delivery protocol 2**. It does not continue or migrate protocol-1 states, including Preview 17–20 deliveries. Their documents remain readable and installation preserves their files; finish ongoing deliveries with their supported version before upgrading, or start a new delivery under the new workflow. For a breaking or unverified protocol switch, the installer explains the impact and stops before changing the active installation. Explicit risk acceptance is an [advanced option](#installation-troubleshooting), not permission to write unsupported state. The npx download prompt is separate from that decision.
 
 <a id="add-a-host"></a>
 <a id="add-an-ai-development-tool"></a>

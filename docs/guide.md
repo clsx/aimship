@@ -147,7 +147,7 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **User actions:** Supply the project location and known test conditions. Open the design, check password protection, login state, access control and data changes, then approve or give feedback.
 
-**AI processing:** Reads the project, checks technical conditions and designs the implementation and risk handling. It resolves missing essential facts and prepares interfaces/SQL after design approval.
+**AI processing:** Reads the relevant current project behavior and applicable project conventions, then designs the implementation and risk handling. A project without convention files proceeds normally. The AI investigates discoverable facts itself; only decisions that need your judgment are raised, with nonblocking questions left until they are needed. Applicable interfaces and SQL follow design approval.
 
 **Outputs:** `tech-design.md` explains the implementation and tradeoffs. It plans later SQL; finished SQL is not required at this point.
 
@@ -158,7 +158,7 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **User actions:** For the interface review, check requests, responses, errors and authentication. For SQL, check the target database, structure, change order and execution conditions. Approve or request changes separately.
 
-**AI processing:** Prepares applicable documents from the approved design, self-checks each and waits for review. Test design follows their approval. Existing authoritative contracts are reused; no relevant change means no file, and multiple databases have separate SQL.
+**AI processing:** Prepares applicable documents from the approved design, relevant existing contracts and project conventions, self-checks each and waits for review. Test design follows their approval. Existing authoritative contracts are reused; no relevant change means no file, and multiple databases have separate SQL.
 
 **Outputs:** This example's `openapi.yaml` defines HTTP interfaces; `database.sql` describes single-database changes. **Document approval does not authorize SQL execution or changes to migration mechanisms.**
 
@@ -191,18 +191,20 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 **User actions:** Inspect changes and progress; point out deviations, such as “The post-sign-up redirect differs from the prototype.” No line-by-line approval of execution logs is needed; inspect the saved stage result and ask to continue.
 
-**AI processing:** Implements one batch, performs appropriate local checks, reviews it and repairs/rechecks within the authorized scope. Implementation and review are saved separately; the AI reports and stops at batch closure, not between those internal steps. Continuation advances only after blocking issues are resolved. All batches are followed by overall review, then verification. Requirement changes return to the relevant review.
+**AI processing:** Implements one batch, performs appropriate local checks, automatically reviews the batch and repairs/rechecks within the authorized scope. Implementation and review are saved separately; the AI reports and stops at batch closure, without starting the next batch. Compilation and type checks are development checks; they do not replace review or formal testing, and a complete test suite is not required after every batch. Requirement changes return to the relevant review.
 
-**Outputs:** Project code, one maintained batch progress table (including review status) in the plan execution section, and findings/repairs in `review.md`. Development checks are brief notes and evidence references; formal test results belong to later verification.
+For independent work with useful separation and no conflicting writes, the AI may use the host's existing subagent tools. It supplies relevant approved designs, contracts and project conventions, collects the results and checks integration before the batch review. Small work or hosts without delegation proceed serially; no extra plugin or setup is required.
+
+**Outputs:** Project code, a state-generated batch progress table (including review status) in the plan execution section, and findings/repairs in `review.md`. Development checks are brief notes and evidence references; formal test results belong to later verification. After the last batch closes, the AI summarizes implementation and recommends a new session for overall review. It continues overall review in the same session only when you explicitly request it.
 
 <a id="guide-overall"></a>
 <a id="19-review-the-complete-change"></a>
 
 ### 1.8 Review the complete change
 
-**User actions:** Read the overall findings and remaining issues, pointing out omissions if needed. Review records do not need a separate document approval; inspect the conclusion and ask to continue.
+**User actions:** Start the recommended new session for overall review, or explicitly ask to perform it in the current session. Read the findings and remaining issues, pointing out omissions if needed. Review records do not need a separate document approval.
 
-**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access. It records findings and the reviewed object, saves the conclusion and stops before verification; an overall-review request alone does not run a full test suite. Authorized repairs return for recheck. A single-batch review can explicitly cover both batch and overall scope.
+**AI processing:** Checks all actual changes and connections across sign-up, login, logout and home-page access, including requirement/design/contract consistency and logic, transaction and exception defects. It records findings and the reviewed object, saves the conclusion and stops before formal testing. Authorized repairs return for recheck. This is the existing code-review stage, not an added phase. Even for one batch, batch review and overall review have separate saved scopes and the batch stop remains in place.
 
 **Outputs:** Overall conclusions appended to `review.md`. Code review does not replace running tests.
 
@@ -211,9 +213,9 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 1.9 Run verification and handle failures
 
-**User actions:** Provide the agreed isolated test environment, read execution results and supply reproduction details or missing conditions. Separately authorized operations need an explicit target and action.
+**User actions:** After overall review passes, prepare the agreed isolated test environment, including deployment to it when the project needs that. Read execution results and supply reproduction details or missing conditions. Aimship does not add a deployment stage or deploy automatically; separately authorized operations need an explicit target and action.
 
-**AI processing:** Runs cases against reviewed code, distinguishing passed, failed and unexecuted checks. It reviews fixes and retests while retaining failure history; requirement/design issues return to the relevant materials.
+**AI processing:** Runs formal cases against the reviewed object in the agreed environment, distinguishing passed, failed and unexecuted checks. It reviews fixes and retests while retaining failure history. A partial retest updates only its actual coverage; other results need to remain applicable or be checked again. Requirement/design issues return to the relevant materials. Local development checks do not become formal results merely because they ran earlier.
 
 **Outputs:** Actual code, environment, results and evidence appended to the same `testing.md`. Missing necessary verification is reported, not marked passed.
 
@@ -256,13 +258,15 @@ The AI rechecks access to the same delivery directory, reads its state and confi
 
 ### 2.1 When to switch sessions
 
-Consider a new session after requirements before technical design, after design and applicable contracts before test design, after the plan before implementation, after each batch and its review, and after overall review before independent verification. Combine coinciding boundaries. Resume pending review before advancing; directory creation and small steps within a stage need no session change.
+Consider a new session after requirements before technical design, after design and applicable contracts before test design, after the plan before implementation, after each batch and its review, and after overall review before independent verification. After the final batch, a new session is recommended for overall review; continuing that review here needs your explicit request. Combine coinciding boundaries. Resume pending review before advancing; directory creation and small steps within a stage need no session change.
 
 Review open questions with their document, including impact, recommendation and when an answer is needed. Nonblocking questions can remain open; document approval does not answer every question.
 
 At each completed stage, follow the stop in `status.md`: approve or give feedback on pending documents, or ask to continue completed work. Changing sessions is optional; “continue” does not approve a pending document. The page prioritizes current actions and shows future stages as not started, not current defects.
 
-`status.md` summarizes stable delivery stages; batch reviews belong to implementation, with overall review shown separately. Read `plan.md` for current batch/task status and remaining implementation, `review.md` for findings, repairs and rechecks, and `testing.md` for cases, execution records and the latest verification conclusion. Routine progress updates preserve approval of unchanged plans/cases. Formal artifacts are linked from status; detailed internal evidence is available where a document references it.
+`status.md` and the limited generated sections in new native `plan.md`, `review.md` and `testing.md` use the same saved state. The plan's generated table shows business batches, implementation and batch review; review's generated summary shows current batch/overall conclusions; testing's generated summary shows effective results and coverage still to check. The AI maintains task definitions, detailed findings, full RUN evidence and explanations in the surrounding document sections. You do not maintain a second status table by hand. Adopted document formats are preserved rather than rewritten to add these sections.
+
+Batch reviews belong to implementation; status shows one overall-review phase. Routine progress or generated-section updates preserve approval of unchanged plan/test definitions. Material changes are assessed for their actual impact, retaining unaffected work and historical results. Editing a generated summary does not record a completion or approval; modified generated content is preserved for reconciliation. A failed view refresh is repaired from saved state without repeating the recorded review or test.
 
 See the [new-session example](#guide-session-example). Keep one writing session per delivery. Trusted records can locate it directly; missing or ambiguous matches prompt clarification. The saved delivery language carries over. If switching before the first save, carry the unsaved request, intended location and pending operations.
 
@@ -402,7 +406,7 @@ For duplicate entries, check their sources and versions while preserving custom 
 
 Save current work before [upgrading through the README](../README.md#update). Activate Aimship again afterward and check the actual bound version and delivery state; installation itself does not update delivery records.
 
-Compatible protocol updates preserve existing documents and approvals of unchanged content; the next normal save records the current software version. Preview 17/18 states have a verified mapping. Unknown protocols remain blocked. If installation reports a breaking or unverified switch, finish ongoing deliveries before upgrading; accepting that risk never bypasses delivery-state protection. Use ordinary Markdown and searchable numbers, preserve actual test records and inspect the impact of substantive changes.
+This workflow requires state schema 5 / delivery protocol 2. It does not continue or migrate protocol-1 deliveries, including Preview 17–20 states. Their documents remain readable and installation preserves them. Finish ongoing work with its supported version before upgrading, or start a new delivery under this workflow; do not edit version fields to force continuation. The installer reports a breaking or unverified switch and stops by default before changing the active installation. Accepting installation risk does not permit unsupported state writes.
 
 <a id="45-installation-and-maintenance-references"></a>
 <a id="installation-and-maintenance-references"></a>

@@ -1,3 +1,4 @@
+import {semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -20,7 +21,7 @@ async function fixture(t,docs=[reg('prd')],authority='authored') {
  let state;
  const call=async(command,patch)=>{
   const args=[command,dir,'--rules-version',version];
-  if(patch!==undefined){const file=path.join(dir,'input.json');await fs.writeFile(file,JSON.stringify(patch));args.push('--input',file);if(command==='update')args.push('--revision',String(state.revision));}
+  if(patch!==undefined){if(command==='update')patch=semanticPatch(state,patch);const file=path.join(dir,'input.json');await fs.writeFile(file,JSON.stringify(patch));args.push('--input',file);if(command==='update')args.push('--revision',String(state.revision));}
   const result=await run(args,{sourceRoot});if(['init','update'].includes(command))state=result.data;return result.data;
  };
  await call('init',input);
@@ -73,7 +74,7 @@ test('CLI batch definitions require the approved design surface; execution may c
  await assert.rejects(c.call('update',{}),{code:'REVIEW_CHECK'});
  await c.put('source/change.md','Synthetic explicit decision CHG-001: replace the planned batch, self-check and approve revised plan.');
  const documents=c.state.documents.map(d=>d.kind==='plan'?{...d,version:'2'}:d);
- await c.call('update',{documents,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open'}],reviewHistory:await approveFixture(c.dir,{...c.state,documents},['plan.md'])});
+ await c.call('update',{documents,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open',impactRef:'source/change.md',affectedRefs:['plan.md#B-002']}],reviewHistory:await approveFixture(c.dir,{...c.state,documents},['plan.md'])});
 });
 test('current state requires the saved delivery language; invalid updates preserve saved bytes',async t=>{
  const help=(await run(['help'],{sourceRoot})).data;

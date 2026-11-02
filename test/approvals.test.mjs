@@ -5,7 +5,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initState, updateState, readState } from '../lib/state.mjs';
+import {readState} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import { reviewStatus, reviewFingerprint } from '../lib/approvals.mjs';
 import { run } from '../lib/cli.mjs';
 import { approveFixture } from '../scripts/testing/reviews.mjs';
@@ -53,7 +54,7 @@ test('approval: question, silence, result viewing, missing self-check and forged
  await assert.rejects(c.save({reviewHistory:[records[0],{...records[1],digest:'0'.repeat(64)}]}),{code:'REVIEW_CHECK'});
  await assert.rejects(c.save({reviewHistory:[{...records[0],sourceRef:'source/missing.md'}]}),{code:'REVIEW_CHECK'});
  await assert.rejects(c.save({reviewHistory:[{...records[0],sourceRef:'https://example.invalid/approval'}]}),{code:'REVIEW_CHECK'});
- assert.equal(c.state.revision,0);
+ assert.equal(c.state.revision,1);
 });
 test('approval: edit request revokes approval; revised content requires fresh self-check and approval; history immutable',async t=>{
  const c=await setup(t);await c.approve(['prd.md']); const historical=structuredClone(c.state.reviewHistory);
@@ -61,7 +62,7 @@ test('approval: edit request revokes approval; revised content requires fresh se
  assert.equal((await readState(c.dir)).review.documents[0].status,'changes-requested');
  await fs.appendFile(path.join(c.dir,'prd.md'),'\nChanged observable behavior.');
  await assert.rejects(c.save({}),{code:'REVIEW_CHECK'});
- await c.save({documents:c.state.documents.map(d=>d.path==='prd.md'?{...d,version:'2'}:d),openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open'}]});
+ await c.save({documents:c.state.documents.map(d=>d.path==='prd.md'?{...d,version:'2'}:d),openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open',impactRef:'source/decision.md',affectedRefs:['prd.md','tech-design.md']}]});
  assert.equal(c.state.stageRuns[0].applicability,'needs-review');
  assert.equal((await readState(c.dir)).review.documents[0].approval,null);
  await assert.rejects(c.save({reviewHistory:[]}),{code:'REVIEW_CHECK'});
@@ -75,7 +76,7 @@ test('approval: material reflow suspends affected branches, preserves unrelated 
  await c.approve(['prd.md']);await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='design'?{...r,progress:'done',resultRef:'tech-design.md#coverage',outputRefs:['tech-design.md']}:r)});await c.approve(['tech-design.md']);
  await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='independent'?{...r,progress:'done',resultRef:'diagnosis.md#conclusion',outputRefs:['diagnosis.md']}:r)});await c.approve(['diagnosis.md']);
  const original=structuredClone(c.state.stageRuns[2]);await fs.appendFile(path.join(c.dir,'prd.md'),'New behavior');
- await c.save({openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open'}],documents:c.state.documents.map(d=>d.kind==='prd'?{...d,version:'2'}:d)});
+ await c.save({openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open',impactRef:'source/decision.md',affectedRefs:['prd.md','tech-design.md']}],documents:c.state.documents.map(d=>d.kind==='prd'?{...d,version:'2'}:d)});
  assert.equal(c.state.stageRuns[0].applicability,'needs-review');assert.equal(c.state.stageRuns[1].applicability,'needs-review');assert.deepEqual(c.state.stageRuns[2],original);
  await assert.rejects(c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='design'?{...r,applicability:'current'}:r)}),{code:'REVIEW_CHECK'});
  await c.approve(['prd.md']);await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='requirements'?{...r,applicability:'current'}:r)});
@@ -112,7 +113,7 @@ test('approval: design-only, investigation, prototype and review-only retain the
   await c.approve([`${kind}.md`]);assert.equal((await readState(c.dir)).review.runs[0].ready,true);assert.equal(c.state.stageRuns.length,1);
  }
  const c=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},stageRuns:[stage('review','review')],currentRun:'review',documents:[reg('prd'),{kind:'review',path:'review.md',mode:'reused',version:'1',basisRef:'.aimship/init.md'}]});
- await c.save({stageRuns:[{...c.state.stageRuns[0],progress:'done',outputRefs:['review.md'],resultRef:'review.md'}]});assert.equal((await readState(c.dir)).review.runs[0].ready,true);
+ await c.save({stageRuns:[{...c.state.stageRuns[0],progress:'done',reviewScope:'overall',objectKey:'a'.repeat(64),outputRefs:['review.md'],resultRef:'review.md'}]});assert.equal((await readState(c.dir)).review.runs[0].ready,true);
 });
 test('approval: test cases must precede plan and final goal cannot bypass outstanding approval',async t=>{
  await assert.rejects(setup(t,{documents:[reg('prd'),reg('plan'),reg('testing')],stageRuns:[stage('plan','plan'),stage('cases','test-design')],currentRun:'plan'}),{code:'REVIEW_CHECK'});
@@ -124,25 +125,25 @@ test('approval: prototype assets are bound and verify-only does not invent upstr
  await c.save({documents:[...c.state.documents,{kind:'prototype',path:'prototype/index.html',mode:'new',version:'1',assetRefs:['prototype/screen.bin']}],stageRuns:[stage('prototype','prototype','done',{outputRefs:['prototype/index.html'],resultRef:'prototype/index.html'})],currentRun:'prototype'});
  await c.approve(['prototype/index.html']);assert.equal((await readState(c.dir)).review.runs[0].ready,true);
  await fs.writeFile(path.join(c.dir,'prototype/screen.bin'),Buffer.from([0xfe,0x00]));assert.equal((await readState(c.dir)).review.runs[0].ready,false);
- const v=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'.aimship/init.md'}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
- await v.save({stageRuns:[{...v.state.stageRuns[0],progress:'done',outputRefs:['testing.md'],resultRef:'testing.md'}]});assert.equal(v.state.stageRuns.length,1);assert.equal((await readState(v.dir)).review.runs[0].ready,true);
+ const v=await setup(t,{deliveryPolicy:{version:1,partialRef:'source/limited.md'},documents:[reg('prd'),{kind:'testing',path:'testing.md',mode:'reused',version:'existing-v1',basisRef:'.aimship/init.md',coverageRefs:['testing.md']}],stageRuns:[stage('verify','verify')],currentRun:'verify'});
+ await v.save({stageRuns:[{...v.state.stageRuns[0],progress:'done',coverageRefs:['testing.md'],objectKey:'a'.repeat(64),outputRefs:['testing.md'],resultRef:'testing.md'}]});assert.equal(v.state.stageRuns.length,1);assert.equal((await readState(v.dir)).review.runs[0].ready,true);
 });
 test('approval: fresh approval cannot hide a material revision without CHG/version and source evidence remains inspectable',async t=>{
  const c=await setup(t);await c.approve(['prd.md']);await fs.appendFile(path.join(c.dir,'prd.md'),'New meaning');
  const records=await approveFixture(c.dir,c.state,['prd.md']);
  await assert.rejects(c.save({reviewHistory:records}),{code:'REVIEW_CHECK'});
- await assert.rejects(c.save({reviewHistory:records,openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open'}]}),{code:'REVIEW_CHECK'});
+ await assert.rejects(c.save({reviewHistory:records,openChanges:[{id:'CHG-001',ref:'source/decision.md',status:'open',impactRef:'source/decision.md',affectedRefs:['prd.md','tech-design.md']}]}),{code:'REVIEW_CHECK'});
  const other=await setup(t);await other.approve(['prd.md']);await fs.appendFile(path.join(other.dir,'source/synthetic-review.md'),'Changed evidence');
  const status=(await readState(other.dir)).review;assert.equal(status.documents[0].status,'evidence-changed');assert.equal(status.runs[0].ready,false);assert.ok(status.evidenceIssues.length);
 });
 test('approval: corrupted review state can recover without inventing approval or re-executing work',async t=>{
  const {recoverState}=await import('../lib/state.mjs');const c=await setup(t);await c.save({next:{action:'Saved unchanged pending review'}});
  const file=path.join(c.dir,'.aimship/state.json');const corrupt=JSON.parse(await fs.readFile(file));corrupt.reviewHistory=[{id:'broken'}];await fs.writeFile(file,JSON.stringify(corrupt));
- const recovered=await recoverState(c.dir,0,version,runtime);assert.ok(recovered.revision>1);assert.deepEqual(recovered.reviewHistory,[]);assert.equal((await readState(c.dir)).review.runs[0].ready,false);
+ const recovered=await recoverState(c.dir,c.state.revision-1,version,runtime);assert.ok(recovered.revision>1);assert.deepEqual(recovered.reviewHistory,[]);assert.equal((await readState(c.dir)).review.runs[0].ready,false);
 });
 test('approval: real CLI reports the stop and accepts an explicit recorded approval at the same revision',async t=>{
  const {spawnSync}=await import('node:child_process');const c=await setup(t);
- const cli=(command,input)=>spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version,...(input?['--revision',String(c.state.revision),'--input','-']:[])],{input:input?JSON.stringify(input):undefined,encoding:'utf8',timeout:10000});
+ const cli=(command,input)=>spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version,...(input?['--revision',String(c.state.revision),'--input','-']:[])],{input:input?JSON.stringify(semanticPatch(c.state,input)):undefined,encoding:'utf8',timeout:10000});
  let result=cli('resume');assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).data.canProceed,false);
  result=cli('update',{reviewHistory:await approveFixture(c.dir,c.state,['prd.md'])});assert.equal(result.status,0,result.stderr);
  result=cli('resume');assert.equal(result.status,0,result.stderr);const resumed=JSON.parse(result.stdout).data;assert.equal(resumed.canProceed,true);assert.equal(resumed.review.documents[0].status,'approved');assert.equal(resumed.state.outcome.acceptance,'not-recorded');

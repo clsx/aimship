@@ -9,24 +9,24 @@ A path move requires the provided new location and identity evidence, not a disk
 A tool/session/active-installation mismatch stops new stage advancement. Run bind through the stable installation launcher and read the returned fixed-version core and CLI help. Use that bound tool and protocol, not cached metadata from another executable. Preserve unfinished work and actual decisions; do not change state versions by hand or invent approvals. If the conversation cannot reliably refresh, provide a manual continuation prompt; do not open a new conversation automatically.
 
 
-Compatible delivery protocols can continue under the current bound software. Legacy 17/18 states map precisely to protocol 1; unknown legacy versions or unsupported protocols stay blocked. Read/check/resume and render do not adopt state metadata; a normal revision-checked save records the current tool/protocol without rewriting documents or invalidating approvals of unchanged content. Do not downgrade assuming the old tool can read newer saved metadata. An installer risk confirmation permits only the software switch, never an unsupported delivery write.
+This release uses schema 5 / delivery protocol 2. Schema 4 / protocol 1 deliveries cannot continue under its new domain rules; legacy 17/18 remain identified as protocol 1, not silently remapped. Preserve those materials and use their supported tool to finish before upgrading, or start a new delivery when appropriate. There is no automatic document/state migration or parallel legacy execution path. Within a supported protocol, software updates preserve unchanged content approvals. Do not edit version fields to bypass compatibility or assume a downgrade can read newer records. An installer risk confirmation permits only the software switch, never an unsupported delivery write.
 
 Installation and data are separate. Explicit install manages product-owned files and AI-tool entries. Preserve user customizations and unrelated same-name skills; report the exact conflict. Uninstall retains delivery materials, customization and necessary configuration. Recovery retains a bounded previous installation, not every runtime forever. Consult the CLI help for implemented operations; do not bypass checks with raw state edits to obtain a success result.
 
 ## State and view recovery
 
 
-State is authoritative for stages; status is generated. JSON may have saved while view generation failed: use returned revision and render, never repeat update. Read/check/resume never repair implicitly. Inspect changed registered documents even when view revision matches. render --preserve-edits retains a modified status before replacing it; interpret intent and update the formal authority separately.
+State is authoritative for control facts; status and the finite plan/testing/review sections are generated views. JSON may have saved while view generation failed: use returned revision and render, never repeat update. Read/check/resume never repair implicitly. Inspect changed registered documents even when view revision matches. render --preserve-edits retains modified generated content before replacing it; interpret intent and update the formal authority separately. Missing/duplicate generated sections or a conflict with immutable approval evidence require the reported repair, not an automatic old-document conversion.
 
 Follow [document review](document-review.md) for saved review stops, approval history, exact content versions, affected dependency re-review and current document checks. Read/resume never infer approval from done or create a new user decision.
 
 ## Session boundary and completion
 
-Use the core’s session interaction. Locate the actual delivery before reading; an explicit path or trustworthy unique binding is necessary. Check deliveryId when supplied, current approval fingerprints, current inputs and unfinished side effects; never treat an old continuation prompt as authority. Pending review remains pending. A session suggestion is not a blocker; a request to continue here uses the same saved work without a new approval. No automatic sessions or clipboard actions.
+Use the core’s session interaction. Locate the actual delivery before reading; an explicit path or trustworthy unique binding is necessary. Check deliveryId when supplied, current approval fingerprints, current inputs and unfinished side effects; never treat an old continuation prompt as authority. Pending review remains pending. A session suggestion is not a blocker; ordinary continuation uses the same saved work without a new approval. After the last implementation batch, however, starting overall review in that session requires explicit authorization for that responsibility, as described in the core. No automatic sessions or clipboard actions.
 
 Current deliveries require the document approval and delivery policies. Their recorded outcomes, actual decisions and execution history remain separate from ordinary business numbering.
 
-## Early initialization and schema 4
+## Early initialization and schema 5
 
 New initialization saves the selected language and location basis and may have only .aimship/init.md, .aimship/state.json and status.md; technical conditions may be unknown, while the endpoint defaults to standard delivery unless explicitly limited. Missing PRD at this point is normal. Read/check/resume use the same early-state rules; do not fill placeholders or infer non-applicability to clear warnings. Register the real draft when formed and retain the existing approval stops.
 

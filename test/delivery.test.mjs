@@ -4,8 +4,11 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {initState,updateState,readState,renderState,recoverState,checkReferences} from '../lib/state.mjs';
+import {readState, renderState, recoverState, checkReferences} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import {completionStatus,sessionAdvice} from '../lib/delivery.mjs';
+import {reviewStatus} from '../lib/approvals.mjs';
+import {fixtureObjectKey} from '../scripts/testing/domain-adapter.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
 import {run} from '../lib/cli.mjs';
 import {spawnSync} from 'node:child_process';
@@ -15,14 +18,15 @@ const stages=[['requirements','prd'],['tech-design','tech-design'],['test-design
 async function setup(t,{partial=false,omitTests=false}={}) {
  const dir=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'aimship-delivery-')));t.after(()=>fs.rm(dir,{recursive:true,force:true}));await fs.mkdir(path.join(dir,'source'));
  await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic commission only.');await fs.writeFile(path.join(dir,'source/decision.md'),'Synthetic explicit choice: development and review only, no cases or execution; untested partial handoff.');
- const docs=[...new Set(stages.map(x=>x[1]))].filter(k=>!omitTests || k!=='testing').map(kind=>({kind,path:`${kind}.md`,version:'adopted-1',mode:'reused',basisRef:'.aimship/init.md'}));
- for(const d of docs)await fs.writeFile(path.join(dir,d.path),`# Synthetic adopted ${d.kind}\nFixed source and scope; inspect before reuse.\n`);
- const runs=stages.map(([stage,kind],i)=>({id:`r${i}`,stage,scope:`synthetic ${stage}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='review'?{reviewOf:['r4'],overall:i===6}:{})})).filter(r=>!omitTests || !['test-design','verify'].includes(r.stage));
+ const docs=[...new Set(stages.map(x=>x[1]))].filter(k=>!omitTests || k!=='testing').map(kind=>({kind,path:`${kind}.md`,version:'adopted-1',mode:'reused',basisRef:'.aimship/init.md',...(kind==='testing'?{coverageRefs:['testing.md#case']}:{})}));
+ for(const d of docs)await fs.writeFile(path.join(dir,d.path),`# Synthetic adopted ${d.kind}\nFixed source and scope; inspect before reuse.\n## B-001\nSynthetic business batch.\n## TASK-001\nSynthetic selected export task.\n## case\nSynthetic exact-total acceptance case.\n`);
+ const runs=stages.map(([stage,kind],i)=>({id:`r${i}`,stage,scope:`synthetic ${stage}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='implement'?{workType:'batch'}:stage==='review'?{reviewOf:['r4'],reviewScope:i===6?'overall':'batch'}:{})})).filter(r=>!omitTests || !['test-design','verify'].includes(r.stage));
  let state=await initState(dir,{language:'en',deliveryPolicy:{version:1,...(partial?{partialRef:'source/decision.md'}:{})},goal:{summary:'Synthetic delivery',endpoint:partial?'Untested development and review handoff':'Standard complete delivery'},goalRef:'prd.md',documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs,stageRuns:runs,currentRun:runs[0].id},version,runtime);
  const save=async patch=>state=await updateState(dir,patch,state.revision,version,runtime);
  const finish=async id=>{
-  const r=state.stageRuns.find(x=>x.id===id);await save({stageRuns:state.stageRuns.map(x=>x.id===id?{...x,progress:'done',result:'passed',resultRef:x.outputRefs[0]}:x),currentRun:id,next:{action:`After ${id}, follow actual saved work.`}});
+  const r=state.stageRuns.find(x=>x.id===id);await save({stageRuns:state.stageRuns.map(x=>x.id===id?{...x,progress:'done',result:'passed',resultRef:x.outputRefs[0],...((x.stage==='implement'||x.stage==='review'&&x.reviewScope==='batch')?{batchId:'B-001'}:{}),...(['implement','review','verify'].includes(x.stage)?{objectKey:fixtureObjectKey}:{}),...(x.stage==='verify'?{coverageRefs:['testing.md#case']}:{})}:x),currentRun:id,next:{action:`After ${id}, follow actual saved work.`}});
   if(['requirements','tech-design','test-design','plan'].includes(r.stage))await save({reviewHistory:await approveFixture(dir,state,r.outputRefs)});
+  if(r.stage==='plan')await save({batches:[{id:'B-001',definitionRef:'plan.md#B-001',taskRefs:['plan.md#TASK-001'],dependsOn:[]}]});
  };
  return {dir,save,finish,get state(){return state}};
 }
@@ -32,8 +36,8 @@ test('standard delivery requires actual complete stages, batch/overall review, p
  let report=(await readState(c.dir)).completion;assert.deepEqual(report.gaps,[]);assert.equal(report.readyForAcceptance,true);assert.equal(report.standardComplete,false);
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}});assert.equal((await readState(c.dir)).completion.standardComplete,false);
  await c.save({outcome:{acceptance:'accepted',acceptanceRef:'source/decision.md'}});assert.equal((await readState(c.dir)).completion.standardComplete,true);
- const damaged=structuredClone(c.state);damaged.stageRuns.find(r=>r.stage==='verify').result='not-run';assert.equal(completionStatus(damaged,(await readState(c.dir)).review).standardComplete,false);
- for(const mutate of [s=>s.stageRuns.find(r=>r.overall).overall=false,s=>{for(const r of s.stageRuns.filter(r=>r.stage==='review'))r.reviewOf=[];},s=>s.documentPolicy.databases.push('main'),s=>s.stageRuns.find(r=>r.stage==='implement').result='failed']) {const s=structuredClone(c.state);mutate(s);assert.equal(completionStatus(s,(await readState(c.dir)).review).standardComplete,false);}
+ const damaged=structuredClone(c.state);damaged.stageRuns.find(r=>r.stage==='verify').result='not-run';assert.equal(completionStatus(damaged,await reviewStatus(c.dir,damaged)).standardComplete,false);
+ for(const mutate of [s=>s.stageRuns.find(r=>r.reviewScope==='overall').reviewScope='batch',s=>{for(const r of s.stageRuns.filter(r=>r.stage==='review'))r.reviewOf=[];},s=>s.documentPolicy.databases.push('main'),s=>s.stageRuns.find(r=>r.stage==='implement').result='failed']) {const s=structuredClone(c.state);mutate(s);assert.equal(completionStatus(s,await reviewStatus(c.dir,s)).standardComplete,false);}
 });
 test('explicit no-tests scope can finish and be accepted without masquerading as standard completion',async t=>{
  for(const partial of [false,true]){
@@ -81,7 +85,7 @@ test('restoring standard scope retains the partial decision and cannot hide omit
  assert.equal(c.state.goalHistory.at(-1).deliveryPolicy.partialRef,'source/decision.md');
  assert.ok((await checkReferences(c.dir,c.state,true)).every(r=>['exists','not-checked'].includes(r.status)));
  assert.equal((await readState(c.dir)).completion.standardComplete,false);
- await assert.rejects(c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}}),{code:'REVIEW_CHECK'});
+ await assert.rejects(c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md'}}),{code:'DELIVERY_INCOMPLETE'});
 });
 test('resume requires explicit directory; old prompt is not an approval and new session retains actual pending content',async t=>{
  const c=await setup(t);await c.finish('r0');const prompt=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data.continuation;assert.ok(prompt.includes(JSON.stringify(c.dir)));
@@ -92,19 +96,20 @@ test('resume requires explicit directory; old prompt is not an approval and new 
 test('later failing review invalidates completeness until explicitly resolved and reverified',async t=>{
  const c=await setup(t);for(const r of c.state.stageRuns)await c.finish(r.id);
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/decision.md'}});
+ await c.save({cycle:c.state.cycle+1,closureRefs:[...c.state.closureRefs,'handoff.md'],outcome:{goal:'in-progress',acceptance:'not-recorded'}});
  await fs.appendFile(path.join(c.dir,'review.md'),'\n## late-review\nSynthetic later review: unresolved defect.\n## review-fix\nSynthetic repair review superseding the later finding.\n');
- const late={id:'late-review',stage:'review',scope:'later overall review finding',reviewOf:['r4'],overall:true,progress:'done',result:'failed',inputRefs:[],outputRefs:['review.md'],resultRef:'review.md#late-review'};
+ const late={id:'late-review',stage:'review',scope:'later overall review finding',reviewOf:['r4'],reviewScope:'overall',objectKey:fixtureObjectKey,progress:'done',result:'failed',inputRefs:[],outputRefs:['review.md'],resultRef:'review.md#late-review'};
  await c.save({stageRuns:[...c.state.stageRuns,late],currentRun:late.id});
- let read=await readState(c.dir);assert.equal(read.completion.standardComplete,false);assert.ok(read.completion.gaps.includes('Review results remain unresolved.'));
+ let read=await readState(c.dir);assert.equal(read.completion.standardComplete,false);assert.ok(read.completion.gaps.some(g=>g.includes('overall implementation review')));
  const repaired={...late,id:'repaired-review',result:'passed',resultRef:'review.md#review-fix',historyResultRefs:[late.resultRef]};
  await c.save({stageRuns:[...c.state.stageRuns,repaired],currentRun:repaired.id});
- read=await readState(c.dir);assert.equal(read.completion.standardComplete,false);assert.ok(!read.completion.gaps.includes('Review results remain unresolved.'));assert.ok(read.completion.gaps.some(g=>g.includes('after overall review')));
+ read=await readState(c.dir);assert.equal(read.completion.standardComplete,false);assert.equal(read.state.outcome.acceptance,'not-recorded');assert.ok(read.review.execution.overall);assert.equal(read.review.execution.verification.passed,true);
 });
 test('real CLI preserves waiting, boundary, continue-here and save-failure session outputs',async t=>{
  const c=await setup(t);let state=c.state;
  const cli=(command,patch)=>{
   const args=[path.join(root,'bin/aimship.mjs'),command,c.dir,'--rules-version',version,...(patch?['--revision',String(state.revision),'--input','-']:[])];
-  const result=spawnSync(process.execPath,args,{input:patch?JSON.stringify(patch):undefined,encoding:'utf8',timeout:10000});
+  const result=spawnSync(process.execPath,args,{input:patch?JSON.stringify(semanticPatch(state,patch)):undefined,encoding:'utf8',timeout:10000});
   assert.equal(result.status,0,result.stderr);const data=JSON.parse(result.stdout).data;if(patch)state=data;return data;
  };
  cli('update',{stageRuns:state.stageRuns.map(r=>r.id==='r0'?{...r,progress:'done',resultRef:'prd.md'}:r)});
@@ -135,7 +140,12 @@ test('a selected prototype still needs completion and its existing approval befo
  await fs.writeFile(path.join(c.dir,'prototype.md'),'# Prototype\nSelected account interaction and error states.');
  const prototype={id:'prototype',stage:'prototype',scope:'Selected interaction design',progress:'planned',inputRefs:['prd.md'],outputRefs:['prototype.md']};
  await c.save({documentPolicy:{interaction:true,prototypeCovered:false},documents:[...c.state.documents,{kind:'prototype',path:'prototype.md',mode:'reused',version:'1',basisRef:'.aimship/init.md'}],stageRuns:[c.state.stageRuns[0],prototype,...c.state.stageRuns.slice(1)]});
- await c.finish('r0');await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
+ await c.finish('r0');
+ // Selecting a new prototype does not reorder existing arrangements. Start its
+ // actual work, then record the design's explicit dependency on that selection.
+ await c.save({stageRuns:c.state.stageRuns.map(r=>r.id===prototype.id?{...r,progress:'active',dependsOn:['r0']}:r),currentRun:prototype.id});
+ await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='r1'?{...r,dependsOn:[prototype.id]}:r)});
+ await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
  await c.save({stageRuns:c.state.stageRuns.map(r=>r.id===prototype.id?{...r,progress:'done',resultRef:'prototype.md'}:r),currentRun:prototype.id});
  await assert.rejects(c.finish('r1'),{code:'REVIEW_CHECK'});
  await c.save({reviewHistory:await approveFixture(c.dir,c.state,['prototype.md'])});await c.finish('r1');

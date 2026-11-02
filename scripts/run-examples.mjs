@@ -1,165 +1,73 @@
-// Executable synthetic commissions. Output is caller-selected; never touches installed releases.
+// Executable, disposable commissions. No installed release or user delivery is used.
 import fs from 'node:fs/promises';
-import { approveFixture } from './testing/reviews.mjs';
-import { reviewStatus, reviewFingerprint } from '../lib/approvals.mjs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';
-import { initState, updateState, readState, checkReferences } from '../lib/state.mjs';
-import { inspectDocuments, sections as documentSections, definitions } from '../lib/documents.mjs';
-import { json, hash } from '../lib/io.mjs';
-const source=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const version=JSON.parse(await fs.readFile(path.join(source,'package.json'))).version;
-const map=JSON.parse(await fs.readFile(path.join(source,'skills/aimship/references/artifact-map.json')));
-const requestedOutput=path.resolve(process.argv[2]??'synthetic-output');
-await fs.mkdir(requestedOutput,{recursive:false});
-const output=await fs.realpath(requestedOutput);
-const runtime={version,activeVersion:version,dataRoot:output};
-const numberedBody=body=>{const counters=[];return body.replace(/^(#{2,6}) (.+)$/gm,(_,marks,title)=>{const level=marks.length-2;counters.length=level+1;counters[level]=(counters[level]??0)+1;return marks+' '+counters.join('.')+'. '+title.replace(/^\d+(?:\.\d+)*[.)、]?\s+/, '');});};
-const definition=(id,refs=[])=>`### ${id} — ${refs.length?'References: '+refs.join(', '):'Record'}\n\n`;
-async function makeDoc(dir,kind,parts) {
- const sections=map.documents[kind].sections;
- await fs.writeFile(path.join(dir,`${kind}.md`),numberedBody(`# ${kind}\n\nSynthetic commission; document revision 1. Delivery identity: pending init.\n\n`+sections.map((id,i)=>`## ${i+1}. ${map.documents[kind].headings.en[i]}\n\n${parts[id]??'Not applicable to this bounded commission; no additional work authorized.'}\n`).join('\n')));
-}
-async function begin(name,authority,requirements,prdParts) {
- const dir=path.join(output,name),code=path.join(output,`${name}-code`);await fs.mkdir(path.join(dir,'source'),{recursive:true});await fs.mkdir(code);
- await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),requirements);
- if(authority==='adopted'){await fs.writeFile(path.join(dir,'source/catalog-v1.md'),'# Catalog PRD v1\nREQ-001: Sum safe nonnegative integer prices in cents. No discount in v1.\n');await fs.writeFile(path.join(dir,'source/prototype-v1.html'),'<html><body><p>Catalog total (adopted reference, outside UI implementation scope).</p></body></html>');}
+import {nativeDelivery} from './testing/native-delivery.mjs';
+import {hash,json} from '../lib/io.mjs';
+import {checkReferences} from '../lib/state.mjs';
+import {inspectDocuments} from '../lib/documents.mjs';
 
- const kind='prd';await makeDoc(dir,kind,prdParts);
- const input={language:'en',goal:{summary:name==='single-batch'?'Normalize duplicate input lines':'Validate prices and quote discounted totals',endpoint:'Local implementation, review, independent verification and handoff'},goalRef:`${kind}.md`,documentPolicy:{authority,interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:[{kind,path:`${kind}.md`,mode:'new',version:'1'}],repositories:[{id:'app',path:code,role:'Authorized synthetic implementation; no Git, exact file hashes recorded'}],stageRuns:[],next:{action:'Create technical design; no UI, HTTP or database changes'}};
- const initNotes=`# Initialization\n\n## Original commission\n\n${requirements}\n\n## Working context\n\nLanguage: en.\nMaterials: ${authority==='adopted'?'adopted PRD/prototype copies in source/.':'the original commission above.'}\nEndpoint: ${input.goal.endpoint}.\n`;
- await fs.writeFile(path.join(dir,'.aimship/init.md'),initNotes);
- let state=await initState(dir,input,version,runtime);
- const body=await fs.readFile(path.join(dir,`${kind}.md`),'utf8');await fs.writeFile(path.join(dir,`${kind}.md`),body.replace('pending init',state.deliveryId));
- const c={dir,code,kind,state,initNotes};
- c.save=async patch=>{c.state=await updateState(dir,patch,c.state.revision,version,runtime);assert.equal(c.state.writeResult.view.status,'current');};
- c.addDoc=async(kind,parts)=>{await makeDoc(dir,kind,parts);const file=path.join(dir,`${kind}.md`);await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace('pending init',c.state.deliveryId));await c.save({documents:[...c.state.documents,{kind,path:`${kind}.md`,mode:'new',version:'1'}]});};
- c.run=async(id,stage,result,scope,extra={})=>{
-  const refs=stage==='implement'?['plan.md#tasks',`${kind}.md`]:[`${kind}.md`]; const artifact=result.split('#')[0];
-  const old=c.state.stageRuns.find(r=>r.id===id);
-  const record={id,stage,scope,progress:'done',inputRefs:refs,outputRefs:[artifact],resultRef:result,result:'passed',applicability:'current',...(stage==='implement'?{workType:'batch'}:{}),...extra,...(old?{historyResultRefs:[...new Set([...(old.historyResultRefs??[]),old.resultRef])]}:{})};
-  await c.save({stageRuns:old?c.state.stageRuns.map(r=>r.id===id?record:r):[...c.state.stageRuns,record],currentRun:id,next:{action:`Saved ${id}; follow the selected review stop`}});
-  if(map.stages[stage].humanReview) {
-   const status=await reviewStatus(dir,c.state);assert.ok(status.runs.find(r=>r.id===id).waiting.includes(artifact));
-   await c.save({reviewHistory:await approveFixture(dir,c.state,[artifact]),next:{action:'Synthetic explicit approval recorded; continue at the synthetic driver’s explicit request'}});
-  }
- };
- c.reconcile=async()=>{
-  const files=[`${kind}.md`,'tech-design.md','testing.md','plan.md'];
-  const docs=[];for(const d of c.state.documents){const last=c.state.reviewHistory.filter(r=>r.document===d.path && r.kind==='approved').at(-1);docs.push(files.includes(d.path)&&last&&last.digest!==await reviewFingerprint(dir,c.state,d)?{...d,version:String(Number(d.version)+1)}:d);}
-  const draft={...c.state,documents:docs};
-  await c.save({documents:docs,reviewHistory:await approveFixture(dir,draft,files)});
-  await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:r.id==='review-REV-002'?'needs-review':'current'})),next:{action:'CHG impact assessed: unchanged validator reviewed as current, affected quote review pending; synthetic document reapprovals retained.'}});
- };
- c.append=async(file,text)=>{
-  const target=path.join(dir,file); let body=await fs.readFile(target,'utf8');
-  const section={'plan.md':text.startsWith('CHG-001 changes TASK-')?'tasks':'execution','review.md':'reviews','testing.md':text.startsWith('### TC-')?'cases':'runs','prd.md':'requirements','tech-design.md':'architecture','change-log.md':'changes'}[file];
-  const kind=file.slice(0,-3), record=documentSections(body,map.documents[kind]).find(r=>r.id===section);
-  const end=record?.end??-1;
-  await fs.writeFile(target,numberedBody(end<0?body+`\n${text}\n`:body.slice(0,end)+`\n${text}\n\n`+body.slice(end)));
- };
- c.setSection=async(file,id,text)=>{
-  const target=path.join(dir,file),body=await fs.readFile(target,'utf8'),spec=map.documents[file.slice(0,-3)];
-  const section=documentSections(body,spec).find(r=>r.id===id);assert.equal(section.count,1);
-  const heading=body.slice(section.start,body.indexOf('\n',section.start));
-  await fs.writeFile(target,numberedBody(body.slice(0,section.start)+heading+`\n\n${text}\n\n`+body.slice(section.end)));
- };
- c.object=async()=>Object.fromEntries(await Promise.all((await fs.readdir(code)).map(async f=>[f,hash(await fs.readFile(path.join(code,f)))])));
- await c.run('requirements','requirements',`${kind}.md#requirements`,'current requirement authority');
- return c;
+const requested=path.resolve(process.argv[2]??'synthetic-output');
+await fs.mkdir(requested,{recursive:false});
+const output=await fs.realpath(requested);
+const t={after(){}}; // The caller-selected output is the durable evidence artifact.
+const results=[];
+async function assertions(checks){const rows=[];for(const [name,check] of checks){try{await check();rows.push({name,result:'passed'});}catch(error){rows.push({name,result:'failed',message:error.message});}}return rows;}
+async function setup(name,batches){
+ const c=await nativeDelivery(t,{batchCount:batches,caseCount:2,baseDirectory:path.join(output,name)});
+ const code=path.join(c.base,'code');await fs.mkdir(code);
+ await c.save({repositories:[{id:'app',path:code,role:'Synthetic local implementation; exact source hashes bind review and RUN.'}]});
+ await fs.writeFile(path.join(c.dir,'source/original-request.md'),'# Synthetic original request\n\nExport exact nonnegative safe-integer selected-order totals. Keep this source unchanged.\n');
+ const sourceDigest=hash(await fs.readFile(path.join(c.dir,'source/original-request.md')));
+ const object=async()=>hash(JSON.stringify(await Promise.all((await fs.readdir(code)).sort().map(async f=>[f,hash(await fs.readFile(path.join(code,f)))]))));
+ return {c,code,object,sourceDigest};
 }
-async function design(c,text) {await c.addDoc('tech-design',{basis:`[Current commission](${c.kind}.md). Repository app; existing structure empty.`,architecture:text+' Validate before returning a result in one synchronous call, with no shared mutable state.',modules:'app | engine module | new | current requirements; pure deterministic functions with no external effects.',data:'No HTTP contract, database, schema or SQL change.',errors:'Reject invalid input before returning a result; no writes or external service. Verify with the specified function assertions; the harness measures the commissioned benchmark later.',risks:'No Git repository needed for the commission. Exact source hashes bind review and RUN; this is not a release.',coverage:`[Requirements and acceptance](${c.kind}.md) (search: acceptance).`});await c.run('design','tech-design','tech-design.md#coverage','whole design');}
-async function plan(c,tasks,batches) {await c.addDoc('plan',{basis:`[Requirements](${c.kind}.md) and [design](tech-design.md). Only app paths authorized.`,batches, tasks,validation:'Implement each batch → batch review. All batches → overall review → independent verify. Tests written with implementation; no batch test gate.',execution:'Dated task execution records follow; planned definitions above remain unchanged.',remaining:'No known external dependencies; no deployment/merge authorized.'});await c.run('plan','plan','plan.md#tasks','all batches before implementation');}
-async function testing(c,cases) {await c.addDoc('testing',{basis:`[Acceptance](${c.kind}.md) (search: acceptance) and bounded risks.`,environment:`Node ${process.version}; isolated local modules, synthetic data, no accounts/network.`,cases,coverage:'Each AC is referenced by the explicit TC definition. Execute all local unit/boundary checks together after overall review; keep failures and append retests.',runs:'Not executed.',conclusion:'No execution conclusion yet.'});await c.run('test-design','test-design','testing.md#cases','cases and grouped execution arrangement');}
-async function review(c,id,scope,task='TASK-001',{result='passed',historyResultRefs=[]}={}) {
- if(!c.state.documents.some(d=>d.kind==='review'))await c.addDoc('review',{basis:'Current scope/design/plan and exact app file hashes below.',reviews:'Review records appended below.',conclusion:'Findings and dispositions belong to their recorded objects.'});
- const objects=JSON.stringify(await c.object()),run=id==='REV-003' && c.state.stageRuns.some(r=>r.id==='review-REV-002' && r.applicability==='needs-review')?'review-REV-002':`review-${id}`;
- const finding=result==='failed'?'| Finding | Severity/impact | Location | Problem and basis | Disposition |\n| --- | --- | --- | --- | --- |\n| F-001 | High; blocks independent verification | app/quote.mjs, quote rounding | Math.floor violates REQ-005 / AC-005 half-up cents | Open; repair TASK-002 |':'No unresolved findings in this reviewed scope.';
- await c.append('review.md',definition(id,[task])+`#### Scope and object\n\nScripted synthetic reviewer; ${new Date().toISOString()}. Scope: ${scope}; ${task}. Exact objects: ${objects}.\n\n#### Assessment\n\nThe fixture checks requirement/contract consistency, validation boundaries and module integration against the actual source. Runtime results are recorded in testing.md.\n\n#### Findings\n\n${finding}\n\n#### Repairs and recheck\n\n${historyResultRefs.length?'REV-003 / F-001 repaired by changing Math.floor to Math.round. Rechecked the current source against REQ-005 / AC-005; the blocking finding is closed. Old object and failed conclusion remain in REV-003.':result==='failed'?'Repair and recheck pending on this object.':'No repair required in this scope.'}`);
- const batches=c.state.stageRuns.filter(r=>r.stage==='implement').map(r=>r.id), overall=/overall|repair/.test(scope);
- await c.setSection('review.md','conclusion',`Latest review: ${id}; ${overall?'overall':'batch'} scope ${scope}. Object hashes: ${objects}. ${result==='failed'?'Open blocking finding: F-001; do not start independent verification.':'No open blocking findings in this scope; independent runtime verification remains separate.'} Earlier conclusions apply only to their REV objects.`);
- await c.run(run,'review',`review.md#${id}`,scope,{reviewOf:overall?batches:batches.slice(-1),overall,result,...(historyResultRefs.length?{historyResultRefs}:{})});
+async function evidence(c,file,record){const target=path.join(c.dir,'.aimship/evidence',file);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,json(record));return '.aimship/evidence/'+file;}
+async function finish(context,run){
+ const {c,sourceDigest}=context;
+ await c.handoff();await c.op({type:'record-outcome',outcome:{goal:'met',goalConclusionRef:'handoff.md#outcomes'}});
+ const read=await c.read();assert.equal(read.completion.readyForAcceptance,true);assert.equal(read.completion.standardComplete,false);assert.equal(c.state.outcome.acceptance,'not-recorded');
+ assert.deepEqual((await inspectDocuments(c.dir,c.state)).issues,[]);
+ assert.ok((await checkReferences(c.dir,c.state,true)).every(r=>['exists','not-checked'].includes(r.status)));
+ assert.equal(hash(await fs.readFile(path.join(c.dir,'source/original-request.md'))),sourceDigest);
+ const record={directory:c.dir,revision:c.state.revision,batches:read.execution.batches.map(b=>({id:b.id,status:b.status})),overall:read.execution.overall,verification:read.execution.verification,run,readyForAcceptance:true,userAcceptance:'not-recorded'};
+ results.push(record);return record;
 }
-async function runAssertions(tests) {
- const results=[];for(const [name,fn] of tests){try{await fn();results.push({name,result:'passed'});}catch(error){results.push({name,result:'failed',message:error.message});}}
- return results;
-}
-async function negativeProbe(c,tests,refs) {
- const record={purpose:'Independent maintainer fault probe; not an authorized verification stage or RUN.',executor:'Node assertion harness',command:'node scripts/run-examples.mjs <isolated-output>',node:process.version,objects:await c.object(),cases:refs,results:await runAssertions(tests)};
- await fs.mkdir(path.join(c.dir,'.aimship/evidence'),{recursive:true});
- await fs.writeFile(path.join(c.dir,'.aimship/evidence/negative-probe.json'),json(record));
- return record;
-}
-async function execute(c,id,tests,refs) {
- const results=await runAssertions(tests);
- await fs.mkdir(path.join(c.dir,'.aimship/evidence'),{recursive:true});const evidence=`.aimship/evidence/${id.toLowerCase()}.json`;
- const record={id,executor:'Node assertion harness, authored and inspected by current Agent',command:`node scripts/run-examples.mjs <isolated-output>`,node:process.version,objects:await c.object(),cases:refs,results};await fs.writeFile(path.join(c.dir,evidence),json(record));
- const run=`verify-${id}`;await c.append('testing.md',definition(id,refs,{run})+`Object hashes and testing document version, commands, exact assertions/results: [${id}](${evidence}). ${results.filter(r=>r.result==='passed').length} passed; ${results.filter(r=>r.result==='failed').length} failed; 0 skipped. All source objects have hashes; no Git assumed.`);
- await c.setSection('testing.md','conclusion',`Latest execution: ${id}; testing document revision ${c.state.documents.find(d=>d.kind==='testing').version}. Objects: ${JSON.stringify(record.objects)}.\n\n| Cases | Verified scope | Result | Evidence | Remaining coverage |\n| --- | --- | --- | --- | --- |\n| ${refs.join(', ')} | ${results.length} local function assertions | ${results.every(r=>r.result==='passed')?'Passed':'Failed; repair and recheck required'} | [${id}](${evidence}) | Real AI-tool, HTTP and UI behavior are outside this synthetic commission |\n\nEarlier runs remain in the execution section for their own objects.`);
- await c.save({stageRuns:[...c.state.stageRuns,{id:run,stage:'verify',historyResultRefs:results.every(r=>r.result==='passed')?c.state.stageRuns.filter(r=>r.stage==='verify').map(r=>r.resultRef):[],scope:'independent post-overall review execution',progress:'done',inputRefs:['testing.md#cases','review.md'],outputRefs:['testing.md'],resultRef:`testing.md#${id}`,result:results.every(r=>r.result==='passed')?'passed':'failed',applicability:'current'}],currentRun:run,outcome:{goal:results.every(r=>r.result==='passed')?'in-progress':'not-met'},next:{action:results.every(r=>r.result==='passed')?'Assess goal and handoff':'Repair failing implementation, review affected scope, then retest'}});
- return record;
-}
-async function finish(c) {
- const planDoc=c.state.documents.find(d=>d.kind==='plan'),casesDoc=c.state.documents.find(d=>d.kind==='testing');
- const fingerprints=await Promise.all([planDoc,casesDoc].map(d=>reviewFingerprint(c.dir,c.state,d)));
- const planBody=await fs.readFile(path.join(c.dir,'plan.md'),'utf8'),areas=documentSections(planBody,map.documents.plan);
- const tasks=definitions(areas.find(a=>a.id==='tasks').body,'plan.md').filter(d=>d.id.startsWith('TASK-')).map(d=>d.id);
- const taskRows=tasks.map((id,i)=>`| ${id} / B-${String(i+1).padStart(3,'0')} | Code complete | Passed; repairs rechecked | [Review](review.md), exact objects in dated records below | None |`).join('\n');
- await c.setSection('plan.md','execution',`Current task status:\n\n| Batch / TASK scope | Implementation | Batch review / repair | Result references | Remaining |\n| --- | --- | --- | --- | --- |\n${taskRows}\n\n${areas.find(a=>a.id==='execution').body}`);
- await c.setSection('plan.md','remaining','Implementation, batch/overall review and local independent verification are complete for the current synthetic object. No merge, release or deployment is commissioned.');
- assert.deepEqual(await Promise.all([planDoc,casesDoc].map(d=>reviewFingerprint(c.dir,c.state,d))),fingerprints,'Execution status changes preserve the approved design surface');
- await c.addDoc('handoff',{goals:`[Requirements/AC](${c.kind}.md) (search: acceptance): all current assertions passed in the latest RUN; earlier failures retained.`,artifacts:`[Plan](plan.md), [testing](testing.md), [review](review.md), [design](tech-design.md). app actual path is in status. No Git; source hashes ${JSON.stringify(await c.object())}. No pre-existing changes.`,usage:'Import the exported function from the app module; source and runnable assertions accompany the example harness.',results:'See testing for actual Node assertions, versions, evidence and retained failures. No UI, HTTP or real host acceptance claimed.',limits:'Synthetic local case only. Host discovery, cross-host continuation and original HTTP/UI acceptance remain unverified.',outcomes:'Goal met for this synthetic commission. User acceptance, merge and deployment not recorded. No package release.'});
- await c.run('handoff','handoff','handoff.md#outcomes','current goal handoff');await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md#goals',handoffRef:'handoff.md#outcomes'},currentRun:null,next:{action:'Synthetic local goal complete; preserve results'}});
- for(const doc of c.state.documents.filter(d=>d.mode==='new' && d.path.endsWith('.md'))) assert.doesNotMatch(await fs.readFile(path.join(c.dir,doc.path),'utf8'),/<a\s+id=|aimship:def|(?:REQ|AC|TC|TASK|B|REV|RUN)-[0-9]+@[0-9]+/,`Plain Markdown output: ${doc.path}`);
- const check=await inspectDocuments(c.dir,c.state);assert.deepEqual(check.issues,[]);const refs=await checkReferences(c.dir,c.state,true);assert.ok(refs.every(r=>['exists','not-checked'].includes(r.status)),JSON.stringify(refs));
- assert.equal(await fs.readFile(path.join(c.dir,'.aimship/init.md'),'utf8'),c.initNotes);assert.ok(c.initNotes.includes(c.request));
- for(const forbidden of ['implementation.md','test-plan.md','verification.md','results.md','INDEX.md','docs','sql'])assert.equal(await fs.stat(path.join(c.dir,forbidden)).then(()=>true,()=>false),false);
- return {directory:path.basename(c.dir),revision:c.state.revision,goal:c.state.outcome.goal,documents:check,referenceCount:refs.length};
-}
-const request1='Build a pure line normalizer: trim each line, omit blanks, preserve first occurrence order. Reject non-string input. Local implementation through verification only.';
-const one=await begin('single-batch','authored',request1,{info:'Original [request](.aimship/init.md), revision 1; synthetic user instruction.',goals:'Normalize pasted line lists without I/O. Non-goals: UI, persistence, networking.',scope:'app/normalize.mjs only; one batch, then review/verify/handoff; no release.',requirements:definition('REQ-001',['AC-001'])+'REQ-001 | functional | string input | trim, omit blanks, stable distinct lines | output array | invalid type throws TypeError | .aimship/init.md | AC-001',states:'Pure function; invalid input throws with no side effects, retry with a string.',acceptance:definition('AC-001')+'AC-001 | REQ-001 | duplicates, blanks, empty string, invalid type | normalize | expected stable list/empty list/TypeError.',arrangement:'requirements → tech-design → test-design → plan → implement one batch → combined batch+overall review → verify → handoff. No prototype/API/SQL needed.'});one.request=request1;
-await design(one,'Split on LF; trim, drop empty, Set preserves insertion order. Reject non-string before splitting.');
-await testing(one,definition('TC-001',['AC-001'])+'TC-001 | functional/unit | import module | normalize whitespace/duplicates, empty input, invalid number | [a,b], [], TypeError | Node assertions in harness.');
-await plan(one,definition('TASK-001',['REQ-001'])+'TASK-001 | B-001 | REQ-001/AC-001 | app | normalize.mjs | pure normalization | explicit errors and stable output | planned',definition('B-001')+'Batch: no dependencies; one module.');
-await fs.writeFile(path.join(one.code,'normalize.mjs'),`export function normalize(value) { if(typeof value!=='string') throw new TypeError('Expected text'); return [...new Set(value.split('\\n').map(x=>x.trim()).filter(Boolean))]; }\n`);
-await one.append('plan.md','TASK-001 / B-001 done. Actual normalize.mjs implemented; no deviation; exact hash '+JSON.stringify(await one.object()));await one.run('implement-1','implement','plan.md#execution','B-001');await review(one,'REV-001','B-001 and overall integration');
-const normalize=(await import(pathToFileURL(path.join(one.code,'normalize.mjs')))).normalize;
-const run1=await execute(one,'RUN-001',[['stable distinct',()=>assert.deepEqual(normalize(' a\nb\na\n '),['a','b'])],['empty',()=>assert.deepEqual(normalize(''),[])],['type error',()=>assert.throws(()=>normalize(1),TypeError)]],['TC-001']);assert.ok(run1.results.every(r=>r.result==='passed'));
-const summary1=await finish(one);
-const request2='Adopt the supplied catalog PRD v1. Implement validation then totals in two batches, with per-batch review, overall review and independent verification. Synthetic change CHG-001 later adds discount with half-up rounding; source stays read-only.';
-const two=await begin('adopted-multibatch','adopted',request2,{info:'Adopt source/catalog-v1.md unchanged, source/prototype-v1.html is an existing visual reference. No interaction implementation in scope.',goals:'app validators + quote module, local verified implementation only.',scope:'Partial adoption with local validation, access and performance requirements; exclude UI, HTTP, databases and release.',requirements:definition('REQ-001',['AC-001'])+'REQ-001 → price totals (source/catalog-v1.md v1 §Total); adopted for this iteration.\n'+definition('REQ-002',['AC-002'])+'REQ-002 | shared rule | all modules | prices must be safe nonnegative integer cents, invalid throws RangeError.\n'+definition('REQ-003',['AC-003'])+'REQ-003 | permission | single supported role owner may quote, other roles rejected with Error.\n'+definition('REQ-004',['AC-004'])+'REQ-004 | performance | synthetic 10,000 quotes on local Node complete below 2 seconds; benchmark evidence only for this environment.',states:'Invalid prices and unauthorized roles reject before calculation; no persistent state.',acceptance:definition('AC-001')+'AC-001 total of [101,200] is 301 cents.\n'+definition('AC-002')+'AC-002 negative, fractional and unsafe cents rejected in validator and quote.\n'+definition('AC-003')+'AC-003 owner allowed; guest rejected before calculation.\n'+definition('AC-004')+'AC-004 10,000 bounded quotes below 2 seconds, record duration.',arrangement:'requirements, tech-design, test-design, plan, implement first batch/review, implement second batch/review, affected rework, overall review, verify, repair review/retest if needed, handoff.'});two.request=request2;
 
-const sourceHash=hash(await fs.readFile(path.join(two.dir,'source/catalog-v1.md')));
-await design(two,'Validator checks every price; quote authorizes role then sums. Shared validation exported by validate.mjs; quote.mjs imports it. No independent diagnosis: cause and solution are known.');
-await testing(two,definition('TC-001',['AC-001','AC-002','AC-003','AC-004'])+'TC-001 | integration/boundary | owner + integer cents | total=301, reject -1/0.1/unsafe, reject guest, benchmark <2s. Node harness; not executed.');
-await plan(two,definition('TASK-001',['REQ-002'])+'TASK-001 | B-001 | shared validation | app validate.mjs | reject unsafe cents | planned\n'+definition('TASK-002',['REQ-001','REQ-003','REQ-004'])+'TASK-002 | B-002 | totals/access/performance | app quote.mjs | correct cents and role | planned',definition('B-001')+'Validation first.\n'+definition('B-002',['B-001'])+'Quote depends on validation.');
-await fs.writeFile(path.join(two.code,'validate.mjs'),`export function validate(prices) { if(!Array.isArray(prices)||prices.some(p=>!Number.isSafeInteger(p)||p<0)) throw new RangeError('Invalid cents'); }\n`);await two.append('plan.md','TASK-001 done; validate.mjs; no deviation.');await two.run('implement-1','implement','plan.md#execution','B-001 validation');await review(two,'REV-001','B-001 validation');
-await fs.writeFile(path.join(two.code,'quote.mjs'),`import {validate} from './validate.mjs'; export function quote(prices,role='owner') { if(role!=='owner') throw new Error('Denied'); validate(prices); return prices.reduce((a,b)=>a+b,0); }\n`);await two.append('plan.md','TASK-002 done; quote.mjs integrates shared validator.');await two.run('implement-2','implement','plan.md#execution','B-002 quote');await review(two,'REV-002','B-002 totals','TASK-002');
-// Explicit synthetic requirement change. Source remains unchanged and past review remains historical.
-await two.addDoc('change-log',{changes:definition('CHG-001',['REQ-001','TASK-002'])+'Synthetic commission driver requests optional discount 0..50 percent with half-up cents. Prior total behavior lacked discount; update scope, design, TASK-002, TC-001 and affected reviews. Source PRD remains v1. REV-001 validator remains applicable.',remaining:'Rework quote, overall review then execute the revised testing document; prior cases not executed.'});
-await two.save({openChanges:[{id:'CHG-001',ref:'change-log.md#CHG-001',status:'open'}],stageRuns:two.state.stageRuns.map(r=>r.id==='review-REV-002'?{...r,applicability:'needs-review'}:r),next:{action:'Apply CHG-001 to scope/design/plan/cases; preserve old review'}});
-await two.append('prd.md',definition('REQ-005',['AC-005'])+'Discount extends the adopted requirement. Discount 0..50%; half-up rounded cents; reject outside bounds.\n'+definition('AC-005')+'Acceptance: 101 cents at 50% → 51; 0% unchanged, 51% rejected.\n'+definition('Q-001',['REQ-005'])+'Q-001 resolved by synthetic CHG-001 instruction: half-up rounding, now written into REQ-005 and design.');
-await two.append('tech-design.md','CHG-001 / REQ-005: after validation and role check, sum then half-up round discounted cents. Reject discount outside [0,50].');await two.append('plan.md','CHG-001 changes TASK-002: add discount, preserving original plan and prior execution.');
-let text=await fs.readFile(path.join(two.dir,'testing.md'),'utf8');
-text=text.replace('TC-001 | integration/boundary', 'TC-001 | AC-005: also assert half-up 101*50%=51, discount bounds and zero discount | integration/boundary');
-await fs.writeFile(path.join(two.dir,'testing.md'),text);
-// Seeded defect: failed review must block formal verification. A separate
-// maintainer probe preserves the genuine failing assertions without claiming a RUN.
-const quoteSource=round=>`import {validate} from './validate.mjs'; export function quote(prices,role='owner',discount=0) { if(role!=='owner') throw new Error('Denied'); validate(prices); if(!Number.isFinite(discount)||discount<0||discount>50)throw new RangeError('Discount'); return Math.${round}(prices.reduce((a,b)=>a+b,0)*(100-discount)/100); }\n`;
-await fs.writeFile(path.join(two.code,'quote.mjs'),quoteSource('floor'));await two.append('plan.md','TASK-002 change implemented with a known seeded rounding defect. Formal verification must wait for its repair and passing review.');await two.save({next:{action:'Review changed scope and resolve known rounding defect before independent verification'}});await two.reconcile();await review(two,'REV-003','overall across both batches after CHG-001','TASK-002',{result:'failed'});
-const stateBefore=await fs.readFile(path.join(two.dir,'.aimship/state.json'));
-const blockedVerification={id:'verify-blocked',stage:'verify',scope:'Must not start after failed overall review',progress:'active',inputRefs:['testing.md#cases','review.md'],outputRefs:['testing.md']};
-await assert.rejects(two.save({stageRuns:[...two.state.stageRuns,blockedVerification],currentRun:blockedVerification.id}),{code:'REVIEW_CHECK'});
-assert.deepEqual(await fs.readFile(path.join(two.dir,'.aimship/state.json')),stateBefore);
-assert.ok(!two.state.stageRuns.some(r=>r.stage==='verify'));
-const gate={attemptedStage:'verify',rejectedWith:'REVIEW_CHECK',revision:two.state.revision,stateUnchanged:true,formalVerificationExecuted:false};
-await fs.mkdir(path.join(two.dir,'.aimship/evidence'),{recursive:true});await fs.writeFile(path.join(two.dir,'.aimship/evidence/blocked-verification.json'),json(gate));
-const testsFor=fn=>[['total',()=>assert.equal(fn([101,200]),301)],['invalid cents',()=>{for(const p of [-1,0.1,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>fn([p]),RangeError);}],['permission',()=>assert.throws(()=>fn([100],'guest'),/Denied/)],['half up rounding',()=>assert.equal(fn([101],'owner',50),51)],['discount bounds',()=>assert.throws(()=>fn([100],'owner',51),RangeError)],['performance',()=>{const start=performance.now();for(let i=0;i<10000;i++)assert.equal(fn([1,2,3]),6);const elapsed=performance.now()-start;assert.ok(elapsed<2000,`${elapsed}ms`);}]];
-let quote=(await import(pathToFileURL(path.join(two.code,'quote.mjs')).href+'?v=1')).quote;const failed=await negativeProbe(two,testsFor(quote),['TC-001']);assert.equal(failed.results.filter(r=>r.result==='failed').length,1);assert.equal(failed.results.find(r=>r.result==='failed').name,'half up rounding');assert.equal(failed.results.length,6);
-assert.ok(!two.state.stageRuns.some(r=>r.stage==='verify'),'The maintainer negative probe is not a formal verification stage.');
-await fs.writeFile(path.join(two.code,'quote.mjs'),quoteSource('round'));await two.append('plan.md','Repair TASK-002: Math.floor → Math.round to satisfy half-up requirement. The failed REV-003 and independent maintainer negative-probe.json retain the old object hash; no formal RUN occurred before repair.');await review(two,'REV-004','affected rounding repair plus all total boundary checks','TASK-002',{historyResultRefs:['review.md#REV-003']});quote=(await import(pathToFileURL(path.join(two.code,'quote.mjs')).href+'?v=2')).quote;const passed=await execute(two,'RUN-001',testsFor(quote),['TC-001']);assert.equal(passed.results.length,6);assert.ok(passed.results.every(r=>r.result==='passed'));
-await two.append('change-log.md','CHG-001 complete: current scope/design/tasks/test cases aligned. Failed REV-003 and the independent maintainer negative probe remain as evidence; the blocked verification attempt saved no stage. Matching repair REV-004 and formal RUN-001 pass on the repaired hash. REV-002 remains historical through historyResultRefs; the same affected run locates failed REV-003, superseded by matching passing REV-004.');await two.save({openChanges:[{...two.state.openChanges[0],status:'closed'}]});assert.equal(hash(await fs.readFile(path.join(two.dir,'source/catalog-v1.md'))),sourceHash);
-const summary2=await finish(two);
-await fs.writeFile(path.join(output,'summary.json'),json({version,one:summary1,two:summary2,verificationGate:gate,execution:{single:run1.results,multiMaintainerNegativeProbe:failed.results,multiFormalVerification:passed.results},limits:'Scripted synthetic local behavior, not real AI-tool discovery or HTTP/UI acceptance. The negative probe is independent maintainer evidence, not an authorized verification stage or a failed formal RUN.'}));
-console.log(json({output,version,single:run1.results.length,verificationGate:gate,multiMaintainerNegativeProbe:failed.results,multiFormalVerification:passed.results,completed:true}));
+const one=await setup('single-batch',1);
+await fs.writeFile(path.join(one.code,'export.mjs'),"export function selectedTotal(prices){if(!Array.isArray(prices)||prices.some(p=>!Number.isSafeInteger(p)||p<0))throw new RangeError('Invalid cents');return prices.reduce((sum,p)=>sum+p,0);}\n");
+const o1=await one.object();await one.c.implement('B-001',{objectKey:o1});await one.c.review({batchId:'B-001',objectKey:o1});
+await one.c.review({reviewScope:'overall',objectKey:o1});
+const total=(await import(pathToFileURL(path.join(one.code,'export.mjs')).href)).selectedTotal;
+const singleRows=await assertions([['selected exact totals',()=>assert.equal(total([101,200]),301)],['empty selection',()=>assert.equal(total([]),0)],['invalid negative/fraction/unsafe',()=>{for(const p of [-1,0.1,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>total([p]),RangeError);}]]);
+assert.ok(singleRows.every(r=>r.result==='passed'));
+const singleEvidence=await evidence(one.c,'formal-run.json',{objectKey:o1,command:'node scripts/run-examples.mjs <output>',node:process.version,coverageRefs:one.c.caseRefs,results:singleRows});
+await one.c.append('testing','runs','Actual local assertions and exact object: ['+singleEvidence+']('+singleEvidence+').');
+const oneRun=await one.c.verify({objectKey:o1});const summary1=await finish(one,oneRun.id);
+
+const two=await setup('multi-batch',2);
+await fs.writeFile(path.join(two.code,'validate.mjs'),"export function validate(prices){if(!Array.isArray(prices)||prices.some(p=>!Number.isSafeInteger(p)||p<0))throw new RangeError('Invalid cents');}\n");
+await two.c.implement('B-001',{objectKey:await two.object()});await two.c.review({batchId:'B-001',objectKey:await two.object()});
+const quoteSource=extra=>`import {validate} from './validate.mjs'; export function quote(prices){validate(prices);return prices.reduce((a,b)=>a+b,0)${extra};}\n`;
+await fs.writeFile(path.join(two.code,'quote.mjs'),quoteSource('+1'));
+await two.c.implement('B-002',{objectKey:await two.object()});await two.c.review({batchId:'B-002',objectKey:await two.object()});
+const failedReview=await two.c.review({reviewScope:'overall',result:'failed',objectKey:await two.object()});
+const before=await fs.readFile(path.join(two.c.dir,'.aimship/state.json'));
+await assert.rejects(two.c.record({id:'blocked-formal-test',stage:'verify',scope:'Must wait for passing overall review',progress:'active',coverageRefs:two.c.caseRefs,objectKey:await two.object(),inputRefs:['testing.md'],outputRefs:['testing.md']}),{code:'REVIEW_CHECK'});
+assert.deepEqual(await fs.readFile(path.join(two.c.dir,'.aimship/state.json')),before);
+const gate={attemptedStage:'verify',rejectedWith:'REVIEW_CHECK',stateUnchanged:true,formalVerificationExecuted:false};
+const probeQuote=(await import(pathToFileURL(path.join(two.code,'quote.mjs')).href+'?v=1')).quote;
+const probe=await assertions([['exact total catches seeded defect',()=>assert.equal(probeQuote([101]),101)]]);assert.equal(probe[0].result,'failed');
+await evidence(two.c,'negative-probe.json',{purpose:'Maintainer fault probe, not a formal RUN',objectKey:await two.object(),results:probe});
+await fs.writeFile(path.join(two.code,'quote.mjs'),quoteSource(''));const o2=await two.object();
+await two.c.record({id:'overall-repair',stage:'implement',scope:'Repair overall exact-total defect',workType:'repair',repairOf:[failedReview.id],objectKey:o2,inputRefs:[failedReview.resultRef],outputRefs:['plan.md'],resultRef:'plan.md#execution'});
+await two.c.review({reviewScope:'overall',objectKey:o2,historyResultRefs:[failedReview.resultRef]});
+const quote=(await import(pathToFileURL(path.join(two.code,'quote.mjs')).href+'?v=2')).quote;
+const multiRows=await assertions([['integrated exact totals',()=>assert.equal(quote([101,200]),301)],['empty selection',()=>assert.equal(quote([]),0)],['negative cents',()=>assert.throws(()=>quote([-1]),RangeError)],['fractional cents',()=>assert.throws(()=>quote([0.1]),RangeError)],['unsafe cents',()=>assert.throws(()=>quote([Number.MAX_SAFE_INTEGER+1]),RangeError)]]);assert.ok(multiRows.every(r=>r.result==='passed'));
+const multiEvidence=await evidence(two.c,'formal-run.json',{objectKey:o2,command:'node scripts/run-examples.mjs <output>',node:process.version,coverageRefs:two.c.caseRefs,results:multiRows});
+await two.c.append('testing','runs','Actual integrated local assertions: ['+multiEvidence+']('+multiEvidence+').');
+const twoRun=await two.c.verify({objectKey:o2});const summary2=await finish(two,twoRun.id);
+assert.equal(summary2.batches.length,2,'An overall repair does not create a third business batch.');
+const report={version:one.c.version,protocolVersion:2,output,one:summary1,two:summary2,verificationGate:gate,execution:{single:singleRows,multiMaintainerNegativeProbe:probe,multiFormalVerification:multiRows},limits:'Scripted synthetic local behavior and actual Node assertions; no real AI-host, Windows host, UI, network, deployment or user acceptance claim.',completed:true};
+await fs.writeFile(path.join(output,'summary.json'),json(report));console.log(json(report));

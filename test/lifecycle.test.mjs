@@ -23,7 +23,7 @@ async function fixture(t) {
   await fs.writeFile(path.join(skill, 'SKILL.md'), '---\nname: aimship\ndisable-model-invocation: true\n---\nRun "{{AIMSHIP_NODE}}" "{{AIMSHIP_LAUNCHER}}" bind.\nRead [core](references/core.md).\n');
   await fs.writeFile(path.join(skill, 'references/core.md'), '# Synthetic lifecycle rules\n');
   await fs.writeFile(path.join(skill, 'agents/openai.yaml'), 'policy:\n  allow_implicit_invocation: false\n');
-  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version: VERSION, private: true, aimship:{protocolVersion:1}, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
+  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version: VERSION, private: true, aimship:{protocolVersion:2}, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
   return { root, source, home, p: installPaths(home) };
 }
 function cli(file, args) {
@@ -44,7 +44,7 @@ async function completedDelivery(home) {
   const run = { id: 'handoff-1', stage: 'handoff', scope: 'Confirmed design-only endpoint', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] };
   await fs.mkdir(path.join(directory,'source')); await fs.mkdir(path.join(directory,'.aimship'),{recursive:true});await fs.writeFile(path.join(directory,'.aimship/init.md'),'Synthetic design request');
   await initState(directory, { language:'en', deliveryPolicy:{version:1,partialRef:'requirements.md'}, documentPolicy:{authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'handoff',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Synthetic design delivery', endpoint: 'Design handoff only' }, goalRef: 'requirements.md', stageRuns: [run], currentRun: 'handoff-1' }, VERSION, runtime);
-  await updateState(directory, { stageRuns: [{ ...run, progress: 'done', resultRef: 'results.md#handoff' }], outcome: { goal: 'met', goalConclusionRef: 'results.md#handoff', acceptance: 'accepted', acceptanceRef: 'results.md#acceptance' } }, 0, VERSION, runtime);
+  await updateState(directory, { operations: [{type:'record-run',run:{ ...run, progress:'done',resultRef:'results.md#handoff' }},{type:'record-outcome',outcome:{goal:'met',goalConclusionRef:'results.md#handoff',acceptance:'accepted',acceptanceRef:'results.md#acceptance'}}] }, 0, VERSION, runtime);
   return { directory, stateBytes: await fs.readFile(path.join(directory, '.aimship/state.json'), 'utf8'), resultBytes: await fs.readFile(path.join(directory, 'results.md'), 'utf8') };
 }
 

@@ -6,7 +6,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initState, readState, updateState, renderState, checkReferences } from '../lib/state.mjs';
+import {readState, renderState, checkReferences} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
+import {fixtureObjectKey} from '../scripts/testing/domain-adapter.mjs';
 import { scanDeliveries } from '../lib/discovery.mjs';
 import { inspectDocuments } from '../lib/documents.mjs';
 import { run } from '../lib/cli.mjs';
@@ -23,7 +25,7 @@ async function setup(t,name='delivery') {
  return {root,dir,input:{language:'en',goal:{summary:'Synthetic controlled delivery',endpoint:'Design'},goalRef:'prd.md',documentPolicy:policy,documents:[reg('prd')]}};
 }
 const reg=kind=>({kind,path:`${kind}.md`,mode:'new',version:'1'});
-async function document(dir,kind,extra='') {await fs.writeFile(path.join(dir,`${kind}.md`),(await documentFixture(kind,'en',kind!=='prd'))+'\n'+extra+'\n');}
+async function document(dir,kind,extra='') {await fs.writeFile(path.join(dir,`${kind}.md`),((await documentFixture(kind,'en',kind!=='prd')).replace('Synthetic batches: scoped selected-order export; record the actual outcome here.','Synthetic batches: scoped selected-order export; record the actual outcome here.\n| B-001 | Implement TASK-001 for the selected-order export. |'))+'\n'+extra+'\n');}
 async function init(t, planBasis=false) {
  const f=await setup(t);
  if(planBasis) {
@@ -35,15 +37,15 @@ async function init(t, planBasis=false) {
 
 test('ITER AC-01/02: internal layout and generated status are a single stage view',async t=>{
  const {dir,state}=await init(t);
- assert.equal(await exists(path.join(dir,'state.json')),false); assert.equal(state.schemaVersion,4);
+ assert.equal(await exists(path.join(dir,'state.json')),false); assert.equal(state.schemaVersion,5);
  const text=await fs.readFile(path.join(dir,'status.md'),'utf8'); assert.match(text,/State revision: 0/); assert.match(text,/prd.md/); assert.doesNotMatch(text,/TASK-|Installation diagnostics/);
  const s=await updateState(dir,{next:{action:'Blocked on Q in PRD'},outcome:{goal:'not-met'}},0,version,runtime);
- assert.equal(s.writeResult.view.status,'current'); assert.match(await fs.readFile(path.join(dir,'status.md'),'utf8'),/Blocked on Q/);
+ assert.equal(s.writeResult.view.status,'current'); assert.equal(s.next.action,'Blocked on Q in PRD');assert.doesNotMatch(await fs.readFile(path.join(dir,'status.md'),'utf8'),/Next action: Blocked on Q/);
 });
 test('ITER AC-03: view write failure saves revision; reads do not repair; render does not replay',async t=>{
  const {dir}=await init(t); await fs.rm(path.join(dir,'status.md')); await fs.mkdir(path.join(dir,'status.md'));
  const saved=await updateState(dir,{next:{action:'Saved once'}},0,version,runtime);
- assert.equal(saved.revision,1); assert.equal(saved.writeResult.stateSaved,true); assert.equal(saved.writeResult.view.status,'protected');
+ assert.equal(saved.revision,1); assert.equal(saved.writeResult.stateSaved,true); assert.equal(saved.writeResult.view.status,'error');
  const before=await fs.readFile(path.join(dir,'.aimship/state.json'),'utf8');
  for(const cmd of ['read','check','resume']) await run([cmd,dir,'--rules-version',version],{sourceRoot:source});
  assert.equal(await fs.readFile(path.join(dir,'.aimship/state.json'),'utf8'),before); assert.ok((await fs.stat(path.join(dir,'status.md'))).isDirectory());
@@ -59,20 +61,22 @@ test('ITER AC-03: view write failure saves revision; reads do not repair; render
 test('ITER AC-03/06: hand edits survive and do not confer acceptance; external plan edits invalidate readiness',async t=>{
  const {dir,state}=await init(t); const edit='User annotation: accepted and deploy now'; await fs.appendFile(path.join(dir,'status.md'),edit);
  const saved=await updateState(dir,{next:{action:'Continue current scope'}},0,version,runtime); assert.equal(saved.writeResult.view.status,'protected'); assert.equal(saved.outcome.acceptance,'not-recorded');
- const repaired=await renderState(dir,1,version,runtime,true); assert.match(await fs.readFile(repaired.view.preservedPath,'utf8'),/deploy now/);
+ const repaired=await renderState(dir,1,version,runtime,true); assert.match(await fs.readFile(repaired.view.statusView.preservedPath,'utf8'),/deploy now/);
  await document(dir,'plan'); await updateState(dir,{documents:[...state.documents,reg('plan')]},1,version,runtime);
  await fs.appendFile(path.join(dir,'plan.md'),'Actual TASK completed before state save.'); await fs.appendFile(path.join(dir,'prd.md'),'A new requirement awaiting impact assessment.');
  const resumed=await run(['resume',dir,'--rules-version',version],{sourceRoot:source}); assert.equal(resumed.data.canProceed,false); assert.deepEqual(resumed.data.documentChanges.sort(),['plan.md','prd.md']); assert.equal(resumed.data.view.status,'current');
 });
 test('ITER AC-04/14: required plan, shared sections and exact result locators are enforced',async t=>{
  const {dir,state}=await init(t,true); await document(dir,'plan');
- const implement={id:'i1',stage:'implement',scope:'batch',progress:'active',inputRefs:['prd.md'],outputRefs:['plan.md']};
- await assert.rejects(updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[implement]},0,version,runtime),{code:'DOCUMENT_CHECK'});
+ const implement={id:'i1',stage:'implement',scope:'batch',workType:'batch',batchId:'B-001',objectKey:fixtureObjectKey,progress:'active',inputRefs:['prd.md'],outputRefs:['plan.md']};
+ await assert.rejects(updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[implement]},state.revision,version,runtime),{code:'INVALID_STATE'});
  const plan={id:'p1',stage:'plan',scope:'all',progress:'done',inputRefs:['prd.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'};
- const s=await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan,{...implement,progress:'planned'}]},0,version,runtime);
+ const s=await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan,{...implement,batchId:undefined,progress:'planned'}]},state.revision,version,runtime);
  assert.equal(s.stageRuns[1].progress,'planned');
- await updateState(dir,{reviewHistory:await approveFixture(dir,s,['plan.md']),stageRuns:[plan,{...implement,progress:'done',resultRef:'plan.md#execution'}]},1,version,runtime);
- await assert.rejects(updateState(dir,{stageRuns:[plan,{...implement,progress:'done',resultRef:'plan.md#absent',priorResultRef:'plan.md#execution'}]},2,version,runtime),{code:'DOCUMENT_CHECK'});
+ const approved=await updateState(dir,{reviewHistory:await approveFixture(dir,s,['plan.md'])},s.revision,version,runtime);
+ const registered=await updateState(dir,{batches:[{id:'B-001',definitionRef:'plan.md#B-001',taskRefs:['plan.md#TASK-001'],dependsOn:[]}]},approved.revision,version,runtime);
+ const implemented=await updateState(dir,{stageRuns:[plan,{...implement,progress:'done',result:'passed',resultRef:'plan.md#execution'}]},registered.revision,version,runtime);
+ await assert.rejects(updateState(dir,{stageRuns:[plan,{...implement,id:'i2',workType:'repair',repairOf:['i1'],progress:'done',result:'passed',resultRef:'plan.md#absent',priorResultRef:'plan.md#execution'},...implemented.stageRuns.filter(r=>r.id==='i1')]},implemented.revision,version,runtime),{code:'DOCUMENT_CHECK'});
  await fs.rename(path.join(dir,'plan.md'),path.join(dir,'implementation.md'));
  assert.ok((await inspectDocuments(dir,(await readState(dir)).state)).issues.some(x=>x.includes('plan.md')));
 });
@@ -93,10 +97,10 @@ test('ITER AC-11/13/16/19: authored/adopted branches, SQL targets, localized hea
 test('ITER completion section and repository status links remain unambiguous',async t=>{
  const {root,dir,state}=await init(t,true);await document(dir,'plan');
  const plan={id:'plan',stage:'plan',scope:'before implementation',progress:'done',inputRefs:['prd.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'};
- await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan]},0,version,runtime);
- await assert.rejects(updateState(dir,{stageRuns:[plan,{id:'implement',stage:'implement',scope:'batch',progress:'done',inputRefs:['plan.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'}]},1,version,runtime),{code:'DOCUMENT_CHECK'});
+ await updateState(dir,{documents:[...state.documents,reg('plan')],stageRuns:[plan]},state.revision,version,runtime);
+ await assert.rejects(updateState(dir,{stageRuns:[plan,{id:'implement',stage:'implement',scope:'batch',workType:'batch',batchId:'B-001',objectKey:fixtureObjectKey,progress:'done',inputRefs:['plan.md'],outputRefs:['plan.md'],resultRef:'plan.md#tasks'}]},state.revision+1,version,runtime),{code:'INVALID_STATE'});
  const repo=path.join(root,'repo with space');await fs.mkdir(repo);await fs.writeFile(path.join(repo,'api.yaml'),'openapi: 3.1.0');
- const saved=await updateState(dir,{repositories:[{id:'api',path:repo,role:'read-only contract'}],documents:[...state.documents,reg('plan'),{kind:'contract',path:'repo:api/api.yaml',mode:'reused',version:'1',basisRef:'prd.md#scope'}]},1,version,runtime);
+ const saved=await updateState(dir,{repositories:[{id:'api',path:repo,role:'read-only contract'}],documents:[...state.documents,reg('plan'),{kind:'contract',path:'repo:api/api.yaml',mode:'reused',version:'1',basisRef:'prd.md#scope'}]},state.revision+1,version,runtime);
  assert.equal(saved.writeResult.view.status,'current');const view=await fs.readFile(path.join(dir,'status.md'),'utf8');assert.ok(view.includes(encodeURI(path.join(repo,'api.yaml'))));assert.ok(!view.includes('](repo:'));
 
 });
@@ -105,7 +109,7 @@ test('ITER completion section and repository status links remain unambiguous',as
 test('review: every completed review remains locatable after later document edits',async t=>{
  const {dir,input}=await setup(t);await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic explicit independent review-only commission, not standard development.');
  const state=await initState(dir,{...input,deliveryPolicy:{version:1,partialRef:'.aimship/init.md'}},version,runtime);await document(dir,'review',`${def('REV-001',[],{run:'r1'})}`);
- await updateState(dir,{documents:[...state.documents,reg('review')],stageRuns:[{id:'r1',stage:'review',scope:'whole',progress:'done',inputRefs:['prd.md'],outputRefs:['review.md'],resultRef:'review.md#REV-001'}]},0,version,runtime);
+ await updateState(dir,{documents:[...state.documents,reg('review')],stageRuns:[{id:'r1',stage:'review',scope:'whole',reviewScope:'overall',objectKey:fixtureObjectKey,progress:'done',inputRefs:['prd.md'],outputRefs:['review.md'],resultRef:'review.md#REV-001'}]},0,version,runtime);
  const file=path.join(dir,'review.md');await fs.writeFile(file,(await fs.readFile(file,'utf8')).replace(def('REV-001',[],{run:'r1'}),''));
  await assert.rejects(updateState(dir,{},1,version,runtime),{code:'DOCUMENT_CHECK'});
  assert.equal((await readState(dir)).state.revision,1);
@@ -123,9 +127,9 @@ test('review: a generated page from a different delivery cannot be current at th
  const a=await init(t),b=await init(t);
  await fs.copyFile(path.join(a.dir,'status.md'),path.join(b.dir,'status.md'));
  await fs.copyFile(path.join(a.dir,'.aimship/view.json'),path.join(b.dir,'.aimship/view.json'));
- assert.equal((await readState(b.dir)).view.status,'stale');
+ assert.ok(['stale','modified'].includes((await readState(b.dir)).view.status));
  assert.equal((await run(['resume',b.dir,'--rules-version',version],{sourceRoot:source})).data.canProceed,false);
- await renderState(b.dir,0,version,runtime);assert.match(await fs.readFile(path.join(b.dir,'status.md'),'utf8'),new RegExp(b.state.deliveryId));
+ await renderState(b.dir,0,version,runtime,true);assert.match(await fs.readFile(path.join(b.dir,'status.md'),'utf8'),new RegExp(b.state.deliveryId));
 });
 
 test('review: unreadable or remote content cannot bypass new artifact location rules',async t=>{

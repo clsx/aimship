@@ -4,6 +4,12 @@ Delivery: <deliveryId from init>; document revision: <revision>.
 
 ## 1. Review basis and scope
 
+### 1.1 Current review (generated)
+
+Pending state generation.
+
+### 1.2 Review basis
+
 State the requirements/design/plan references and review scope. Put each review's actual repositories, baseline plus differences, reviewer and date with its REV record. Keep object details readable and link the exact manifest when useful. Replace guidance with actual content; never prefill a result.
 
 ## 2. Review records
@@ -19,5 +25,4 @@ Keep overall review separate from batch records. Replace guidance with actual co
 
 ## 3. Open findings and current conclusion
 
-Maintain one latest effective conclusion and update the saved next action to match: reviewed scope/object, remaining findings and whether they block continuation. Distinguish review findings from unexecuted validation, linking testing.md for runtime coverage and missing conditions. Historical conclusions remain inside their REV records for the old objects; do not accumulate obsolete “next batch” instructions here. Review is not runtime validation or user acceptance. Replace guidance with actual content; never prefill a result.
-
+Explain remaining findings and whether they block continuation, citing their REV records and disposition. The generated current review section above owns the effective result summary; do not create a second current-status table or accumulate obsolete “next batch” instructions here. Distinguish review findings from unexecuted validation and link testing.md for runtime coverage and missing conditions. Historical conclusions remain inside their REV records for the old objects. Review is not runtime validation or user acceptance. Replace guidance with actual content; never prefill a result.

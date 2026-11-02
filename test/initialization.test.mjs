@@ -1,3 +1,4 @@
+import {semanticUpdate as updateState,semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import { documentFixture } from '../scripts/testing/documents.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -6,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { initState, updateState, readState, renderState } from '../lib/state.mjs';
+import { initState, readState, renderState } from '../lib/state.mjs';
 import { run } from '../lib/cli.mjs';
 import { approveFixture } from '../scripts/testing/reviews.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -30,9 +31,9 @@ function cli(command,dir,value,revision) {
 }
 test('initialization: real CLI saves request without PRD/code/conditions; fresh CLI resumes same identity',async t=>{
  const dir=await setup(t),request=await fs.readFile(path.join(dir,'.aimship/init.md'));
- const state=cli('init',dir,input());assert.equal(state.schemaVersion,4);assert.equal(state.goal.endpoint,'Implementation, review, independent verification and delivery acceptance.');assert.equal(state.goalRef,'.aimship/init.md');assert.deepEqual(state.repositories,[]);assert.deepEqual(state.documents,[]);
+ const state=cli('init',dir,input());assert.equal(state.schemaVersion,5);assert.equal(state.goal.endpoint,'Implementation, review, independent verification and delivery acceptance.');assert.equal(state.goalRef,'.aimship/init.md');assert.deepEqual(state.repositories,[]);assert.deepEqual(state.documents,[]);
  for(const value of Object.values(state.documentPolicy))assert.equal(value,null);
- const receipt=state.writeResult.receipt;assert.equal(receipt.status,'saved');assert.equal(receipt.directory,dir);assert.equal(receipt.currentStage,'requirements');assert.equal(receipt.nextAction,'Clarify export columns');assert.equal(receipt.deliveryId,state.deliveryId);
+ const receipt=state.writeResult.receipt;assert.equal(receipt.status,'saved');assert.equal(receipt.directory,dir);assert.equal(receipt.currentStage,'requirements');assert.equal(state.next.action,'Clarify export columns');assert.match(receipt.nextAction,/current agreed stage/);assert.equal(receipt.deliveryId,state.deliveryId);
  await assert.rejects(fs.access(path.join(dir,'prd.md')));assert.match(await fs.readFile(receipt.statusPath,'utf8'),/Endpoint: Implementation, review/);
  const before=await fs.readFile(path.join(dir,'.aimship/state.json'));
  for(const command of ['read','check','resume']) {const out=cli(command,dir);if(command==='resume'){assert.equal(out.canProceed,true);assert.equal(out.state.deliveryId,state.deliveryId);}}
@@ -62,9 +63,10 @@ test('initialization: missing stages or forged next/current pointers cannot bypa
   const documents=['prd','tech-design','testing','plan'].map(reg).concat([{kind:'prototype',path:'prototype/index.html',mode:'new',version:'1'},{kind:'contract',path:'openapi.yaml',mode:'new',version:'1'}]);
   const base={language:'en',goal:{summary:'Synthetic request',endpoint:'Authorized design only'},goalRef:'prd.md',documentPolicy:known,documents};
   const runs=kind==='implement'?[stage('plan','done',{resultRef:'plan.md#tasks',outputRefs:['plan.md']}),stage(kind)]:[stage(kind)];
-  await assert.rejects(initState(dir,{...base,stageRuns:runs,currentRun:kind},version,runtime),{code:'REVIEW_CHECK'});
+  await assert.rejects(initState(dir,{...base,stageRuns:runs,currentRun:kind},version,runtime),{code:'INVALID_STATE'});
   let state=await initState(dir,base,version,runtime);
-  await assert.rejects(updateState(dir,{stageRuns:runs,currentRun:kind},state.revision,version,runtime),{code:'REVIEW_CHECK'});
+  await assert.rejects(updateState(dir,{stageRuns:runs,currentRun:kind},state.revision,version,runtime),{code:kind==='implement'?'INVALID_STATE':'REVIEW_CHECK'});
+  if(kind==='implement')continue; // Missing batch/object relationships are rejected before an approval evaluation.
   // A manually damaged record is also diagnosed by read/check/resume; no mutation on read.
   const file=path.join(dir,'.aimship/state.json');await fs.writeFile(file,JSON.stringify({...state,stageRuns:runs,currentRun:kind}));
   for(const command of ['read','check','resume']) {const report=await inspect(command,dir);assert.ok(report.review.runs.some(r=>r.blockedBy.some(x=>x.startsWith('approval:'))));if(command==='resume')assert.equal(report.canProceed,false);}
@@ -74,7 +76,7 @@ test('initialization: initialization notes alone cannot complete requirements or
  const dir=await setup(t);const state=await initState(dir,input(),version,runtime);
  await assert.rejects(updateState(dir,{stageRuns:[stage('requirements','done',{resultRef:'.aimship/init.md',outputRefs:['.aimship/init.md']})]},0,version,runtime),{code:'DOCUMENT_CHECK'});
  await assert.rejects(updateState(dir,{outcome:{goal:'met',goalConclusionRef:'.aimship/init.md'}},0,version,runtime));
- await doc(dir,'prd');await doc(dir,'tech-design');const patch={goalRef:'prd.md',documentPolicy:{authority:'authored'},documents:[reg('prd'),reg('tech-design')],stageRuns:[stage('tech-design')],currentRun:'tech-design'};
+ await doc(dir,'prd');await doc(dir,'tech-design');const patch={goalRef:'prd.md',documentPolicy:{authority:'authored'},documents:[reg('prd'),reg('tech-design')],stageRuns:[...state.stageRuns,stage('tech-design')],currentRun:'tech-design'};
  await assert.rejects(updateState(dir,patch,state.revision,version,runtime),{code:'REVIEW_CHECK'});
 });
 test('initialization: repeat, interrupted source-only save and competing writers preserve materials',async t=>{
@@ -112,7 +114,7 @@ test('initialization: requirement-stage code reads are possible before drafting 
 test('initialization: non-applicable prototype coverage does not force an extra decision',async t=>{
  const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');
  const init={language:'en',goal:{summary:'Synthetic noninteractive refactor',endpoint:'Design'},goalRef:'prd.md',documents:[reg('prd'),reg('tech-design')],documentPolicy:{...known,prototypeCovered:null},stageRuns:[stage('tech-design','done',{outputRefs:['tech-design.md'],resultRef:'tech-design.md#coverage'})],currentRun:'tech-design'};
- init.reviewHistory=await approveFixture(dir,init,['prd.md']);const state=await initState(dir,init,version,runtime);assert.equal(state.documentPolicy.prototypeCovered,null);assert.deepEqual((await inspect('check',dir)).documents.issues,[]);
+ const targetRun=init.stageRuns[0];init.stageRuns=[];init.currentRun=null;let state=await initState(dir,init,version,runtime);state=await updateState(dir,{reviewHistory:await approveFixture(dir,state,['prd.md'])},state.revision,version,runtime);state=await updateState(dir,{stageRuns:[targetRun],currentRun:targetRun.id},state.revision,version,runtime);assert.equal(state.documentPolicy.prototypeCovered,null);assert.deepEqual((await inspect('check',dir)).documents.issues,[]);
 });
 test('initialization: a null currentRun cannot hide an active unapproved dependency',async t=>{
  const dir=await setup(t);await doc(dir,'prd');await doc(dir,'tech-design');let state=await initState(dir,{language:'en',goal:{summary:'Synthetic request',endpoint:'Design'},goalRef:'prd.md',documentPolicy:known,documents:[reg('prd'),reg('tech-design')]},version,runtime);

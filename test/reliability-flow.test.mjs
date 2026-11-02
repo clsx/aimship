@@ -5,7 +5,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {initState,updateState,readState} from '../lib/state.mjs';
+import {readState} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
+import {fixtureObjectKey} from '../scripts/testing/domain-adapter.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
 import {renderText} from '../lib/view.mjs';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -16,24 +18,25 @@ async function setup(t,{selected=definitions,partial=false}={}) {
  t.after(()=>fs.rm(dataRoot,{recursive:true,force:true}));await fs.mkdir(path.join(dir,'source'),{recursive:true});
  await fs.mkdir(path.join(dir,'.aimship'),{recursive:true});await fs.writeFile(path.join(dir,'.aimship/init.md'),'Synthetic fixture request only; no actual business work or approval.');
  await fs.writeFile(path.join(dir,'source/limited.md'),'Synthetic explicitly limited commission, not standard complete delivery.');
- const docs=[...new Set(selected.map(x=>x[2]))].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'synthetic-1',basisRef:'.aimship/init.md'}));
- for(const doc of docs)await fs.writeFile(path.join(dir,doc.path),`# Synthetic adopted ${doc.kind}\n`+['rev1','rev2','overall','repair','independent'].map(id=>`## ${id}\nSynthetic evidence for ${id}.\n`).join(''));
- const stageRuns=selected.map(([id,stage,kind])=>({id,stage,scope:`Synthetic ${id}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='review' && ['rev1','rev2','overall'].includes(id)?{reviewOf:id==='overall'?['imp1','imp2']:[id==='rev1'?'imp1':'imp2'],overall:id==='overall'}:{})}));
+ const docs=[...new Set(selected.map(x=>x[2]))].map(kind=>({kind,path:`${kind}.md`,mode:'reused',version:'synthetic-1',basisRef:'.aimship/init.md',...(kind==='testing'?{coverageRefs:['testing.md#case']}:{})}));
+ for(const doc of docs)await fs.writeFile(path.join(dir,doc.path),`# Synthetic adopted ${doc.kind}\n## B-001\nFirst export batch TASK-001.\n## B-002\nSecond export batch TASK-002.\n## TASK-001\nFirst synthetic task.\n## TASK-002\nSecond synthetic task.\n## case\nExact-total case.\n`+['rev1','rev2','overall','repair','independent'].map(id=>`## ${id}\nSynthetic evidence for ${id}.\n`).join(''));
+ const stageRuns=selected.map(([id,stage,kind])=>({id,stage,scope:`Synthetic ${id}`,progress:'planned',inputRefs:[],outputRefs:[`${kind}.md`],...(stage==='implement'?{workType:'batch'}:{}),...(stage==='review' && ['rev1','rev2','overall'].includes(id)?{reviewOf:id==='overall'?['imp1','imp2']:[id==='rev1'?'imp1':'imp2'],reviewScope:id==='overall'?'overall':'batch'}:stage==='review'?{reviewScope:'overall'}:{})}));
  const runtime={version,activeVersion:version,dataRoot};
  let state=await initState(dir,{language:'en',goal:{summary:'Synthetic delivery',endpoint:'Agreed synthetic endpoint'},goalRef:'prd.md',deliveryPolicy:{version:1,...(partial?{partialRef:'source/limited.md'}:{})},documentPolicy:{authority:'authored',interaction:false,prototypeCovered:false,interface:'none',databases:[]},documents:docs,stageRuns,currentRun:stageRuns[0]?.id??null},version,runtime);
  const save=async patch=>state=await updateState(dir,patch,state.revision,version,runtime);
  const finish=async(id,result='passed')=>{
   const run=state.stageRuns.find(r=>r.id===id);
-  await save({stageRuns:state.stageRuns.map(r=>r.id===id?{...r,progress:'done',...(result===null?{}:{result}),resultRef:r.stage==='review'?`review.md#${id}`:r.outputRefs[0]}:r),currentRun:id});
+  await save({stageRuns:state.stageRuns.map(r=>r.id===id?{...r,progress:'done',...(result===null?{}:{result}),resultRef:r.stage==='review'?`review.md#${id}`:r.outputRefs[0],...(['implement','review','verify'].includes(r.stage)?{objectKey:fixtureObjectKey}:{}),...(r.stage==='implement'||r.reviewScope==='batch'?{batchId:['imp2','rev2'].includes(id)?'B-002':'B-001'}:{}),...(r.stage==='verify'?{coverageRefs:['testing.md#case']}:{})}:r),currentRun:id});
   if(['requirements','tech-design','test-design','plan'].includes(run.stage))await save({reviewHistory:await approveFixture(dir,state,run.outputRefs)});
+  if(run.stage==='plan')await save({batches:[{id:'B-001',definitionRef:'plan.md#B-001',taskRefs:['plan.md#TASK-001'],dependsOn:[]},{id:'B-002',definitionRef:'plan.md#B-002',taskRefs:['plan.md#TASK-002'],dependsOn:['B-001']}]});
  };
- const start=id=>save({stageRuns:state.stageRuns.map(r=>r.id===id?{...r,progress:'active'}:r),currentRun:id});
+ const start=id=>save({stageRuns:state.stageRuns.map(r=>r.id===id?{...r,progress:'active',...(['implement','review','verify'].includes(r.stage)?{objectKey:fixtureObjectKey}:{}),...(r.stage==='implement'||r.reviewScope==='batch'?{batchId:['imp2','rev2'].includes(id)?'B-002':'B-001'}:{}),...(r.stage==='verify'?{coverageRefs:['testing.md#case']}:{})}:r),currentRun:id});
  return {dir,runtime,save,finish,start,get state(){return state}};
 }
 async function readyToReview(c){for(const id of ['req','design','cases','plan','imp1'])await c.finish(id);}
 function correction(c,oldId,{id='repair',reviewOf,overall}={}) {
  const old=c.state.stageRuns.find(r=>r.id===oldId);
- return {id,stage:'review',scope:'Corrective review of the same synthetic object',progress:'done',result:'passed',resultRef:`review.md#${id}`,historyResultRefs:[old.resultRef],inputRefs:[],outputRefs:['review.md'],reviewOf:reviewOf??old.reviewOf,overall:overall??old.overall};
+ return {id,stage:'review',scope:'Corrective review of the same synthetic object',progress:'done',result:'passed',resultRef:`review.md#${id}`,historyResultRefs:[old.resultRef],inputRefs:[],outputRefs:['review.md'],reviewOf:reviewOf??old.reviewOf,reviewScope:overall===undefined?old.reviewScope:overall?'overall':'batch',...(old.batchId?{batchId:old.batchId}:{}),objectKey:fixtureObjectKey};
 }
 function insertAfter(runs,id,newRun){const at=runs.findIndex(r=>r.id===id);return [...runs.slice(0,at+1),newRun,...runs.slice(at+1)];}
 
@@ -42,7 +45,7 @@ test('failed or inconclusive batch review is saved but cannot release the next b
   const c=await setup(t);await readyToReview(c);await c.finish('rev1',result);
   let read=await readState(c.dir),review=read.review.runs.find(r=>r.id==='rev1');
   assert.equal(review.ready,true,'execution record remains completed');assert.equal(review.releaseReady,false);assert.equal(read.review.canProceed,false);assert.equal(read.session.action,['failed','mixed'].includes(result)?'continue-batch-repair':'resolve-current');assert.equal(read.session.stop,!['failed','mixed'].includes(result));
-  assert.ok(read.review.runs.find(r=>r.id==='imp2').blockedBy.includes('rev1'));
+  assert.equal(read.review.execution.batches.find(b=>b.id==='B-001').status,'needs-repair');
   const view=await renderText(c.dir,c.state);
   if(['failed','mixed'].includes(result))assert.match(view,/recorded unsuccessful result/);
   else {
@@ -67,36 +70,40 @@ test('progress keeps main stages stable across batches and distinguishes the ove
  for(const id of ['req','design','cases','plan','imp1','rev1','imp2','rev2'])await c.finish(id);
  let view=await renderText(c.dir,c.state);
  assert.deepEqual(rows(view),expected);assert.match(view,/Current stage: implement · Batch review · Completed/);
- assert.match(table(view),/\| implement \| [^\n]* \| Recorded batches completed: 2; batch reviews passed \|/);
+ assert.match(table(view),/\| implement \| [^\n]* \| Business batches complete: 2\/2 \|/);
  assert.match(table(view),/\| Overall review \| [^\n]* \| Not started \|/);
  assert.doesNotMatch(table(view),/Synthetic/);
  // Absence of a future run does not erase its standard main stage.
- await c.save({stageRuns:c.state.stageRuns.filter(r=>r.progress!=='planned')});
+ await c.save({next:{action:'All registered business batches are reviewed; overall review remains unstarted'}});
  view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/Overall review.*Not started/);assert.doesNotMatch(view,/After this stop|Say .continue|Continue this delivery/);
- const overall={id:'overall',stage:'review',scope:'Actual combined review',reviewOf:['imp1','imp2'],overall:true,progress:'planned',inputRefs:[],outputRefs:['review.md']};
- await c.save({stageRuns:[...c.state.stageRuns,overall]});await c.finish('overall','failed');
+ const overall={id:'extra-overall',stage:'review',scope:'Actual combined review',reviewOf:['imp1','imp2'],reviewScope:'overall',objectKey:fixtureObjectKey,progress:'planned',inputRefs:[],outputRefs:['review.md']};
+ await c.finish('overall','failed');
  assert.match(table(await renderText(c.dir,c.state)),/\| Overall review \| [^\n]* \| Result needs resolution \|/);
  const repair=correction(c,'overall');await c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id});
  view=await renderText(c.dir,c.state);assert.deepEqual(rows(view),expected);assert.match(table(view),/\| Overall review \| [^\n]* \| Completed \|/);
  assert.match(table(view),/\| verify \| [^\n]* \| Not started \|/);
  assert.equal((await readState(c.dir)).completion.standardComplete,false);
- const later={id:'imp3',stage:'implement',scope:'Later authorized batch',progress:'done',result:'passed',resultRef:'plan.md',inputRefs:[],outputRefs:['plan.md']};
+ const later={id:'imp3',stage:'implement',scope:'Later authorized repair',workType:'repair',repairOf:['overall'],objectKey:fixtureObjectKey,progress:'done',result:'passed',resultRef:'plan.md',inputRefs:[],outputRefs:['plan.md']};
  const laterView=await renderText(c.dir,{...c.state,stageRuns:[...c.state.stageRuns,later],currentRun:'imp3'});
- assert.deepEqual(rows(laterView),expected);assert.match(table(laterView),/\| Overall review \| [^\n]* \| Review required for current batches \|/);
- assert.match(table(laterView),/work with unclassified purpose: 1/);assert.doesNotMatch(table(laterView),/Recorded batches completed: 3/);
+ assert.deepEqual(rows(laterView),expected);assert.match(table(laterView),/\| Overall review \| [^\n]* \| Review required for current implementation \|/);
+ assert.equal(c.state.batches.length,2);assert.doesNotMatch(table(laterView),/Recorded batches completed: 3/);
 });
 
 test('progress links registered formal contracts without flattening internal evidence',async t=>{
  const c=await setup(t);await fs.mkdir(path.join(c.dir,'.aimship/evidence'));
  await fs.writeFile(path.join(c.dir,'rpc-contract.md'),'# RPC contract\nSynthetic methods and error behavior.');
  await fs.writeFile(path.join(c.dir,'.aimship/evidence/check.json'),'{}');
- await c.save({documents:[...c.state.documents,{kind:'contract',path:'rpc-contract.md',mode:'new',version:'1'}],next:{action:'Prepare requirements',inputRefs:['rpc-contract.md','.aimship/evidence/check.json']},stageRuns:c.state.stageRuns.map(r=>r.id==='req'?{...r,outputRefs:[...r.outputRefs,'.aimship/evidence/check.json']}:r)});
+ await fs.writeFile(path.join(c.dir,'.aimship/evidence/unselected.json'),'{}');
+ await c.save({documents:[...c.state.documents,{kind:'contract',path:'rpc-contract.md',mode:'new',version:'1'}],next:{action:'Prepare requirements',inputRefs:['rpc-contract.md','.aimship/evidence/check.json']},stageRuns:c.state.stageRuns.map(r=>r.id==='req'?{...r,outputRefs:[...r.outputRefs,'.aimship/evidence/check.json','.aimship/evidence/unselected.json']}:r)});
  const view=await renderText(c.dir,c.state);
- assert.equal(view.split('](rpc-contract.md)').length-1,1);assert.doesNotMatch(view,/Work material|check\.json/);
+ assert.equal(view.split('](rpc-contract.md)').length-1,1);
+ assert.equal(view.split('](.aimship/evidence/check.json)').length-1,1,'explicitly selected next-work evidence remains available');
+ assert.doesNotMatch(view,/Work material|unselected\.json/);
+ assert.doesNotMatch(view.split('## Delivery progress')[1].split('Delivery conclusion:')[0],/check\.json|unselected\.json/,'internal evidence is not flattened into the main stage table');
  await fs.writeFile(path.join(c.dir,'message.proto'),'syntax = "proto3";');
- const contract={id:'contract-extra',stage:'contract',scope:'Supplementary RPC/message formats',progress:'planned',inputRefs:[],outputRefs:['rpc-contract.md','message.proto','.aimship/evidence/check.json']};
+ const contract={id:'contract-extra',stage:'contract',scope:'Supplementary RPC/message formats',progress:'planned',inputRefs:[],outputRefs:['rpc-contract.md','message.proto','.aimship/evidence/check.json','.aimship/evidence/unselected.json']};
  const extraView=await renderText(c.dir,{...c.state,documents:c.state.documents.filter(d=>d.path!=='rpc-contract.md'),stageRuns:[...c.state.stageRuns,contract]});
- assert.equal(extraView.split('](rpc-contract.md)').length-1,1);assert.match(extraView,/\[message\.proto\]\(message\.proto\)/);assert.doesNotMatch(extraView,/check\.json/);
+ assert.equal(extraView.split('](rpc-contract.md)').length-1,1);assert.match(extraView,/\[message\.proto\]\(message\.proto\)/);assert.equal(extraView.split('](.aimship/evidence/check.json)').length-1,1);assert.doesNotMatch(extraView,/unselected\.json/);assert.doesNotMatch(extraView.split('## Delivery progress')[1].split('Delivery conclusion:')[0],/check\.json|unselected\.json/);
 });
 
 test('a question with an unknown result is shown as clarification without reporting failure',async t=>{
@@ -117,9 +124,9 @@ test('limited standalone review does not invent implementation or standard futur
 test('corrective review must preserve failure evidence and matching coverage before continuation',async t=>{
  const c=await setup(t);await readyToReview(c);await c.finish('rev1','failed');const failed=structuredClone(c.state.stageRuns.find(r=>r.id==='rev1'));
  const wrong=correction(c,'rev1',{reviewOf:['imp2']});
- await assert.rejects(c.save({stageRuns:insertAfter(c.state.stageRuns,'rev1',wrong),currentRun:wrong.id}),{code:'REVIEW_CHECK'});
+ await assert.rejects(c.save({stageRuns:insertAfter(c.state.stageRuns,'rev1',wrong),currentRun:wrong.id}),{code:'INVALID_STATE'});
  const noHistory=correction(c,'rev1');delete noHistory.historyResultRefs;
- await assert.rejects(c.save({stageRuns:insertAfter(c.state.stageRuns,'rev1',noHistory),currentRun:noHistory.id}),{code:'REVIEW_CHECK'});
+ await c.save({stageRuns:insertAfter(c.state.stageRuns,'rev1',{...noHistory,id:'unlinked-recheck'}),currentRun:'unlinked-recheck'});assert.equal((await readState(c.dir)).review.runs.find(r=>r.id==='rev1').resolvedBy,undefined);await assert.rejects(c.start('imp2'),{code:'REVIEW_CHECK'});
  const repair=correction(c,'rev1');await c.save({stageRuns:insertAfter(c.state.stageRuns,'rev1',repair),currentRun:repair.id});
  const read=await readState(c.dir),status=read.review.runs.find(r=>r.id==='rev1');assert.equal(status.releaseReady,true);assert.equal(status.resolvedBy,'repair');
  assert.deepEqual(c.state.stageRuns.find(r=>r.id==='rev1'),failed);await c.start('imp2');assert.equal((await readState(c.dir)).review.canProceed,true);
@@ -128,7 +135,7 @@ test('corrective review must preserve failure evidence and matching coverage bef
 test('failed overall review blocks verification, then matching correction permits full completion',async t=>{
  const c=await setup(t);for(const id of ['req','design','cases','plan','imp1','rev1','imp2','rev2'])await c.finish(id);
  await c.finish('overall','failed');await assert.rejects(c.start('verify'),{code:'REVIEW_CHECK'});
- const batchOnly=correction(c,'overall',{overall:false});await assert.rejects(c.save({stageRuns:insertAfter(c.state.stageRuns,'overall',batchOnly),currentRun:'repair'}),{code:'REVIEW_CHECK'});
+ const batchOnly={...correction(c,'overall',{id:'narrow-review',overall:false}),batchId:'B-001',reviewOf:['imp1'],resultRef:'review.md#rev1'};await c.save({stageRuns:[...c.state.stageRuns,batchOnly],currentRun:batchOnly.id});assert.equal((await readState(c.dir)).review.runs.find(r=>r.id==='overall').resolvedBy,undefined);await assert.rejects(c.start('verify'),{code:'REVIEW_CHECK'});
  const repair=correction(c,'overall');await c.save({stageRuns:insertAfter(c.state.stageRuns,'overall',repair),currentRun:'repair'});
  await c.finish('verify');await c.finish('handoff');let read=await readState(c.dir);assert.equal(read.completion.readyForAcceptance,true);assert.equal(read.session.action,'assess-outcome');assert.equal(read.session.continuation,null);assert.match(read.session.instruction,/goal conclusion and acceptance/);
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/limited.md'}});read=await readState(c.dir);assert.equal(read.completion.standardComplete,true);assert.equal(read.session.action,'finished');
@@ -136,13 +143,13 @@ test('failed overall review blocks verification, then matching correction permit
 
 test('independent review work is not blocked by an unrelated failed review',async t=>{
  const c=await setup(t,{partial:true});await readyToReview(c);await c.finish('rev1','failed');
- const independent={id:'independent',stage:'review',scope:'Independent existing work, not a repair',progress:'active',dependsOn:[],inputRefs:[],outputRefs:['review.md']};
+ const independent={id:'independent',stage:'review',scope:'Independent existing work, not a repair',reviewScope:'overall',objectKey:fixtureObjectKey,progress:'active',dependsOn:[],inputRefs:[],outputRefs:['review.md']};
  await c.save({stageRuns:[...c.state.stageRuns,independent],currentRun:independent.id});
  const read=await readState(c.dir);assert.equal(read.review.canProceed,true);assert.equal(read.review.runs.find(r=>r.id==='rev1').releaseReady,false);assert.equal(read.completion.standardComplete,false);
  await c.save({stageRuns:c.state.stageRuns.map(r=>r.id==='independent'?{...r,progress:'done',result:'failed',resultRef:'review.md#independent'}:r)});
- const repair={id:'repair',stage:'review',scope:'A different independent object',progress:'done',result:'passed',resultRef:'review.md#repair',historyResultRefs:['review.md#independent'],inputRefs:[],outputRefs:['review.md']};
- await assert.rejects(c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id}),{code:'REVIEW_CHECK'});
- repair.scope=independent.scope;await c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id});
+ const repair={id:'repair',stage:'review',scope:'A different independent object',reviewScope:'overall',objectKey:'b'.repeat(64),progress:'done',result:'passed',resultRef:'review.md#repair',historyResultRefs:['review.md#independent'],inputRefs:[],outputRefs:['review.md']};
+ await c.save({stageRuns:[...c.state.stageRuns,{...repair,id:'unrelated-object'}],currentRun:'unrelated-object'});assert.equal((await readState(c.dir)).review.runs.find(r=>r.id==='independent').resolvedBy,undefined);
+ repair.scope=independent.scope;repair.objectKey=fixtureObjectKey;await c.save({stageRuns:[...c.state.stageRuns,repair],currentRun:repair.id});
  const repaired=await readState(c.dir);assert.equal(repaired.review.runs.find(r=>r.id==='independent').releaseReady,true);assert.equal(repaired.review.runs.find(r=>r.id==='rev1').releaseReady,false);
 });
 
@@ -163,13 +170,14 @@ test('a later failed review reopens session advice after a recorded standard com
  const c=await setup(t);for(const [id] of definitions)await c.finish(id);
  await c.save({outcome:{goal:'met',goalConclusionRef:'handoff.md',acceptance:'accepted',acceptanceRef:'source/limited.md'}});
  assert.equal((await readState(c.dir)).completion.standardComplete,true);
+ await c.save({cycle:c.state.cycle+1,closureRefs:[...c.state.closureRefs,'handoff.md'],outcome:{goal:'in-progress',acceptance:'not-recorded'}});
  const priorRuns=structuredClone(c.state.stageRuns);
- const later={id:'later-failed-review',stage:'review',scope:'Review a reopened regression',progress:'done',result:'failed',resultRef:'review.md#independent',inputRefs:[],outputRefs:['review.md'],reviewOf:['imp1','imp2'],overall:true};
- const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),'update',c.dir,'--revision',String(c.state.revision),'--rules-version',version,'--input','-'],{input:JSON.stringify({stageRuns:[...priorRuns,later],currentRun:later.id}),encoding:'utf8',timeout:10000});
+ const later={id:'later-failed-review',stage:'review',scope:'Review a reopened regression',progress:'done',result:'failed',resultRef:'review.md#independent',inputRefs:[],outputRefs:['review.md'],reviewOf:['imp1','imp2'],reviewScope:'overall',objectKey:fixtureObjectKey};
+ const result=spawnSync(process.execPath,[path.join(root,'bin/aimship.mjs'),'update',c.dir,'--revision',String(c.state.revision),'--rules-version',version,'--input','-'],{input:JSON.stringify(semanticPatch(c.state,{stageRuns:[...priorRuns,later],currentRun:later.id})),encoding:'utf8',timeout:10000});
  assert.equal(result.status,0,result.stderr);
  const read=await readState(c.dir);
  assert.deepEqual(read.state.stageRuns.slice(0,-1),priorRuns,'completed historical stages remain unchanged');
- assert.equal(read.state.outcome.goal,'met','the historical goal conclusion is not rewritten by advice');
+ assert.equal(read.state.outcome.goal,'in-progress','reopened work does not reuse the old accepted outcome');assert.equal(read.state.outcome.acceptance,'not-recorded');
  assert.equal(read.completion.standardComplete,false);assert.equal(read.review.canProceed,false);
  assert.equal(read.session.action,'resolve-current');assert.ok(read.session.continuation);
 });

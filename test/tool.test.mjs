@@ -1,3 +1,4 @@
+import {semanticUpdate as updateState,fixtureObjectKey} from '../scripts/testing/domain-adapter.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -8,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { json, exists, readJSON } from '../lib/io.mjs';
 import { run } from '../lib/cli.mjs';
 import { install, installPaths, uninstall } from '../lib/install.mjs';
-import { checkReferences, initState, readState, recoverState, updateState } from '../lib/state.mjs';
+import { checkReferences, initState, readState, recoverState } from '../lib/state.mjs';
 
 const SOURCE = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const VERSION = JSON.parse(await fs.readFile(path.join(SOURCE, 'package.json'), 'utf8')).version;
@@ -20,7 +21,7 @@ async function setup(t) {
   await fs.writeFile(path.join(delivery, 'requirements.md'), '# Original request\nReview existing empty-state repair evidence.\n## scope\nSynthetic explicit review-only commission, not a standard development delivery.\n## decision-2\nSynthetic later decision: conclude the limited design review.\n');
   await fs.mkdir(path.join(delivery,'source')); await fs.mkdir(path.join(delivery,'.aimship'),{recursive:true});await fs.writeFile(path.join(delivery,'.aimship/init.md'),'Original synthetic commission. Synthetic user choice: use this isolated temporary delivery directory.');
   await fs.writeFile(path.join(delivery,'results.md'),'# Reused review records\nHistorical synthetic results.');
-  const input = { language:'en', storage:{mode:'explicit',decisionRef:'.aimship/init.md'}, deliveryPolicy:{version:1,partialRef:'requirements.md#scope'}, documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Review empty-state repair evidence', endpoint: 'Independent review conclusion' }, goalRef: 'requirements.md', next: { action: 'Review the existing repair evidence' }, stageRuns: [{ id: 'implement-1', stage: 'review', scope: 'single batch', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] }], currentRun: 'implement-1' };
+  const input = { language:'en', storage:{mode:'explicit',decisionRef:'.aimship/init.md'}, deliveryPolicy:{version:1,partialRef:'requirements.md#scope'}, documentPolicy: {authority:'editable',interaction:false,prototypeCovered:false,interface:'none',databases:[]}, documents:[{kind:'prd',path:'requirements.md',mode:'reused',version:'1',basisRef:'requirements.md'},{kind:'review',path:'results.md',mode:'reused',version:'1',basisRef:'results.md'}], goal: { summary: 'Review empty-state repair evidence', endpoint: 'Independent review conclusion' }, goalRef: 'requirements.md', next: { action: 'Review the existing repair evidence' }, stageRuns: [{ id: 'implement-1', stage: 'review',reviewScope:'overall',objectKey:fixtureObjectKey, scope: 'Independent review scope', progress: 'planned', inputRefs: ['requirements.md'], outputRefs: ['results.md'] }], currentRun: 'implement-1' };
   return { root, delivery, input };
 }
 async function fixture(t, version = VERSION) {
@@ -32,7 +33,7 @@ async function fixture(t, version = VERSION) {
   await fs.writeFile(path.join(source, 'skills/aimship/SKILL.md'), '---\nname: aimship\ndisable-model-invocation: true\n---\nRun "{{AIMSHIP_NODE}}" "{{AIMSHIP_LAUNCHER}}" bind\nRead [core](references/core.md#stages).\n');
   await fs.writeFile(path.join(source, 'skills/aimship/references/core.md'), '# Core\n## Stages\nSynthetic isolated rules.\n');
   await fs.writeFile(path.join(source, 'skills/aimship/agents/openai.yaml'), 'policy:\n  allow_implicit_invocation: false\n');
-  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version, private: true, aimship:{protocolVersion:1}, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
+  await fs.writeFile(path.join(source, 'package.json'), json({ name: 'aimship', version, private: true, aimship:{protocolVersion:2}, type: 'module', files: ['bin/', 'lib/', 'skills/'] }));
   return { root, source, home: path.join(root, 'isolated home') };
 }
 function cli(file, args, input) {
@@ -60,16 +61,17 @@ test('revision checks, atomic replacement, one recovery copy and separate outcom
 test('goal revisions and reopening preserve prior goals, decisions and results', async t => {
   const { delivery, input } = await setup(t); await initState(delivery, input, VERSION, runtime);
   await assert.rejects(updateState(delivery, { goal: { endpoint: 'Design only' } }, 0, VERSION, runtime), { code: 'INVALID_STATE' });
-  const revised = await updateState(delivery, { stageRuns: [{...input.stageRuns[0],progress:'done',resultRef:'results.md#r-1'}], deliveryPolicy:{version:1,partialRef:'requirements.md#decision-2'}, goal: { endpoint: 'Design only', decisionRef: 'requirements.md#decision-2' }, outcome: { goal: 'met', goalConclusionRef: 'results.md#h-1', acceptance: 'accepted', acceptanceRef: 'results.md#accepted' } }, 0, VERSION, runtime);
+  const revised = await updateState(delivery, { stageRuns: [{...input.stageRuns[0],progress:'done',resultRef:'results.md#r-1',result:'passed'}], deliveryPolicy:{version:1,partialRef:'requirements.md#decision-2'}, goal: { endpoint: 'Design only', decisionRef: 'requirements.md#decision-2' }, outcome: { goal: 'met', goalConclusionRef: 'results.md#h-1', acceptance: 'accepted', acceptanceRef: 'results.md#accepted' } }, 0, VERSION, runtime);
   assert.equal(revised.goalHistory[0].goal.endpoint, input.goal.endpoint);
   const opened = await updateState(delivery, { cycle: 2, closureRefs: ['results.md#h-1'], outcome: { goal: 'in-progress', acceptance: 'not-recorded' } }, 1, VERSION, runtime);
   assert.equal(opened.cycle, 2); assert.equal(opened.goalHistory.length, 1);
   const completed = { ...opened.stageRuns[0], progress: 'done', resultRef: 'results.md#r-1' };
   await updateState(delivery, { stageRuns: [completed] }, 2, VERSION, runtime);
   await assert.rejects(updateState(delivery, { stageRuns: [] }, 3, VERSION, runtime), { code: 'INVALID_STATE' });
-  await assert.rejects(updateState(delivery, { stageRuns: [{ ...completed, resultRef: 'results.md#r-2' }] }, 3, VERSION, runtime), { code: 'INVALID_STATE' });
-  const preserved = await updateState(delivery, { stageRuns: [{ ...completed, resultRef: 'results.md#r-2', priorResultRef: completed.resultRef }] }, 3, VERSION, runtime);
-  assert.equal(preserved.stageRuns[0].priorResultRef, completed.resultRef);
+  await assert.rejects(updateState(delivery, { stageRuns: [{ ...completed, resultRef: 'results.md#r-2' }] }, 3, VERSION, runtime), { code: 'HISTORY_PROTECTED' });
+  const next={...completed,id:'review-recheck',resultRef:'results.md#r-2',historyResultRefs:[completed.resultRef]};delete next.approvalBasis;
+  const preserved = await updateState(delivery, { stageRuns: [...(await readState(delivery)).state.stageRuns,next],currentRun:next.id }, 3, VERSION, runtime);
+  assert.equal(preserved.stageRuns[0].resultRef, completed.resultRef);assert.deepEqual(preserved.stageRuns.at(-1).historyResultRefs,[completed.resultRef]);
 });
 
 
@@ -136,12 +138,12 @@ test('real CLI stdin, JSON errors and resume are executable and read-only', asyn
 
 test('resume reports current blocked state without globally blocking unrelated work', async t => {
   const { delivery, input } = await setup(t);
-  input.openChanges = [{ id: 'unrelated-change', ref: 'requirements.md#unrelated-change', status: 'open' }];
-  input.stageRuns.push({ id: 'unrelated-run', stage: 'review', scope: 'Separate documented scope', progress: 'blocked', inputRefs: ['requirements.md'], outputRefs: [] });
-  const state = await initState(delivery, input, VERSION, runtime);
+  const unrelated={ id: 'unrelated-run', stage: 'review',reviewScope:'overall',objectKey:fixtureObjectKey,scope: 'Separate documented scope', progress: 'blocked', inputRefs: ['requirements.md'], outputRefs: [] };
+  const initial=await initState(delivery,input,VERSION,runtime);
+  const state=await updateState(delivery,{openChanges:[{id:'unrelated-change',ref:'requirements.md#unrelated-change',status:'open'}],stageRuns:[...initial.stageRuns,unrelated],currentRun:initial.currentRun},initial.revision,VERSION,runtime);
   const ready = await run(['resume', delivery, '--rules-version', VERSION], { sourceRoot: SOURCE });
   assert.equal(ready.data.canProceed, true);
-  await updateState(delivery, { stageRuns: state.stageRuns.map(run => run.id === state.currentRun ? { ...run, progress: 'blocked' } : run) }, 0, VERSION, runtime);
+  await updateState(delivery, { stageRuns: state.stageRuns.map(run => run.id === state.currentRun ? { ...run, progress: 'blocked' } : run) }, state.revision, VERSION, runtime);
   const before = await fs.readFile(path.join(delivery, '.aimship/state.json'), 'utf8');
   const resumed = await run(['resume', delivery, '--rules-version', VERSION], { sourceRoot: SOURCE });
   assert.equal(resumed.data.canProceed, false); assert.equal(resumed.data.currentRun.progress, 'blocked');

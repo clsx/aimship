@@ -6,7 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {initState,updateState,readState,renderState,checkReferences} from '../lib/state.mjs';
+import {readState, renderState, checkReferences} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import {run} from '../lib/cli.mjs';
 import {install} from '../lib/install.mjs';
 import {approveFixture} from '../scripts/testing/reviews.mjs';
@@ -104,7 +105,7 @@ test('bind obtains schema from the bound release rather than mixing executing me
  await fs.mkdir(path.join(target,'lib'),{recursive:true});await fs.mkdir(path.join(target,'skills/aimship/references'),{recursive:true});
  await fs.writeFile(path.join(target,'package.json'),JSON.stringify({version:'0.0.2'}));await fs.writeFile(path.join(target,'lib/state.mjs'),'export const SCHEMA_VERSION = 42;');await fs.writeFile(path.join(target,'skills/aimship/references/core.md'),'Synthetic future protocol only, not a real release.');
  await fs.writeFile(path.join(installRoot,'install-manifest.json'),JSON.stringify({schemaVersion:1,product:'aimship'}));await fs.writeFile(path.join(installRoot,'active.json'),JSON.stringify({launcherProtocol:1,version:'0.0.2'}));await fs.writeFile(path.join(installRoot,'config.json'),JSON.stringify({schemaVersion:1,dataRoot:c.dataRoot}));
- const bound=(await run(['bind'],{sourceRoot:executing,installRoot})).data;assert.equal(bound.version,'0.0.2');assert.equal(bound.schemaVersion,42);assert.equal(bound.toolSchemaVersion,4);assert.equal(bound.toolVersion,'0.0.1');
+ const bound=(await run(['bind'],{sourceRoot:executing,installRoot})).data;assert.equal(bound.version,'0.0.2');assert.equal(bound.schemaVersion,42);assert.equal(bound.toolSchemaVersion,5);assert.equal(bound.toolVersion,'0.0.1');
 });
 
 

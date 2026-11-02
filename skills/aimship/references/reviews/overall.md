@@ -10,12 +10,12 @@ Find cross-batch consistency, shared-rule and integration defects that individua
 
 ## Actions
 
-Apply the [shared review method](../review-method.md) to the combined scope, including repair changes. Inspect requirement coverage, shared boundaries, omissions and unresolved findings. Reference local checks without claiming formal runtime verification. If a single-batch commission explicitly covers both review responsibilities, examine and record both scopes; do not infer that commission from batch count alone.
+Apply the [shared review method](../review-method.md) to the combined scope, including repair changes. Examine cross-batch connections, requirement/design/contract consistency and actual logic, transactions/data consistency, state transitions and failure/exception paths where relevant. Check whether the approach is correct in the actual project, not only whether code copied the design. Route a material design defect back to its real decision and review affected changes; do not expand into unrelated historical cleanup. Reference local checks without claiming formal runtime verification.
 
 ## Outputs and result
 
-An independent overall REV, overall:true and reviewOf covering all current implementation runs, including repairs. Preserve earlier review conclusions and name the exact reviewed basis.
+An independent overall REV with reviewScope: overall, reviewOf covering all current implementation/repair runs and the combined objectKey. Preserve earlier REV facts and name the exact reviewed basis. This is the existing overall-review stage, not another main stage.
 
 ## Completion and stop
 
-Save the overall conclusion and concrete next action, then stop. A passing overall review permits subsequent authorized formal verification; it does not execute it. A failing review retains its findings and awaits the actual repair work/decision, without inventing a test result.
+Save the overall conclusion and concrete next action, then stop. A passing overall review hands over the reviewed object, actual test-environment preparation and formal verification scope for subsequent authorized execution; it does not deploy or run the tests. A failing review retains its findings and awaits the actual repair work/decision, without inventing a test result.

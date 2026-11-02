@@ -2,7 +2,7 @@
 
 ## Inputs
 
-Read this run’s scope, current requirements/design/contracts, relevant repository instructions and pre-existing changes.
+Read this run’s scope, current approved requirements/design/contracts, its registered B/TASK definitions and pre-existing changes. Use the [shared project context](../core.md#project-context-and-decisions) and applicable repository instructions.
 
 ## Goal and scope
 
@@ -18,10 +18,10 @@ Expanded external behavior, data handling or authorization needs return to the r
 
 Use plan.md.
 
-Update TASK/B status and actual execution in plan.md's execution section, citing the existing task/batch numbers. Keep approved task definitions unchanged unless the plan itself changes; preserve planned versus actual and code versions. Do not generate implementation.md.
+Record actual implementation facts through domain operations with workType, the stable batchId when applicable, objectKey and result references. plan.md’s generated batch table reflects that state; keep brief development checks, necessary execution notes and existing evidence references in its AI-maintained execution section. Keep approved B/TASK definitions unchanged unless the plan itself changes; preserve planned versus actual and code versions. Do not generate implementation.md or a second task-status ledger.
 
 ## Completion and stop
 
-Save the implementation checkpoint, then continue directly to [batch review](../reviews/batch.md) for business work, or [repair recheck](../reviews/recheck.md) preserving the original batch/overall scope for repair work. Keep separate implement/review runs; the checkpoint is not another user continuation request. Mark implementation workType as batch for planned business work, or repair with repairOf pointing to its actual preceding basis. For old work after an overall review, inspect the plan/review before assigning the purpose; never infer it from an ID.
+Save the implementation checkpoint, then continue directly to [batch review](../reviews/batch.md) for business work, or [repair recheck](../reviews/recheck.md) preserving the original batch/overall scope for repair work. Keep separate implement/review runs; the checkpoint is not another user continuation request. Mark implementation workType as batch for planned business work, or repair with repairOf pointing to its actual preceding basis. Record each repair as new work with the applicable batchId and actual repairOf/history result basis; preserve completed records. Do not infer its responsibility from an ID. Use [conditional host delegation](../core.md#conditional-host-delegation) only where it helps; the main agent remains responsible for integration and batch review.
 
-After the batch review passes and the current plan status/references are saved, report the batch result and stop before the next batch or overall review. On a real scope, permission, approval or unresolved technical dependency, stop at that issue rather than claiming the batch passed. Local checks remain brief execution notes and evidence references; formal RUNs belong to post-overall-review verification.
+After the batch review passes and the facts/projections are saved, report the batch result and stop before the next batch. If it was the last batch, summarize the implementation and remaining work, then recommend a new session for overall review. Only explicit authorization permits that overall review in the current session; do not start it automatically. On a real scope, permission, approval or unresolved technical dependency, stop at that issue rather than claiming the batch passed. Local checks remain brief execution notes and evidence references; formal RUNs belong to post-overall-review verification.

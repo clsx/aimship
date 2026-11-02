@@ -2,7 +2,7 @@
 
 ## Inputs
 
-Read reported symptoms, expected behavior, relevant code/material and reproducible evidence.
+Read reported symptoms, expected behavior, relevant code/material and reproducible evidence, using the [shared project context and decisions](../core.md#project-context-and-decisions).
 
 ## Goal and scope
 

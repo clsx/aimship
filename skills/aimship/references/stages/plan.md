@@ -16,7 +16,7 @@ A material change in scope/endpoint needs a decision; routine task splitting doe
 
 ## Outputs and result
 
-Use plan.md. Keep batch goals, dependencies and TASK definitions in the approved design sections. Maintain exactly one current batch progress table in the execution section, including implementation, review/repair status, B/TASK/result references and remaining work; it summarizes execution rather than redefining the plan.
+Use plan.md. Keep batch goals, dependencies and TASK definitions in the approved design sections. After approval, register stable B definitions, TASK references and dependencies through the state tool. Its finite generated execution section supplies the one current batch progress table, including implementation/review results and references. Keep detailed notes and blockers outside that generated section; do not hand-maintain another status table or redefine approved work in the execution area.
 
 ## Completion and stop
 

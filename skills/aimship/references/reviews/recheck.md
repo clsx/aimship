@@ -14,7 +14,7 @@ Apply the [shared review method](../review-method.md). Examine the repair and af
 
 ## Outputs and result
 
-A new REV with the actual reviewOf coverage and historyResultRefs pointing to the superseded review result. Keep old findings and attach the disposition/rechecked object. A correction within the current failed batch updates that batch’s existing implementation checkpoint and execution evidence; the new recheck retains the failed REV. Separate repair work after completed batches uses workType:repair and the actual repairOf basis; it is not a new business batch.
+A new REV with the actual reviewOf coverage and historyResultRefs pointing to the superseded review result. Keep old findings and attach the disposition/rechecked object. A correction records a new implementation run with workType: repair, the same batchId where applicable and the actual repairOf/history result basis; completed checkpoints and the failed REV stay intact. Independent overall repair may have no batchId, but must retain the overall responsibility and be covered by the overall recheck. Repair is not a new business batch.
 
 ## Completion and stop
 

@@ -1,10 +1,11 @@
+import {semanticUpdate as updateState,semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {initState,updateState,readState} from '../lib/state.mjs';
+import {initState,readState} from '../lib/state.mjs';
 import {sessionAdvice} from '../lib/delivery.mjs';
 import {run} from '../lib/cli.mjs';
 import {documentFixture} from '../scripts/testing/documents.mjs';
@@ -94,11 +95,11 @@ test('new-session advice follows major work transitions, independently from ever
   ['requirements','tech-design',true,{}],['requirements','prototype',false,{}],['prototype','tech-design',true,{}],
   ['tech-design','contract',false,{}],['tech-design','test-design',true,{}],['contract','test-design',true,{}],
   ['test-design','plan',false,{}],['plan','implement',true,{}],['implement','review',false,{}],
-  ['review','implement',true,{reviewOf:['batch']}],['review','review',true,{reviewOf:['batch']}],
-  ['review','verify',true,{overall:true,reviewOf:['batch']}],['verify','handoff',false,{}]
+  ['review','implement',true,{reviewScope:'batch',reviewOf:['batch']}],['review','review',true,{reviewScope:'batch',reviewOf:['batch']}],
+  ['review','verify',true,{reviewScope:'overall',reviewOf:['batch']}],['verify','handoff',false,{}]
  ];
  for(const [kind,nextKind,expected,extra] of cases)for(const pending of [false,true]) {
-  const current={id:'current',stage:kind,progress:'done',result:'passed',...extra};
+  const current={id:'current',stage:kind,progress:'done',result:'passed',...(kind==='implement'?{workType:'batch',batchId:'B-001'}:{}),...extra};
   const next={id:'next',stage:nextKind,progress:'planned'};
   const state={language:'en',goal:{endpoint:'Standard'},stageRuns:[current,next],currentRun:'current',documentPolicy:{interface:'none',databases:[]},deliveryPolicy:{version:1},outcome:{goal:'in-progress'},next:{action:'Review or continue'}};
   const review={documents:[{path:'doc.md',input:false}],pending:pending?[{run:'current',document:'doc.md',status:'pending'}]:[],runs:[{id:'current',ready:!pending,releaseReady:!pending,blockedBy:[]},{id:'next',ready:false,blockedBy:[]}]};

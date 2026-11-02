@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {initState,updateState,readState,renderState,STAGES} from '../lib/state.mjs';
+import {readState, renderState, STAGES} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import {renderText} from '../lib/view.mjs';
 import {artifactMap,inspectDocuments} from '../lib/documents.mjs';
 import {documentFixture} from '../scripts/testing/documents.mjs';
@@ -109,13 +110,13 @@ test('adopting a revised PRD preserves the prior source and approval while requi
  const nextDoc={...c.doc,path:'source/provided-v2.md',version:'V2'};
  await fs.writeFile(path.join(c.dir,nextDoc.path),supplied.replace('unique name and password','unique name, password and display name'));
  await fs.writeFile(path.join(c.dir,'source/change.md'),'Synthetic explicit requirement change CHG-001: adopt V2 with display name; preserve V1, review changed requirements.');
- const patch={goalRef:nextDoc.path,goal:{decisionRef:'source/change.md'},documents:[{...c.doc,kind:'source'},nextDoc],stageRuns:[{...c.req,outputRefs:[nextDoc.path],resultRef:nextDoc.path,historyResultRefs:[c.doc.path]}],next:{action:'审核 V2 的新增显示名要求'}};
+ const patch={goalRef:nextDoc.path,goal:{decisionRef:'source/change.md'},documents:[{...c.doc,kind:'source'},nextDoc],stageRuns:[...c.state.stageRuns,{...c.req,id:'requirements-v2',dependsOn:[],outputRefs:[nextDoc.path],resultRef:nextDoc.path,historyResultRefs:[c.doc.path]}],currentRun:'requirements-v2',next:{action:'审核 V2 的新增显示名要求'}};
  await assert.rejects(c.save(patch),{code:'REVIEW_CHECK'});
- await c.save({...patch,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open'}]});
- const read=await readState(c.dir);assert.equal(read.review.documents[0].approval,null);assert.equal(read.state.stageRuns[0].applicability,'needs-review');assert.equal(read.review.canProceed,false);
+ await c.save({...patch,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open',impactRef:'source/change.md',affectedRefs:[c.doc.path,nextDoc.path]}]});
+ const read=await readState(c.dir);assert.equal(read.review.documents[0].approval,null);assert.equal(read.state.stageRuns.find(r=>r.id==='requirements-v2').progress,'done');assert.equal(read.review.canProceed,false);
  assert.deepEqual(await fs.readFile(path.join(c.dir,c.doc.path)),original);assert.deepEqual(c.state.reviewHistory,oldHistory);
  await c.save({reviewHistory:await approveFixture(c.dir,c.state,[nextDoc.path])});
- await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:'current'})),openChanges:[{id:'CHG-001',ref:'source/change.md',status:'closed'}]});
+ await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:'current'})),openChanges:[{id:'CHG-001',ref:'source/change.md',status:'closed',impactRef:'source/change.md',affectedRefs:[c.doc.path,nextDoc.path]}]});
  assert.equal((await readState(c.dir)).review.documents[0].status,'approved');assert.deepEqual(c.state.reviewHistory.slice(0,oldHistory.length),oldHistory);
 });
 
@@ -167,7 +168,7 @@ test('normal render preserves identity and stored next action; wording correctio
  const before=await fs.readFile(path.join(c.dir,'.aimship/state.json')),id=c.state.deliveryId,history=structuredClone(c.state.reviewHistory);
  await run(['render',c.dir,'--revision',String(c.state.revision),'--rules-version',version],{sourceRoot:root});
  assert.deepEqual(await fs.readFile(path.join(c.dir,'.aimship/state.json')),before);
- assert.match(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/是否按标准流程继续/);
+ assert.equal(c.state.next.action,'是否按标准流程继续？');
  await c.save({next:{action:'请确认采用现有 PRD 的范围、业务规则与验收标准作为本次交付依据。'}});
  assert.equal(c.state.deliveryId,id);assert.deepEqual(c.state.reviewHistory,history);
  assert.doesNotMatch(await fs.readFile(path.join(c.dir,'status.md'),'utf8'),/是否按标准流程继续/);

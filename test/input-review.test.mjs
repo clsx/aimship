@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {initState,updateState,readState} from '../lib/state.mjs';
+import {readState} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import {run} from '../lib/cli.mjs';
 import {reviewFingerprint} from '../lib/approvals.mjs';
 import {documentFixture} from '../scripts/testing/documents.mjs';
@@ -81,13 +82,13 @@ test('a revised supplied authority requires actual change handling and preserves
  await fs.writeFile(path.join(c.dir,'source/prd-v2.md'),supplied.replace('appear once','appear once in first-seen order'));
  await fs.writeFile(path.join(c.dir,'source/change.md'),'Synthetic user requirement change CHG-001: use the supplied V2, preserve first-seen order.');
  const doc={...c.doc,path:'source/prd-v2.md',version:'2',basisRef:'source/change.md'};
- const patch={goalRef:doc.path,goal:{decisionRef:'source/change.md'},documents:[{...c.doc,kind:'source',mode:'reused'},doc],stageRuns:[{...c.req,outputRefs:[doc.path],resultRef:doc.path,historyResultRefs:[c.doc.path]}]};
+ const patch={goalRef:doc.path,goal:{decisionRef:'source/change.md'},documents:[{...c.doc,kind:'source',mode:'reused'},doc],stageRuns:[...c.state.stageRuns,{...c.req,id:'req-v2',dependsOn:[],outputRefs:[doc.path],resultRef:doc.path,historyResultRefs:[c.doc.path]}],currentRun:'req-v2'};
  await assert.rejects(c.save(patch),{code:'REVIEW_CHECK'});
- await c.save({...patch,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open'}],reviewHistory:await checks(c,[doc.path],{...c.state,documents:patch.documents})});
- assert.equal(c.state.stageRuns[0].applicability,'needs-review');
+ await c.save({...patch,openChanges:[{id:'CHG-001',ref:'source/change.md',status:'open',impactRef:'source/change.md',affectedRefs:[c.doc.path,doc.path]}],reviewHistory:await checks(c,[doc.path],{...c.state,documents:patch.documents})});
+ assert.equal(c.state.stageRuns.find(r=>r.id==='req-v2').progress,'done');
  assert.equal(await fs.readFile(path.join(c.dir,c.doc.path),'utf8'),supplied);
  assert.ok(!c.state.reviewHistory.some(r=>r.kind==='approved'));
- await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:'current'})),openChanges:[{id:'CHG-001',ref:'source/change.md',status:'closed'}]});
+ await c.save({stageRuns:c.state.stageRuns.map(r=>({...r,applicability:'current'})),openChanges:[{id:'CHG-001',ref:'source/change.md',status:'closed',impactRef:'source/change.md',affectedRefs:[c.doc.path,doc.path]}]});
  assert.equal((await readState(c.dir)).session.action,'await-continue');
 });
 
@@ -111,7 +112,7 @@ test('saved, read and resumed user guidance stays concrete in both languages wit
   assert.ok(view.includes('](source/prd.md)'));assert.ok(view.includes(c.dir));
   assert.doesNotMatch(view,/Skill|Stop for human review|reviewable documents await|wait for the user|“继续”不代表批准/);
   await fs.writeFile(path.join(c.dir,'source/question.md'),'Synthetic specific question: choose A or B; this affects the next design input.');
-  await c.save({stageRuns:[{...c.req,progress:'blocked'}],next:{action:language==='zh-CN'?'请选择A或B，影响下一步设计输入。':'Choose A or B; this affects the next design input.',questionRef:'source/question.md'}});
+  await c.save({stageRuns:[...c.state.stageRuns,{id:'clarify-next-input',stage:'requirements',scope:'Clarify the next design input',progress:'blocked',inputRefs:['source/question.md'],outputRefs:[]}],currentRun:'clarify-next-input',next:{action:language==='zh-CN'?'请选择A或B，影响下一步设计输入。':'Choose A or B; this affects the next design input.',questionRef:'source/question.md'}});
   const question=(await run(['resume',c.dir,'--rules-version',version],{sourceRoot:root})).data;
   assert.equal(question.session.action,'await-clarification');assert.equal(question.canProceed,false);
   assert.match(question.session.instruction,language==='zh-CN'?/请回答下一步所列的具体问题/:/Please answer the question/);

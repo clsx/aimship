@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { artifactMap, definitions, hasLocator, inspectDocuments } from '../lib/documents.mjs';
-import { initState, updateState, readState, checkReferences, renderState, recoverState } from '../lib/state.mjs';
+import {readState, checkReferences, renderState, recoverState} from '../lib/state.mjs';
+import {semanticInit as initState, semanticUpdate as updateState, semanticPatch} from '../scripts/testing/domain-adapter.mjs';
 import { reviewFingerprint, reviewStatus } from '../lib/approvals.mjs';
 import { scanDeliveries } from '../lib/discovery.mjs';
 import { documentFixture } from '../scripts/testing/documents.mjs';
@@ -24,7 +25,7 @@ test('plain Markdown: both languages complete requirements without HTML, metadat
   const c=await setup(t,language);const body=await fs.readFile(path.join(c.dir,'prd.md'),'utf8');assert.doesNotMatch(body,/<a |aimship:def/);
   const stageRuns=[{id:'requirements',stage:'requirements',scope:'Selected orders',progress:'done',inputRefs:['.aimship/init.md'],outputRefs:['prd.md'],resultRef:'prd.md#requirements'}];
   const state=await updateState(c.dir,{stageRuns,currentRun:'requirements'},0,version,runtime);
-  assert.equal(state.schemaVersion,4);
+  assert.equal(state.schemaVersion,5);
   assert.equal((await checkReferences(c.dir,state,true)).find(r=>r.ref==='prd.md#requirements').status,'exists');
   assert.ok((await readState(c.dir)).review.pending.length);assert.deepEqual((await inspectDocuments(c.dir,state)).issues,[]);
   assert.deepEqual((await fs.readdir(path.join(c.dir,'.aimship'))).sort(),['init.md','state.json','state.previous.json','view.json']);

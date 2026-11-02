@@ -2,7 +2,7 @@
 
 ## Inputs
 
-The saved current scope, reviewed object and relevant requirements/design/plan; read reviewOf, overall and any prior REV/repair relationship.
+The saved current scope, reviewed object and relevant approved requirements/design/contracts/plan; read reviewScope, reviewOf, batchId and any prior REV/repair relationship. Use the [shared project context](../core.md#project-context-and-decisions).
 
 ## Goal and scope
 

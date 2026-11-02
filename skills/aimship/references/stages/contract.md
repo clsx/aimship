@@ -2,7 +2,7 @@
 
 ## Inputs
 
-Read the current requirements, technical design and existing engineering contracts.
+Read the current requirements, technical design, relevant current interfaces/database structures and applicable engineering contracts/conventions, using the [shared project context](../core.md#project-context-and-decisions).
 
 ## Goal and scope
 
@@ -12,7 +12,7 @@ Make applicable interface and database changes unambiguous after the technical d
 
 Update/reuse the authoritative HTTP OpenAPI when applicable; create a delivery-local OpenAPI only if the engineering authority is absent. Specify operations, schemas, errors, compatibility and consumer expectations. Use appropriate formats for messages/non-HTTP interfaces. Link design and test requirements.
 
-A breaking interface/compatibility decision needs its proper authority. Missing consumers or schemas remain stated gaps, not fabricated agreements.
+Investigate accessible consumer/schema facts and reconcile this change with the current contract and applicable conventions. A breaking interface/compatibility decision needs its proper authority. Unknowns that affect the actual agreement remain stated gaps; unrelated old contract problems do not become this delivery’s cleanup scope.
 
 ## Outputs and result
 

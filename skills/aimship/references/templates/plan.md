@@ -20,7 +20,13 @@ Each batch review, overall review then independent verification; no per-batch fu
 
 ## 5. Task status and execution records
 
-Maintain one current batch progress table using existing B/TASK references: Batch / TASK scope | Implementation status | Batch review / repair status | Result references | Remaining work or blocker. Do not duplicate it as a second task-status ledger. Distinguish code complete from batch review complete. Brief development checks cite existing evidence; do not write a formal report for every batch. Follow with necessary dated execution records, deviations and object versions; retain prior results for their objects. Preserve approved task definitions above and distinguish pre-existing changes. Update this summary as work proceeds; save main-stage facts in state for status.md. Replace guidance with actual content; never prefill a result.
+### 5.1 Current batch progress (generated)
+
+Pending state generation.
+
+### 5.2 Execution notes and history
+
+Keep necessary dated implementation/development-check notes, exact object versions, deviations and existing evidence references here. The state-generated table above is the only current batch progress table; submit implementation, review and repair facts through the state tool instead of editing its cells. Preserve approved B/TASK definitions in the design sections above and distinguish pre-existing changes. Do not write a formal self-test report for every batch or copy review findings and formal RUN results here. Replace guidance with actual content; never prefill a result.
 
 ## 6. Deviations, blockers and remaining work
 
