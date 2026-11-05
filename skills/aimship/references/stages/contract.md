@@ -14,6 +14,10 @@ Update/reuse the authoritative HTTP OpenAPI when applicable; create a delivery-l
 
 Investigate accessible consumer/schema facts and reconcile this change with the current contract and applicable conventions. A breaking interface/compatibility decision needs its proper authority. Unknowns that affect the actual agreement remain stated gaps; unrelated old contract problems do not become this delivery’s cleanup scope.
 
+Apply [contract and SQL detail requirements](../contract-patterns.md): per-operation and per-field OpenAPI branches/examples; seven-part non-HTTP specifications; six ordered SQL sections per target. Check each design operation/data change against its authoritative contract/script and explicit execution boundary.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use openapi.yaml or the registered authoritative contract when interfaces apply. Database changes produce independent database.sql for one target, or database-<id>.sql per target, with target/dialect/version/schema basis/conditions and ordered requirement/design references. Review each file individually after technical design approval and before test cases. Do not execute SQL or modify engineering migrations without explicit authorization.

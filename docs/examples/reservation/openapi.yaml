@@ -1,0 +1,242 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Synthetic hold API",
+    "version": "1",
+    "description": "Authoritative HTTP fields for the synthetic reservation design. No running application or execution claim. REQ-001/REQ-003; see tech-design.md."
+  },
+  "paths": {
+    "/holds": {
+      "post": {
+        "operationId": "createHold",
+        "summary": "Store or recover an authenticated member hold",
+        "description": "Consumer HoldPage; provider HoldController. Trusted session supplies tenant/member; body cannot override identity. Same tenant/clientKey with same member/item returns original hold. Null and absent required fields are invalid; no defaults or empty collection branches. Transport timeout is uncertain: retain key/payload and retry. No persisted cancellation in v1. Required field or outcome changes require consumer review. REQ-001, PERM-001, EC-001.",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHoldRequest"
+              },
+              "example": {
+                "clientKey": "00000000-0000-4000-8000-000000000005",
+                "itemCode": "BOOK-1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New hold and event stored atomically; notice delivery is not complete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldResponse"
+                },
+                "example": {
+                  "holdId": "00000000-0000-4000-8000-000000000004",
+                  "state": "ACTIVE",
+                  "itemCode": "BOOK-1",
+                  "createdAt": "2026-01-01T00:00:00Z"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Matching tenant/key/member/item replay, including concurrent retry; returns original hold, no extra event.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldResponse"
+                },
+                "example": {
+                  "holdId": "00000000-0000-4000-8000-000000000004",
+                  "state": "ACTIVE",
+                  "itemCode": "BOOK-1",
+                  "createdAt": "2026-01-01T00:00:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed/missing/null/invalid itemCode or clientKey; no writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "INVALID_INPUT",
+                  "message": "Malformed/missing/null/invalid itemCode or clientKey; no writes."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated session; no writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "UNAUTHORIZED",
+                  "message": "No authenticated session; no writes."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Ineligible or member absent from trusted tenant; no writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "FORBIDDEN",
+                  "message": "Ineligible or member absent from trusted tenant; no writes."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key belongs to another item/member; existing record unchanged; no owner details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "KEY_CONFLICT",
+                  "message": "Key belongs to another item/member; existing record unchanged; no owner details."
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Eligibility unavailable or local transaction failed; no partial records. A transport loss after commit is instead an uncertain client outcome; retry the same key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "UNAVAILABLE",
+                  "message": "Eligibility unavailable or local transaction failed; no partial records. A transport loss after commit is instead an uncertain client outcome; retry the same key."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session",
+        "description": "Server authenticates session and derives tenant/member. Cookie value never enters logs."
+      }
+    },
+    "schemas": {
+      "CreateHoldRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clientKey",
+          "itemCode"
+        ],
+        "properties": {
+          "clientKey": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": false,
+            "description": "Client-generated immutable attempt key. Reuse only for identical item/member; no default."
+          },
+          "itemCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[A-Za-z0-9-]+$",
+            "nullable": false,
+            "description": "Requested item code; not an inventory allocation. No default."
+          }
+        }
+      },
+      "HoldResponse": {
+        "type": "object",
+        "required": [
+          "holdId",
+          "state",
+          "itemCode",
+          "createdAt"
+        ],
+        "properties": {
+          "holdId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": false,
+            "description": "Stable server hold identity; same on replay."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE"
+            ],
+            "nullable": false,
+            "description": "Stored hold state; no notice-delivered implication."
+          },
+          "itemCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[A-Za-z0-9-]+$",
+            "nullable": false,
+            "description": "Stored requested item code."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": false,
+            "description": "Stored creation instant in UTC, unchanged on replay."
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_INPUT",
+              "UNAUTHORIZED",
+              "FORBIDDEN",
+              "KEY_CONFLICT",
+              "UNAVAILABLE"
+            ],
+            "nullable": false,
+            "description": "Stable category; see status-specific response examples."
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "nullable": false,
+            "description": "Actionable explanation; no foreign member/hold details or credentials."
+          }
+        }
+      }
+    }
+  }
+}

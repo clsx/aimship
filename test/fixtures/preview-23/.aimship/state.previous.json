@@ -1,0 +1,303 @@
+{
+  "goalRef": "prd.md",
+  "documentPolicy": {
+    "authority": "authored",
+    "interaction": false,
+    "prototypeCovered": false,
+    "interface": "none",
+    "databases": []
+  },
+  "documents": [
+    {
+      "kind": "prd",
+      "path": "prd.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "tech-design",
+      "path": "tech-design.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "testing",
+      "path": "testing.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "plan",
+      "path": "plan.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "review",
+      "path": "review.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "handoff",
+      "path": "handoff.md",
+      "mode": "new",
+      "version": "1"
+    },
+    {
+      "kind": "change-log",
+      "path": "change-log.md",
+      "mode": "new",
+      "version": "1"
+    }
+  ],
+  "deliveryPolicy": {
+    "version": 1
+  },
+  "reviewPolicy": 1,
+  "reviewHistory": [
+    {
+      "document": "prd.md",
+      "version": "1",
+      "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-1",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "prd.md",
+      "version": "1",
+      "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-2",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "tech-design.md",
+      "version": "1",
+      "digest": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-3",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "tech-design.md",
+      "version": "1",
+      "digest": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-4",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "testing.md",
+      "version": "1",
+      "digest": "2984b9097a047371d93ed79c0d989feeeda5004bc21e2d993f8c5d5dbe5c3c31",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-5",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "testing.md",
+      "version": "1",
+      "digest": "2984b9097a047371d93ed79c0d989feeeda5004bc21e2d993f8c5d5dbe5c3c31",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-6",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "plan.md",
+      "version": "1",
+      "digest": "e5f1e4ece2f5306791b8834b0bcac89006f68713a9bd383b838e42f84b3cc907",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-7",
+      "kind": "self-check",
+      "result": "passed",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    },
+    {
+      "document": "plan.md",
+      "version": "1",
+      "digest": "e5f1e4ece2f5306791b8834b0bcac89006f68713a9bd383b838e42f84b3cc907",
+      "sourceRef": "source/synthetic-review.md",
+      "summary": "Synthetic fixture self-check / explicit approval; not host E2E.",
+      "id": "fixture-8",
+      "kind": "approved",
+      "decision": "explicit-approval",
+      "sourceDigest": "bd393c61552fd31c63bb92558fdd88c5a9a99b1044b57fc06a3da7cddf915551"
+    }
+  ],
+  "cycle": 1,
+  "closureRefs": [],
+  "batches": [],
+  "stageRuns": [
+    {
+      "id": "native-requirements",
+      "scope": "Synthetic requirements basis",
+      "progress": "done",
+      "result": "passed",
+      "inputRefs": [],
+      "outputRefs": [
+        "prd.md"
+      ],
+      "stage": "requirements",
+      "resultRef": "prd.md#requirements",
+      "sessionGroup": "requirements",
+      "approvalBasis": [
+        {
+          "document": "prd.md",
+          "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+          "recordId": "fixture-2"
+        }
+      ]
+    },
+    {
+      "id": "native-design",
+      "scope": "Synthetic tech-design basis",
+      "progress": "done",
+      "result": "passed",
+      "inputRefs": [],
+      "outputRefs": [
+        "tech-design.md"
+      ],
+      "stage": "tech-design",
+      "resultRef": "tech-design.md#coverage",
+      "sessionGroup": "technical",
+      "approvalBasis": [
+        {
+          "document": "prd.md",
+          "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+          "recordId": "fixture-2"
+        },
+        {
+          "document": "tech-design.md",
+          "digest": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+          "recordId": "fixture-4"
+        }
+      ]
+    },
+    {
+      "id": "native-cases",
+      "scope": "Synthetic test-design basis",
+      "progress": "done",
+      "result": "passed",
+      "inputRefs": [],
+      "outputRefs": [
+        "testing.md"
+      ],
+      "stage": "test-design",
+      "resultRef": "testing.md#cases",
+      "sessionGroup": "test-design",
+      "approvalBasis": [
+        {
+          "document": "prd.md",
+          "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+          "recordId": "fixture-2"
+        },
+        {
+          "document": "tech-design.md",
+          "digest": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+          "recordId": "fixture-4"
+        },
+        {
+          "document": "testing.md",
+          "digest": "2984b9097a047371d93ed79c0d989feeeda5004bc21e2d993f8c5d5dbe5c3c31",
+          "recordId": "fixture-6"
+        }
+      ]
+    },
+    {
+      "id": "native-plan",
+      "scope": "Synthetic plan basis",
+      "progress": "done",
+      "result": "passed",
+      "inputRefs": [],
+      "outputRefs": [
+        "plan.md"
+      ],
+      "stage": "plan",
+      "resultRef": "plan.md#tasks",
+      "sessionGroup": "plan",
+      "approvalBasis": [
+        {
+          "document": "prd.md",
+          "digest": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+          "recordId": "fixture-2"
+        },
+        {
+          "document": "tech-design.md",
+          "digest": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+          "recordId": "fixture-4"
+        },
+        {
+          "document": "testing.md",
+          "digest": "2984b9097a047371d93ed79c0d989feeeda5004bc21e2d993f8c5d5dbe5c3c31",
+          "recordId": "fixture-6"
+        },
+        {
+          "document": "plan.md",
+          "digest": "e5f1e4ece2f5306791b8834b0bcac89006f68713a9bd383b838e42f84b3cc907",
+          "recordId": "fixture-8"
+        }
+      ]
+    }
+  ],
+  "currentRun": "native-plan",
+  "openChanges": [],
+  "repositories": [],
+  "outcome": {
+    "goal": "in-progress",
+    "acceptance": "not-recorded"
+  },
+  "next": {
+    "action": "Clarify the request and prepare requirements for review.",
+    "inputRefs": [
+      ".aimship/init.md"
+    ]
+  },
+  "language": "en",
+  "storage": {
+    "mode": "explicit",
+    "dataRoot": "/synthetic/aimship/protocol2",
+    "decisionRef": ".aimship/init.md"
+  },
+  "goal": {
+    "summary": "Synthetic selected-order export",
+    "endpoint": "Reviewed, independently verified local implementation and handoff"
+  },
+  "schemaVersion": 5,
+  "protocolVersion": 2,
+  "revision": 8,
+  "deliveryId": "1626b9c1-357d-42c4-bf8f-eb07b5316ffb",
+  "rulesVersion": "0.1.0-preview.23",
+  "createdAt": "2026-11-05T10:11:28.079Z",
+  "updatedAt": "2026-11-05T10:11:28.439Z",
+  "documentDigests": {
+    ".aimship/init.md": "42b89599ab5b9bf417911e75afc41e357b1a1d70da3b169aa2085fb5a371874a",
+    "prd.md": "22f48cea24b6eec14f37bf8374293c6435059887b20c85edd14cdaaafb557277",
+    "tech-design.md": "6686d3756637316575177c0f968ff204f9d92f7cd19fc3d9aa7b915fefe6c385",
+    "testing.md": "f818ef2a09755d1770ba69ed05a4027548320b1257c7489c0389b6629a183d04",
+    "plan.md": "ad5bfb729d767bccbae37bde2f94d972dbb0920ace5b298747ccfd81d16fd4b9",
+    "review.md": "46b1ee7795e7ed3f57f3e76422d212de1dd3ad658cee2c05b15b34bfdf24cbd2",
+    "handoff.md": "331e37bfba6cf487ff0b498e4facb79aa04ac7a39c091008b2d948c1d7199908",
+    "change-log.md": "1a735bb112890723668f150774156cf745d14c8993c76547902dc26cec36e7d9"
+  }
+}

@@ -14,6 +14,8 @@ Execute the agreed checks on identified objects. Optional verification groups fo
 
 Use the agreed real environment: if this project’s formal tests require deployment to a test environment, hand over that preparation and wait until it is ready. Do not initiate deployment, add a deployment stage or impose deployment on checks that need none. Unavailable environment or authority stays explicit with a recovery action. Do not lower criteria, skip assertions or mark a case passed because a command exited successfully.
 
+Apply [in-place revision rules](../document-revisions.md). Preserve approved definitions; record detailed REV/RUN history in its owning document and keep only one state-generated current result. A formal TC pass requires every defined combination and assertion; partial execution is not whole-case coverage. If combinations remain unexecuted, record the case coverage as mixed or not-run as appropriate, with the actual progress/blocker and RUN detail; never submit passed for that TC.
+
 ## Outputs and result
 
 Use testing.md.

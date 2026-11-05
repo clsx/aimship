@@ -1,5 +1,7 @@
 # Review one document, then continue
 
+For writing and later cleanup, apply [in-place revision rules](document-revisions.md): replace affected current sections, preserve required detail and retain history in its owning record/evidence location.
+
 The selected development order is requirements intake / PRD → technical design → interface contract and independent SQL when applicable → test cases → implementation plan → implementation with batch and overall review → independent verification → handoff and acceptance. Test design precedes planning in the standard delivery. An explicitly limited scope can omit cases/verification, but is a partial handoff, not standard complete delivery. Keep the agreed endpoint: prototype and investigation have their own reviewable outputs; design-only stops at the commissioned design. Review-only and verify-only use their existing object/case basis without inventing implementation or uncommissioned upstream stages. Frame clarifies inputs; requirements establishes the adopted input or approved AI-authored requirement authority. Do not generate empty stages or templates. When two responsibilities share the same already-approved current document, reuse that exact approval without asking twice.
 
 Human review applies to AI-authored or substantively revised requirements, prototypes, independent diagnoses, technical designs, each interface/SQL document, test cases and implementation plans. It does not apply to unchanged user-supplied inputs or internal source, adoption, self-check and state records.

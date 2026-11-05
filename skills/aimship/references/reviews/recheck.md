@@ -12,6 +12,8 @@ Determine whether those findings are resolved and whether the repair creates rel
 
 Apply the [shared review method](../review-method.md). Examine the repair and affected dependencies, not an uncommissioned full verification suite. Record open/deferred issues honestly. If the original review was overall, retain overall scope and cover the complete current implementation object.
 
+Apply [in-place revision rules](../document-revisions.md). Preserve approved definitions; record detailed REV/RUN history in its owning document and keep only one state-generated current result. A formal TC pass requires every defined combination and assertion; partial execution is not whole-case coverage.
+
 ## Outputs and result
 
 A new REV with the actual reviewOf coverage and historyResultRefs pointing to the superseded review result. Keep old findings and attach the disposition/rechecked object. A correction records a new implementation run with workType: repair, the same batchId where applicable and the actual repairOf/history result basis; completed checkpoints and the failed REV stay intact. Independent overall repair may have no batchId, but must retain the overall responsibility and be covered by the overall recheck. Repair is not a new business batch.

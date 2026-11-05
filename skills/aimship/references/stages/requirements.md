@@ -14,6 +14,10 @@ Write the current requirements, important rules, normal/error/boundary behavior,
 
 Ask for business behavior, compatibility or endpoint choices that cannot be inferred. Do not invent user acceptance.
 
+Use the nine-chapter [PRD template](../templates/prd.md) for new/partial requirements: retain source correspondence, objects/states, uniquely defined behavior and permission/error rules, page operations and decidable AC. Fully adopted inputs retain their original format. Check every required field and distinguish unknown facts from inapplicable features.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use the selected PRD requirement entry. For a new PRD preserve the ordinary template headings and section order; a complete adopted PRD retains its own outline.

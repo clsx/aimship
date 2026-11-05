@@ -1,5 +1,7 @@
 # Sources, artifacts and change flow
 
+For writing and later cleanup, apply [in-place revision rules](document-revisions.md): replace affected current sections, preserve required detail and retain history in its owning record/evidence location.
+
 ## Adopt without rewriting the source
 
 Keep the original commission and stable initialization context in `.aimship/init.md`, separating quoted user input from your summary. Correct initialization details as needed without turning the file into a progress log or rewriting the original commission. Substantive requirement changes belong in the current PRD and the existing change flow. Preserve external PRD, prototype, handover-note and image originals at their supplied locations. Retain the adopted versions as described under [location and version discipline](#location-and-version-discipline); neither storing files nor extracting text establishes visual or interaction validation.

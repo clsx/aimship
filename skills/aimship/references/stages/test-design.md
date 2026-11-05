@@ -14,6 +14,10 @@ Map requirements, acceptance and risks to observable normal, boundary/error and 
 
 Missing tools or execution authority do not justify deleting a valid case. Clarify acceptance omissions through current requirements rather than measuring only test count.
 
+Use the [testing template](../templates/testing.md): short case index followed by one substantive definition per TC, ordered steps and corresponding assertions, explicit data combinations and assertion locations. Check AC/rules, interface branches and page states against cases. Missing conditions remain gaps, never deleted cases or assumed execution.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use testing.md.

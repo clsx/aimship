@@ -14,6 +14,8 @@ Use the [shared start/continuation sequence](../core.md#begin-or-resume-the-sele
 
 Expanded external behavior, data handling or authorization needs return to the relevant decision. A rejected permission remains blocked and is not retried through another host.
 
+Apply [in-place revision rules](../document-revisions.md). Preserve approved definitions; record detailed REV/RUN history in its owning document and keep only one state-generated current result. A formal TC pass requires every defined combination and assertion; partial execution is not whole-case coverage.
+
 ## Outputs and result
 
 Use plan.md.

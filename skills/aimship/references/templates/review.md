@@ -2,27 +2,49 @@
 
 Delivery: <deliveryId from init>; document revision: <revision>.
 
-## 1. Review basis and scope
+Basis: identify the authoritative inputs and versions. Summary: state the effective proposal or the object reviewed/executed, without a second progress ledger.
+
+Replace guidance with actual content. Retain every section; state the concrete reason for inapplicability. An unknown applicable detail is a gap with impact and a resolution point, never “not applicable”.
+
+**Contents**
+
+- [1. Current conclusion and applicable object](#1-current-conclusion-and-applicable-object)
+- [2. Review basis and scope](#2-review-basis-and-scope)
+- [3. Review records](#3-review-records)
+- [4. Open findings](#4-open-findings)
+
+## 1. Current conclusion and applicable object
 
 ### 1.1 Current review (generated)
 
 Pending state generation.
 
-### 1.2 Review basis
+### 1.2 Applicability limits
 
-State the requirements/design/plan references and review scope. Put each review's actual repositories, baseline plus differences, reviewer and date with its REV record. Keep object details readable and link the exact manifest when useful. Replace guidance with actual content; never prefill a result.
+Explain limits of the generated summary and any unavailable review context. Do not maintain a second current result table; review is not execution or acceptance.
 
-## 2. Review records
+## 2. Review basis and scope
 
-Use a separate REV subsection for each batch, overall or repair review. Within it write:
+### 2.1 Review basis
 
-- Scope and object: B/TASK and relevant REQ/AC, repositories/baseline/differences, reviewer and date.
-- Assessment: requirements/contract consistency and code quality in this scope; reference relevant checks without repeating implementation or test-command logs.
-- Findings: Finding | Severity/impact | File/section/symbol | Problem and basis | Disposition/status. Use a readable local finding label when a repair/recheck needs to refer back to it. If no findings, state the reviewed scope/object and brief passing conclusion without an empty table or a command transcript.
-- Repairs and recheck: associate each finding with the actual change, rechecked object and conclusion; distinguish resolved, open and explicitly deferred work.
+Identify requirement/design/contract/plan versions and their approved scope.
 
-Keep overall review separate from batch records. Replace guidance with actual content; never prefill a result.
+### 2.2 Objects and scope
 
-## 3. Open findings and current conclusion
+Identify batch, overall or repair review responsibilities and the reviewed repositories. Actual baseline/differences, date and reviewer belong to each REV.
 
-Explain remaining findings and whether they block continuation, citing their REV records and disposition. The generated current review section above owns the effective result summary; do not create a second current-status table or accumulate obsolete “next batch” instructions here. Distinguish review findings from unexecuted validation and link testing.md for runtime coverage and missing conditions. Historical conclusions remain inside their REV records for the old objects. Review is not runtime validation or user acceptance. Replace guidance with actual content; never prefill a result.
+## 3. Review records
+
+### 3.1 Review records and rechecks
+
+Create one unique REV detail per batch, overall or repair review. Each records: object/baseline/differences/date/reviewer; B/TASK/REQ/AC; specification consistency and code assessment; findings; repair/recheck. Findings table: Local finding ID | Severity/impact | File/symbol/section | Problem and basis | Disposition | Rechecked object and conclusion. No findings: state scope and a short conclusion without an empty findings table. Preserve old failed objects/results. A local repair pass cannot substitute for the overall review of current code.
+
+## 4. Open findings
+
+### 4.1 Open finding references
+
+Cite unresolved/deferred findings and their actions or blocking effects; do not duplicate details or accumulate old “next batch” instructions.
+
+### 4.2 Validation gaps
+
+Reference testing for runtime evidence and missing conditions; code review does not prove tests passed.

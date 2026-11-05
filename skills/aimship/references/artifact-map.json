@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "documents": {
     "prd": {
       "path": "prd.md",
@@ -7,8 +7,10 @@
         "info",
         "goals",
         "scope",
-        "requirements",
         "states",
+        "requirements",
+        "interaction",
+        "constraints",
         "acceptance",
         "arrangement"
       ],
@@ -16,20 +18,24 @@
         "en": [
           "Document information and sources",
           "Background, goals and non-goals",
-          "Scope and delivery endpoint",
+          "Roles and scope",
+          "Objects, states and business flows",
           "Requirements and behavior",
-          "States, interaction and recovery",
+          "Pages and interaction",
+          "Permissions, errors and quality requirements",
           "Acceptance criteria",
           "Dependencies, questions and stage arrangement"
         ],
         "zh-CN": [
           "文档信息与来源",
           "背景、目标与非目标",
-          "范围与交付终点",
-          "需求与行为",
-          "状态、交互与恢复",
+          "角色与范围",
+          "对象、状态与业务流程",
+          "功能与行为规则",
+          "页面与交互",
+          "权限、异常与非功能要求",
           "验收标准",
-          "依赖、待确认问题与阶段安排"
+          "依赖、待决事项与阶段安排"
         ]
       }
     },
@@ -38,30 +44,39 @@
       "sections": [
         "basis",
         "architecture",
+        "flows",
         "modules",
         "data",
+        "frontend",
+        "interfaces",
         "errors",
         "risks",
         "coverage"
       ],
       "headings": {
         "en": [
-          "Basis and engineering context",
-          "Architecture and key flows",
-          "Modules and interaction implementation",
-          "Data, interfaces and SQL",
-          "Errors and nonfunctional design",
-          "Tradeoffs and risks",
+          "Summary and design basis",
+          "System architecture and connections",
+          "Operations and processing flows",
+          "Backend modules and classes",
+          "Data model and consistency",
+          "Frontend design",
+          "Interface overview",
+          "Permissions, performance and recovery",
+          "Migration, tradeoffs and risks",
           "Requirement coverage and questions"
         ],
         "zh-CN": [
-          "设计依据",
-          "架构与边界",
-          "模块与职责",
-          "数据与接口",
-          "错误与恢复",
-          "风险与取舍",
-          "需求覆盖与待确认问题"
+          "方案摘要与设计依据",
+          "系统架构与连接",
+          "操作与处理流程",
+          "后端模块与类设计",
+          "数据模型与一致性",
+          "前端设计",
+          "接口概要",
+          "权限、性能与运行恢复",
+          "迁移、取舍与风险",
+          "需求覆盖与待决项"
         ]
       }
     },
@@ -78,19 +93,19 @@
       "headings": {
         "en": [
           "Implementation basis and scope",
-          "Batches and dependencies",
+          "Batch outcomes and dependencies",
           "Tasks and completion criteria",
           "Review and independent verification arrangement",
-          "Task status and execution records",
+          "Current execution and history",
           "Deviations, blockers and remaining work"
         ],
         "zh-CN": [
-          "计划依据",
-          "实施批次",
-          "实施任务",
-          "验证安排",
-          "执行记录",
-          "剩余工作"
+          "实施依据与范围",
+          "批次成果与依赖",
+          "任务与完成条件",
+          "审查及独立验证安排",
+          "当前执行与历史",
+          "偏差、阻塞与剩余任务"
         ]
       }
     },
@@ -108,38 +123,41 @@
         "en": [
           "Basis and scope",
           "Environment, data and execution conditions",
-          "Test cases",
+          "Case index and details",
           "Coverage and verification arrangement",
-          "Execution and retest records",
-          "Defects, current conclusion and remaining work"
+          "Formal verification and execution records",
+          "Defects and unfinished work"
         ],
         "zh-CN": [
-          "测试依据",
-          "测试环境",
-          "测试用例",
-          "覆盖说明",
-          "执行记录",
-          "验证结论"
+          "依据与范围",
+          "环境、数据与执行条件",
+          "用例索引与详情",
+          "覆盖与验证安排",
+          "正式验证结果及执行记录",
+          "缺陷与未完成项"
         ]
       }
     },
     "review": {
       "path": "review.md",
       "sections": [
+        "current",
         "basis",
         "reviews",
         "conclusion"
       ],
       "headings": {
         "en": [
+          "Current conclusion and applicable object",
           "Review basis and scope",
           "Review records",
-          "Open findings and current conclusion"
+          "Open findings"
         ],
         "zh-CN": [
-          "审查依据",
-          "审查记录",
-          "审查结论"
+          "当前结论与适用对象",
+          "审查依据与范围",
+          "逐次审查记录",
+          "未关闭问题"
         ]
       }
     },
@@ -180,6 +198,8 @@
       "sections": [
         "goals",
         "artifacts",
+        "configuration",
+        "sql",
         "usage",
         "results",
         "limits",
@@ -189,18 +209,22 @@
         "en": [
           "Current goal comparison",
           "Artifacts, repositories and versions",
-          "Usage",
+          "Configuration and dependencies",
+          "SQL and execution facts",
+          "Usage and continuation",
           "Review and verification",
           "Limitations and remaining work",
-          "Acceptance, integration, release and continuation"
+          "Acceptance, integration and release facts"
         ],
         "zh-CN": [
-          "目标与范围",
-          "成果清单",
-          "使用说明",
-          "验证结果",
-          "限制与遗留事项",
-          "交付结论"
+          "目标达成",
+          "成果与代码和制品",
+          "配置与依赖",
+          "SQL 与执行情况",
+          "使用和接续",
+          "审查与验证",
+          "限制与剩余",
+          "接受、集成与发布事实"
         ]
       }
     },

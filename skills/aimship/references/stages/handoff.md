@@ -14,6 +14,10 @@ Provide deliverable links, use/check instructions, actual validation scope and l
 
 Showing results does not revise the endpoint. Required blocked verification means incomplete acceptance, even when code is ready. Small later corrections reopen with preserved closure; independent goals create related deliveries.
 
+Use all eight chapters of the [handoff template](../templates/handoff.md), including configuration/dependency sources, target-specific SQL execution facts, actual code/build objects, usable ordered instructions and independent acceptance/integration/release facts. Explain absent objects from the actual scope; no empty placeholder completion claims.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use handoff.md.

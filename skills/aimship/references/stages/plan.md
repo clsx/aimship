@@ -14,6 +14,10 @@ Define executable batches, each goal and requirement coverage, dependencies, aut
 
 A material change in scope/endpoint needs a decision; routine task splitting does not. Record the reason if changing the existing order.
 
+Use the [plan template](../templates/plan.md). Retain TASK, B, REQ/AC or risk, repository, file/class/component, concrete change, completion criteria and design/contract reference. Cross-check every new/changed operation, data change and page/component against tasks. Summarizing or continuing a plan must not remove these fields.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use plan.md. Keep batch goals, dependencies and TASK definitions in the approved design sections. After approval, register stable B definitions, TASK references and dependencies through the state tool. Its finite generated execution section supplies the one current batch progress table, including implementation/review results and references. Keep detailed notes and blockers outside that generated section; do not hand-maintain another status table or redefine approved work in the execution area.

@@ -281,12 +281,19 @@ Provide the original delivery directory, interrupted action and error. The AI ch
 
 Manual progress-page edits are preserved first; conflicts need coordination. Do not approve work by editing that page. If code moves, provide its new location so the AI can check identity before updating the association.
 
+### 2.3 Reading and revising documents
+
+New documents start with a short effective summary and a table of contents. Technical design has ten chapters: basis, architecture, operations/flows, backend classes/modules, data/consistency, frontend, interfaces, permissions/performance/recovery, migration/risks and coverage/questions. Use operation, class and table inventories to find the corresponding sequence, class and ER diagrams; factual inapplicability is explained in place. Plans keep file/class/component changes and completion criteria for every task; tests use a short index and detailed steps, assertions and required data combinations.
+
+When you request a change, the AI updates the affected current sections and diagrams. Important differences stay in change-log; earlier snapshots and process evidence stay under .aimship/evidence. The current document must remain understandable without reading those histories. Risks, limitations and decisions needing your answer remain visible. Task/case details survive cleanup, and the generated current summaries remain unique. Formatting-only edits carry valid approval; changes in meaning return only the affected work for review. See a [synthetic detailed example](examples/reservation/README.md).
+
 <a id="3-other-starting-points-and-work-arrangements"></a>
 <a id="scenarios"></a>
 <a id="5-other-starting-points-and-work-arrangements"></a>
 <a id="guide-other"></a>
 <a id="2-other-usage-notes"></a>
 <a id="guide-inputs"></a>
+
 
 ## 3. Requirements inputs and changes
 
@@ -404,7 +411,7 @@ For duplicate entries, check their sources and versions while preserving custom 
 
 ### 5.3 Continue after upgrading
 
-Save current work and check [upgrade compatibility](#update) before updating. After a compatible update, refresh the tool’s rules or start a new session, activate Aimship and provide the same delivery directory. Check the actual bound version and delivery state; installation itself does not update delivery records.
+Save current work and check [upgrade compatibility](#update) before updating. Protocol 3 changes native document outlines; deliveries from Preview 17–23 are not continued or migrated. Their files remain intact; finish them with their supported version before switching, or start a new delivery where appropriate. After a compatible update, refresh the tool’s rules or start a new session, activate Aimship and provide the same delivery directory. Check the actual bound version and delivery state; installation itself does not update delivery records.
 
 <a id="45-installation-and-maintenance-references"></a>
 <a id="installation-and-maintenance-references"></a>

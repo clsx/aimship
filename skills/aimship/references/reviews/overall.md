@@ -12,6 +12,8 @@ Find cross-batch consistency, shared-rule and integration defects that individua
 
 Apply the [shared review method](../review-method.md) to the combined scope, including repair changes. Examine cross-batch connections, requirement/design/contract consistency and actual logic, transactions/data consistency, state transitions and failure/exception paths where relevant. Check whether the approach is correct in the actual project, not only whether code copied the design. Route a material design defect back to its real decision and review affected changes; do not expand into unrelated historical cleanup. Reference local checks without claiming formal runtime verification.
 
+Apply [in-place revision rules](../document-revisions.md). Preserve approved definitions; record detailed REV/RUN history in its owning document and keep only one state-generated current result. A formal TC pass requires every defined combination and assertion; partial execution is not whole-case coverage.
+
 ## Outputs and result
 
 An independent overall REV with reviewScope: overall, reviewOf covering all current implementation/repair runs and the combined objectKey. Preserve earlier REV facts and name the exact reviewed basis. This is the existing overall-review stage, not another main stage.

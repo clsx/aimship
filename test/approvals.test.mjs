@@ -95,7 +95,7 @@ test('approval: testing execution and plan execution do not revoke design approv
  await c.approve(['testing.md']);await c.save({stageRuns:[c.state.stageRuns[0],{...c.state.stageRuns[1],progress:'done',resultRef:'plan.md#tasks',outputRefs:['plan.md']}]});await c.approve(['plan.md']);
  await fs.appendFile(path.join(c.dir,'testing.md'),'New RUN evidence.');await fs.appendFile(path.join(c.dir,'plan.md'),'TASK actual execution.');await c.save({});
  assert.equal((await readState(c.dir)).review.documents.filter(d=>['plan.md','testing.md'].includes(d.path)).every(d=>d.status==='approved'),true);
- await fs.writeFile(path.join(c.dir,'testing.md'),(await fs.readFile(path.join(c.dir,'testing.md'),'utf8')).replace('## Test cases','## Test cases\nChanged expectation.'));
+ await fs.writeFile(path.join(c.dir,'testing.md'),(await fs.readFile(path.join(c.dir,'testing.md'),'utf8')).replace('## Case index and details','## Case index and details\nChanged expectation.'));
  assert.equal((await readState(c.dir)).review.documents.find(d=>d.path==='testing.md').status,'self-check-required');
 });
 test('approval: SQL follows technical review, SQL-only contract requires every target and individual approvals',async t=>{

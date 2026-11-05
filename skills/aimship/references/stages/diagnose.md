@@ -14,6 +14,10 @@ Investigate within authorized objects. Record observations, reproduction or supp
 
 If the apparent small fix expands into behavior or scope changes, explain the impact before dependent implementation.
 
+Use the [diagnosis template](../templates/diagnosis.md): each check names object/version, method, observation, evidence and limit; each cause distinguishes confirmed facts, hypotheses and excluded alternatives. Keep unknown impacts and recovery conditions visible.
+
+For later edits, apply [in-place revision rules](../document-revisions.md); keep the same required fields and identities.
+
 ## Outputs and result
 
 Use diagnosis.md.

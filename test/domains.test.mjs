@@ -30,7 +30,7 @@ test('initialization admits planned work but rejects injected managed facts and 
 
 test('native protocol records a business batch separately from implementation and its required batch review',async t=>{
   const c=await nativeDelivery(t,{batchCount:2});
-  assert.equal(c.state.schemaVersion,5);assert.equal(c.state.protocolVersion,2);
+  assert.equal(c.state.schemaVersion,5);assert.equal(c.state.protocolVersion,3);
   const implementation=await c.implement('B-001');
   let read=await c.read();assert.equal(read.execution.batches.length,2);assert.equal(batch(read,'B-001').status,'await-review');
   assert.equal(c.state.batches.find(b=>b.id==='B-001').definitionRef,'plan.md#B-001');

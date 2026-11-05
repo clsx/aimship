@@ -32,7 +32,7 @@ test('ordinary references in summaries, coverage and execution keep one definiti
  const map=await artifactMap();
  for(const lang of ['en','zh-CN']) {
   const c=await fixture(t,lang),prd=await documentFixture('prd',lang),testing=await documentFixture('testing',lang);
-  const states=map.documents.prd.headings[lang][4];
+  const states=map.documents.prd.headings[lang][map.documents.prd.sections.indexOf('requirements')+1];
   const withNote=prd.replace('## '+states,(lang==='en'?'### Notes':'### 备注')+'\n- REQ-001 applies to AC-001 above.\n\n## '+states);
   await c.put('prd.md',withNote+'\n- REQ-001 is covered by AC-001.\n\n'+(lang==='en'?'## Summary':'## 总结')+'\n\n| REQ-001 | See the requirement and AC-001 above. |\n');
   const coverage=map.documents.testing.headings[lang][3];

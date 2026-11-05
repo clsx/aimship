@@ -1,0 +1,19 @@
+{
+  "deliveryId": "1626b9c1-357d-42c4-bf8f-eb07b5316ffb",
+  "artifacts": {
+    "testing.md": {
+      "hash": "8df14e4c25e6182355b757802f773af8a0f18e4c5b2f0a3d789f3198a1ec9cf7",
+      "revision": 9
+    },
+    "plan.md": {
+      "hash": "13f333580979075c58b53cf6ec7d124adaae0c388146e45919cec8f287f79233",
+      "revision": 9
+    },
+    "review.md": {
+      "hash": "e84b0124236ea8a7d47de6a19834fef9f122a82512b5e87f7cdc37ca163ad271",
+      "revision": 9
+    }
+  },
+  "hash": "75c24b9630cd9f9ba51b483ba225936e1b76edc33246957c5b344008da874348",
+  "revision": 9
+}

@@ -69,5 +69,5 @@ const multiEvidence=await evidence(two.c,'formal-run.json',{objectKey:o2,command
 await two.c.append('testing','runs','Actual integrated local assertions: ['+multiEvidence+']('+multiEvidence+').');
 const twoRun=await two.c.verify({objectKey:o2});const summary2=await finish(two,twoRun.id);
 assert.equal(summary2.batches.length,2,'An overall repair does not create a third business batch.');
-const report={version:one.c.version,protocolVersion:2,output,one:summary1,two:summary2,verificationGate:gate,execution:{single:singleRows,multiMaintainerNegativeProbe:probe,multiFormalVerification:multiRows},limits:'Scripted synthetic local behavior and actual Node assertions; no real AI-host, Windows host, UI, network, deployment or user acceptance claim.',completed:true};
+const report={version:one.c.version,protocolVersion:one.c.state.protocolVersion,output,one:summary1,two:summary2,verificationGate:gate,execution:{single:singleRows,multiMaintainerNegativeProbe:probe,multiFormalVerification:multiRows},limits:'Scripted synthetic local behavior and actual Node assertions; no real AI-host, Windows host, UI, network, deployment or user acceptance claim.',completed:true};
 await fs.writeFile(path.join(output,'summary.json'),json(report));console.log(json(report));

@@ -130,9 +130,9 @@ test('any redirected stream disables the prompt and preserves structured errors'
 });
 
 test('explicit terminal acceptance and compatible updates skip the prompt', async t => {
-  for (const protocol of [1, 2]) {
+  for (const protocol of [1, 2, pkg.aimship.protocolVersion]) {
     const c = await fixture(t, protocol), term = terminal(null);
-    await main(['install', '--home', c.home, ...(protocol === 1 ? ['--accept-upgrade-risk'] : [])], term);
+    await main(['install', '--home', c.home, ...(protocol !== pkg.aimship.protocolVersion ? ['--accept-upgrade-risk'] : [])], term);
     assert.equal(term.prompts(), 0); assert.equal(term.stderr(), '');
     assert.equal(JSON.parse(term.stdout()).data.activeVersion, pkg.version); term.input.destroy();
   }
