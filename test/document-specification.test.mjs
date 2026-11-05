@@ -123,3 +123,20 @@ test('retained business IDs in permission/error sections remain definitions, not
   assert.equal(definitions(duplicate,'prd.md',spec).filter(d=>d.id===prefix+'-001').length,2);
  }
 });
+
+for(const ending of ['LF','CRLF']) test(`numbered case details and duplicate checks preserve ${ending} input`,async t=>{
+ const c=await detailedDelivery(t),spec=(await artifactMap()).documents.testing,file=path.join(c.dir,'testing.md');
+ const lf=(await fs.readFile(file,'utf8')).replaceAll('\r\n','\n');
+ const encode=s=>ending==='CRLF'?s.replaceAll('\n','\r\n'):s;
+ const raw=encode(lf);await fs.writeFile(file,raw);
+ const records=definitions(raw,'testing.md',spec).filter(d=>d.id.startsWith('TC-'));
+ assert.equal(records.length,4);assert.ok(records.every(d=>d.body.includes('Objective:')));
+ assert.deepEqual(records.map(d=>({...d,body:d.body.replaceAll('\r','')})),definitions(lf,'testing.md',spec).filter(d=>d.id.startsWith('TC-')));
+ assert.deepEqual((await inspectDocuments(c.dir,c.state)).issues,[]);
+ for(const area of sections(raw,spec))assert.ok(raw.slice(area.start).startsWith('## '),'Section offsets address the original bytes.');
+ const duplicate=encode(lf.replace('## 4. Coverage and verification arrangement','### 3.2.5 TC-001 — Conflicting detail\n\nObjective: create a different hold for the same key.\n\n## 4. Coverage and verification arrangement'));
+ await fs.writeFile(file,duplicate);
+ assert.equal(definitions(duplicate,'testing.md',spec).filter(d=>d.id==='TC-001').length,2);
+ assert.ok((await inspectDocuments(c.dir,c.state)).issues.includes('Duplicate definition TC-001.'));
+ assert.equal(await fs.readFile(file,'utf8'),duplicate,'Inspection never rewrites line endings.');
+});
